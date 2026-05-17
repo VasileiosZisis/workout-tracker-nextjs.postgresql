@@ -1,5 +1,23 @@
 # Milestone: Foundation
 
+## Status
+
+Implemented.
+
+Verification completed:
+
+- Prisma schema validation passes.
+- Prisma Client generation passes.
+- Vitest smoke test passes.
+- ESLint passes.
+- TypeScript check passes.
+- Production build passes.
+- Local dev server responds on `/`, `/login`, `/logs`, and a missing route.
+
+Browser CLI note:
+
+- `agent-browser` is not installed or available on PATH in this environment, so the Milestone 0 flow check used HTTP route smoke checks and dev server logs.
+
 ## Goal
 
 Create the base Next.js application and infrastructure needed for the rewrite.
@@ -9,6 +27,7 @@ Create the base Next.js application and infrastructure needed for the rewrite.
 - Next.js App Router with TypeScript.
 - Basic route groups.
 - Prisma and Neon-ready PostgreSQL configuration.
+- npm package management with `package-lock.json`.
 - Project scripts for development, build, lint, type checking, tests, and Prisma.
 - Environment variable examples.
 - Simple functional styling baseline.
@@ -17,6 +36,7 @@ Create the base Next.js application and infrastructure needed for the rewrite.
 
 - Scaffold the Next.js app in this repository.
 - Add TypeScript, ESLint, and formatting conventions.
+- Use npm for dependency installation and scripts.
 - Add Prisma dependencies and base Prisma configuration.
 - Add Neon Postgres environment variables to `.env.example`.
 - Add the initial `prisma/schema.prisma`.

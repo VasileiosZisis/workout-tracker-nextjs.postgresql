@@ -15,6 +15,7 @@ The rewrite starts with an empty PostgreSQL database. MongoDB data migration is 
 - Zod validation shared between form actions and route handlers
 - Auth.js with Prisma Adapter
 - TypeScript
+- npm
 
 ## Documentation
 
@@ -33,6 +34,6 @@ The rewrite starts with an empty PostgreSQL database. MongoDB data migration is 
 - Slugs should be scoped instead of globally unique, so two users can create the same log or exercise names.
 - Derived metrics such as volume, pace, and speed should be calculated on the server, not trusted from client input.
 
-## Next Step
+## Current Status
 
-Resolve the questions in [Open Decisions](docs/05-open-decisions.md), then scaffold the Next.js app, Prisma schema, auth layer, validation package, and first vertical slice.
+Milestone 0 foundation is scaffolded. Next step: complete [Milestone 1: Auth](docs/milestones/01-auth.md) with Auth.js, Prisma Adapter models, and Google OAuth.

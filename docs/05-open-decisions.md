@@ -15,6 +15,7 @@ This file tracks settled decisions, pending setup, and future considerations.
 - Units for v1: use kilograms and kilometers.
 - Admin for v1: keep an `ADMIN` role in the schema, but do not build admin UI.
 - Chart library: use Recharts.
+- Package manager: use npm and commit `package-lock.json`.
 
 ## Setup Still Pending
 
