@@ -4,14 +4,15 @@ Use these milestones as the execution checklist for the rewrite. Each milestone 
 
 ## Milestone Order
 
-1. [Foundation](milestones/00-foundation.md)
-2. [Auth](milestones/01-auth.md)
-3. [Logs](milestones/02-logs.md)
-4. [Exercises](milestones/03-exercises.md)
-5. [Weightlifting Sessions](milestones/04-weightlifting-sessions.md)
-6. [Pace Sessions](milestones/05-pace-sessions.md)
-7. [Charts And Progress](milestones/06-charts-progress.md)
-8. [Production Readiness](milestones/07-production-readiness.md)
+0. [Foundation](milestones/00-foundation.md)
+1. [Auth](milestones/01-auth.md)
+2. [Logs](milestones/02-logs.md)
+3. [Exercises](milestones/03-exercises.md)
+4. [Weightlifting Sessions](milestones/04-weightlifting-sessions.md)
+5. [Pace Sessions](milestones/05-pace-sessions.md)
+6. [Charts And Progress](milestones/06-charts-progress.md)
+7. [Redesign And UI Polish](milestones/07-redesign-ui-polish.md)
+8. [Production Readiness](milestones/08-production-readiness.md)
 
 ## Completion Rule
 

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Prepare the app for deployment and the pre-launch redesign pass.
+Prepare the redesigned app for deployment.
 
 ## Scope
 
@@ -12,7 +12,6 @@ Prepare the app for deployment and the pre-launch redesign pass.
 - Environment variable audit.
 - Security hardening.
 - Accessibility and browser smoke checks.
-- Final redesign preparation.
 
 ## Tasks
 
@@ -27,7 +26,6 @@ Prepare the app for deployment and the pre-launch redesign pass.
 - Audit Auth.js callback URLs and OAuth settings.
 - Audit error handling and logging.
 - Run accessibility checks on core flows.
-- Create redesign task list before launch.
 
 ## Tests
 
@@ -58,7 +56,6 @@ Prepare the app for deployment and the pre-launch redesign pass.
 - Prisma migrations can be deployed repeatably.
 - Auth callback URLs work in deployed environments.
 - Core flows pass in the deployed preview.
-- A separate redesign checklist exists before launch.
 
 ## Out Of Scope
 
