@@ -115,11 +115,34 @@ export async function deleteLogAction(formData: FormData) {
     notFound();
   }
 
-  const deleted = await prisma.log.deleteMany({
-    where: {
-      id: logId,
-      userId: user.id,
-    },
+  const deleted = await prisma.$transaction(async (tx) => {
+    await tx.paceSession.deleteMany({
+      where: {
+        logId,
+        userId: user.id,
+      },
+    });
+
+    await tx.weightliftingSession.deleteMany({
+      where: {
+        logId,
+        userId: user.id,
+      },
+    });
+
+    await tx.exercise.deleteMany({
+      where: {
+        logId,
+        userId: user.id,
+      },
+    });
+
+    return tx.log.deleteMany({
+      where: {
+        id: logId,
+        userId: user.id,
+      },
+    });
   });
 
   if (deleted.count === 0) {
