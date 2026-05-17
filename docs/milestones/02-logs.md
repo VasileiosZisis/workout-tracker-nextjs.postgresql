@@ -1,5 +1,36 @@
 # Milestone: Logs
 
+## Status
+
+Implemented.
+
+Verification completed:
+
+- `Log` Prisma model was added.
+- Migration `20260517122532_add_logs` was created and applied.
+- Prisma migration status reports the database is up to date.
+- Slug generation is scoped to each user.
+- Log Zod validation is implemented.
+- Log query helpers are ownership-scoped.
+- Log Server Actions are implemented for create, update, and delete.
+- `/logs`, `/logs/new`, `/logs/[logSlug]`, and `/logs/[logSlug]/edit` are implemented.
+- Delete flow includes a client-side confirmation prompt.
+- Empty state and pagination are implemented.
+- Unit tests cover slug generation and validation.
+- Integration tests cover ownership-scoped log queries.
+- Prisma schema validation passes.
+- Vitest passes.
+- ESLint passes.
+- TypeScript check passes.
+- Production build passes.
+- Authenticated server logs show `/logs` and `/profile` returning 200 after Google sign-in.
+
+Manual verification still useful:
+
+- Create a log through the browser.
+- Edit the log title and confirm the URL slug updates when no collision exists.
+- Delete the log and confirm it disappears.
+
 ## Goal
 
 Build the first full vertical slice: authenticated users can manage their own logs.

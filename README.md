@@ -36,4 +36,4 @@ The rewrite starts with an empty PostgreSQL database. MongoDB data migration is 
 
 ## Current Status
 
-Milestone 0 foundation is scaffolded. Milestone 1 auth is implemented with Auth.js, Prisma Adapter, Google OAuth, and database sessions. Next step: manually confirm Google sign-in locally, then continue to [Milestone 2: Logs](docs/milestones/02-logs.md).
+Milestones 0-2 are implemented: foundation, Auth.js with Google OAuth/database sessions, and log CRUD. Next step: manually confirm the browser log create/edit/delete flow, then continue to [Milestone 3: Exercises](docs/milestones/03-exercises.md).
