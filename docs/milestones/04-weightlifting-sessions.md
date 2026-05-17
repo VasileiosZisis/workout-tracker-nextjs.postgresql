@@ -1,5 +1,7 @@
 # Milestone: Weightlifting Sessions
 
+Status: Implemented on 2026-05-17.
+
 ## Goal
 
 Implement weightlifting session tracking with sets and server-calculated volume metrics.
@@ -67,3 +69,24 @@ Implement weightlifting session tracking with sets and server-calculated volume 
 ## Notes
 
 Prefer session ids in URLs to avoid the old date-slug collision problem.
+
+## Implementation Notes
+
+- Added `WeightliftingSession` and `WeightliftingSet` models.
+- Added migration `20260517153021_add_weightlifting_sessions`.
+- Weightlifting sessions use database ids in URLs.
+- Session sets are replaced inside a Prisma transaction during edits.
+- Total, working, junk, and per-set volume are calculated on the server from submitted sets.
+- Exercise detail pages now show weightlifting session lists and pagination for weightlifting exercises.
+- Pace exercises keep a placeholder until Milestone 5.
+
+## Verification
+
+- `npm run prisma:validate`
+- `npm exec prisma migrate status`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
+- Authenticated local route check passed for exercise detail, new session, show session, and edit session pages.
+- Manual browser flow still needs your signed-in session to confirm create, edit, previous session display, and delete from the UI.

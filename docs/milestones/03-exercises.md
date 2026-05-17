@@ -85,3 +85,4 @@ Do not add complex exercise libraries yet. The old app lets users name their own
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
+- Manual app flow tested: create, edit, cancel from edit, and delete exercises inside logs.

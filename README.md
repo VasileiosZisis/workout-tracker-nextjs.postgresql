@@ -36,4 +36,4 @@ The rewrite starts with an empty PostgreSQL database. MongoDB data migration is 
 
 ## Current Status
 
-Milestones 0-3 are implemented: foundation, Auth.js with Google OAuth/database sessions, log CRUD, and exercise CRUD inside logs. Next step: browser-check the exercise create/edit/delete flow, then continue to [Milestone 4: Weightlifting Sessions](docs/milestones/04-weightlifting-sessions.md).
+Milestones 0-4 are implemented: foundation, Auth.js with Google OAuth/database sessions, log CRUD, exercise CRUD inside logs, and weightlifting session CRUD with server-calculated volume metrics. Next step: manually confirm the weightlifting session browser flow, then continue to [Milestone 5: Pace Sessions](docs/milestones/05-pace-sessions.md).
