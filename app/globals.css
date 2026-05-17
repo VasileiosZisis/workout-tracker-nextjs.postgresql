@@ -255,7 +255,7 @@ h2 {
   font-weight: 700;
 }
 
-.field input {
+.field input[type="text"] {
   width: 100%;
   min-height: 44px;
   border: 1px solid var(--border);
@@ -264,6 +264,27 @@ h2 {
   color: var(--foreground);
   font: inherit;
   padding: 8px 10px;
+}
+
+.field legend {
+  font-weight: 700;
+  padding: 0;
+}
+
+.field fieldset,
+fieldset.field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.radio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: var(--foreground);
+  font-weight: 400;
 }
 
 .form-error {

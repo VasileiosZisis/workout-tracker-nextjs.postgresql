@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getLogBySlug } from "@/features/logs/queries";
+import { getExercisesForLog } from "@/features/exercises/queries";
+import { sessionKindLabels } from "@/features/exercises/types";
 
 export async function generateMetadata({
   params,
@@ -31,6 +33,11 @@ export default async function LogDetailPage({
     notFound();
   }
 
+  const exercises = await getExercisesForLog({
+    userId: user.id,
+    logId: log.id,
+  });
+
   return (
     <main className="page">
       <Link className="text-link" href="/logs">
@@ -39,16 +46,42 @@ export default async function LogDetailPage({
       <section className="page-header compact-header">
         <p className="eyebrow">Log</p>
         <h1>{log.title}</h1>
-        <p className="lede">Exercises will be added in the next milestone.</p>
+        <p className="lede">Create and manage exercises for this log.</p>
         <div className="actions">
           <Link className="button-secondary" href={`/logs/${log.slug}/edit`}>
             Edit log
           </Link>
+          <Link className="button" href={`/logs/${log.slug}/exercises/new`}>
+            Add exercise
+          </Link>
         </div>
       </section>
-      <section className="empty-state section-block">
-        <p>No exercises yet.</p>
-      </section>
+      {exercises.length === 0 ? (
+        <section className="empty-state section-block">
+          <p>No exercises yet.</p>
+        </section>
+      ) : (
+        <section className="list section-block" aria-label="Exercises">
+          {exercises.map((exercise) => (
+            <article className="list-item" key={exercise.id}>
+              <div>
+                <h2>
+                  <Link href={`/logs/${log.slug}/exercises/${exercise.slug}`}>
+                    {exercise.title}
+                  </Link>
+                </h2>
+                <p>{sessionKindLabels[exercise.sessionKind]}</p>
+              </div>
+              <Link
+                className="text-link"
+                href={`/logs/${log.slug}/exercises/${exercise.slug}/edit`}
+              >
+                Edit
+              </Link>
+            </article>
+          ))}
+        </section>
+      )}
     </main>
   );
 }
