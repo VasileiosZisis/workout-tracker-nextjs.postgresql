@@ -86,4 +86,4 @@ Keep kilograms and kilometers for the first version unless the unit decision cha
 - `npm run test`
 - `npm run build`
 - Authenticated local route check passed for pace exercise detail, new session, show session, and edit session pages.
-- Manual browser flow still needs your signed-in session to confirm create, zero-value edge cases, previous session display, edit, and delete from the UI.
+- Manual browser flow tested: create, zero-value edge cases, previous session display, edit, and delete pace sessions.

@@ -1,5 +1,7 @@
 # Milestone: Charts And Progress
 
+Status: Implemented on 2026-05-17.
+
 ## Goal
 
 Add progress views that help users understand trends across their sessions.
@@ -56,3 +58,24 @@ Add progress views that help users understand trends across their sessions.
 ## Notes
 
 Keep this milestone practical. The final visual treatment can wait until the pre-deployment redesign.
+
+## Implementation Notes
+
+- Added Recharts for the first chart implementation.
+- Added chart-ready mapping helpers for weightlifting and pace progress data.
+- Added ownership-scoped progress query helpers.
+- Added weightlifting progress charts for total, working, and junk volume.
+- Added pace progress charts for distance, pace, and speed.
+- Added accessible fallback tables below each chart.
+- Added an exercise loading state and empty progress state.
+
+## Verification
+
+- `npm run prisma:validate`
+- `npm exec prisma migrate status`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
+- Authenticated local route checks passed for empty, one-point, multi-point, and pace progress states.
+- Manual signed-in chart rendering tested with no errors.

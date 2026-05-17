@@ -7,6 +7,14 @@ import { getExerciseBySlug } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
 import { parsePagination } from "@/features/logs/pagination";
 import {
+  PaceProgressChart,
+  WeightliftingProgressChart,
+} from "@/features/progress/components/progress-charts";
+import {
+  getPaceProgressData,
+  getWeightliftingProgressData,
+} from "@/features/progress/queries";
+import {
   formatDecimal as formatPaceDecimal,
   formatPace,
   formatSessionDate as formatPaceSessionDate,
@@ -65,6 +73,13 @@ export default async function ExerciseDetailPage({
           limit: paginationInput.limit,
         })
       : null;
+  const weightliftingProgressData =
+    exercise.sessionKind === SessionKind.WEIGHTLIFTING
+      ? await getWeightliftingProgressData({
+          userId: user.id,
+          exerciseId: exercise.id,
+        })
+      : null;
   const paceSessions =
     exercise.sessionKind === SessionKind.PACE
       ? await getPaceSessionsPage({
@@ -72,6 +87,13 @@ export default async function ExerciseDetailPage({
           exerciseId: exercise.id,
           page: paginationInput.page,
           limit: paginationInput.limit,
+        })
+      : null;
+  const paceProgressData =
+    exercise.sessionKind === SessionKind.PACE
+      ? await getPaceProgressData({
+          userId: user.id,
+          exerciseId: exercise.id,
         })
       : null;
 
@@ -110,13 +132,18 @@ export default async function ExerciseDetailPage({
         </div>
       </section>
       {exercise.sessionKind === SessionKind.WEIGHTLIFTING &&
-      weightliftingSessions ? (
+      weightliftingSessions &&
+      weightliftingProgressData ? (
         weightliftingSessions.sessions.length === 0 ? (
-          <section className="empty-state section-block">
-            <p>No sessions yet.</p>
-          </section>
+          <>
+            <WeightliftingProgressChart data={weightliftingProgressData} />
+            <section className="empty-state section-block">
+              <p>No sessions yet.</p>
+            </section>
+          </>
         ) : (
           <>
+            <WeightliftingProgressChart data={weightliftingProgressData} />
             <section className="list section-block" aria-label="Sessions">
               {weightliftingSessions.sessions.map((session) => (
                 <article className="list-item" key={session.id}>
@@ -173,13 +200,19 @@ export default async function ExerciseDetailPage({
             </nav>
           </>
         )
-      ) : exercise.sessionKind === SessionKind.PACE && paceSessions ? (
+      ) : exercise.sessionKind === SessionKind.PACE &&
+        paceSessions &&
+        paceProgressData ? (
         paceSessions.sessions.length === 0 ? (
-          <section className="empty-state section-block">
-            <p>No sessions yet.</p>
-          </section>
+          <>
+            <PaceProgressChart data={paceProgressData} />
+            <section className="empty-state section-block">
+              <p>No sessions yet.</p>
+            </section>
+          </>
         ) : (
           <>
+            <PaceProgressChart data={paceProgressData} />
             <section className="list section-block" aria-label="Sessions">
               {paceSessions.sessions.map((session) => (
                 <article className="list-item" key={session.id}>
