@@ -56,7 +56,7 @@ Avoid:
 - Polish log, exercise, weightlifting session, pace session, and chart pages. Done.
 - Improve form layouts and destructive action states. Done.
 - Improve empty, loading, not-found, and error states. Done.
-- Review chart readability and fallback tables.
+- Review chart readability and fallback tables. Done.
 - Audit mobile layouts for all core screens.
 - Audit keyboard navigation and focus states.
 - Audit color contrast and text sizing.

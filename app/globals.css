@@ -774,21 +774,44 @@ fieldset.field {
   margin-bottom: 0;
 }
 
+.section-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .chart-section {
   display: grid;
   gap: 16px;
 }
 
 .chart-frame {
-  min-height: 320px;
+  min-height: 332px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #111827 0%, #0e1420 100%);
+  padding: 18px 10px 10px;
+}
+
+.chart-table-wrap {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
-  padding: 16px 8px 8px;
+  overflow: hidden;
 }
 
 .chart-table {
-  margin-top: 4px;
+  border: 0;
+  border-radius: 0;
+}
+
+.chart-table caption {
+  caption-side: top;
+  color: var(--muted-strong);
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 12px;
+  text-align: left;
 }
 
 .metric-grid {
@@ -817,13 +840,24 @@ fieldset.field {
 .data-table th,
 .data-table td {
   border-bottom: 1px solid var(--border);
-  padding: 10px 12px;
+  padding: 12px;
   text-align: left;
+  white-space: nowrap;
 }
 
 .data-table th {
   color: var(--muted);
   font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.data-table td {
+  color: var(--muted-strong);
+}
+
+.data-table tbody tr:hover {
+  background: rgba(96, 165, 250, 0.06);
 }
 
 .data-table tr:last-child td {
@@ -982,6 +1016,25 @@ fieldset.field {
 
   .session-card {
     gap: 18px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .chart-frame {
+    min-height: 300px;
+    padding: 14px 4px 8px;
+  }
+
+  .chart-table-wrap {
+    overflow-x: auto;
+  }
+
+  .chart-table-wrap .chart-table {
+    display: table;
+    min-width: 560px;
   }
 
   .data-table {
