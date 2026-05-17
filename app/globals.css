@@ -267,6 +267,7 @@ h2 {
 }
 
 .field input[type="date"],
+.field input[type="number"],
 .set-row input[type="number"] {
   width: 100%;
   min-height: 44px;
@@ -276,6 +277,18 @@ h2 {
   color: var(--foreground);
   font: inherit;
   padding: 8px 10px;
+}
+
+.inline-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.inline-fields label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
 }
 
 .field legend {
@@ -478,6 +491,7 @@ fieldset.field {
   }
 
   .set-row,
+  .inline-fields,
   .metric-grid {
     grid-template-columns: 1fr;
   }

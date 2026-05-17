@@ -1,5 +1,7 @@
 # Milestone: Pace Sessions
 
+Status: Implemented on 2026-05-17.
+
 ## Goal
 
 Implement pace session tracking with server-calculated pace and speed metrics.
@@ -64,3 +66,24 @@ Implement pace session tracking with server-calculated pace and speed metrics.
 ## Notes
 
 Keep kilograms and kilometers for the first version unless the unit decision changes.
+
+## Implementation Notes
+
+- Added the `PaceSession` model.
+- Added migration `20260517155005_add_pace_sessions`.
+- Pace sessions use database ids in URLs.
+- Pace exercises now show paginated pace session lists.
+- Time, distance, pace, pace minutes, pace seconds, and speed are stored for reporting.
+- Pace and speed metrics are calculated on the server from submitted time and distance.
+- Zero-distance and zero-time edge cases return safe zero metrics instead of invalid values.
+
+## Verification
+
+- `npm run prisma:validate`
+- `npm exec prisma migrate status`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
+- Authenticated local route check passed for pace exercise detail, new session, show session, and edit session pages.
+- Manual browser flow still needs your signed-in session to confirm create, zero-value edge cases, previous session display, edit, and delete from the UI.

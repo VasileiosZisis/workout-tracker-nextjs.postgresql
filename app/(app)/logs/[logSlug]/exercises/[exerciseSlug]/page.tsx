@@ -6,7 +6,16 @@ import { requireUser } from "@/lib/auth";
 import { getExerciseBySlug } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
 import { parsePagination } from "@/features/logs/pagination";
-import { formatDecimal, formatSessionDate } from "@/features/weightlifting/format";
+import {
+  formatDecimal as formatPaceDecimal,
+  formatPace,
+  formatSessionDate as formatPaceSessionDate,
+} from "@/features/pace/format";
+import { getPaceSessionsPage } from "@/features/pace/queries";
+import {
+  formatDecimal as formatWeightliftingDecimal,
+  formatSessionDate as formatWeightliftingSessionDate,
+} from "@/features/weightlifting/format";
 import { getWeightliftingSessionsPage } from "@/features/weightlifting/queries";
 
 export async function generateMetadata({
@@ -56,6 +65,15 @@ export default async function ExerciseDetailPage({
           limit: paginationInput.limit,
         })
       : null;
+  const paceSessions =
+    exercise.sessionKind === SessionKind.PACE
+      ? await getPaceSessionsPage({
+          userId: user.id,
+          exerciseId: exercise.id,
+          page: paginationInput.page,
+          limit: paginationInput.limit,
+        })
+      : null;
 
   return (
     <main className="page">
@@ -81,6 +99,14 @@ export default async function ExerciseDetailPage({
               Add session
             </Link>
           ) : null}
+          {exercise.sessionKind === SessionKind.PACE ? (
+            <Link
+              className="button"
+              href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/new`}
+            >
+              Add session
+            </Link>
+          ) : null}
         </div>
       </section>
       {exercise.sessionKind === SessionKind.WEIGHTLIFTING &&
@@ -99,12 +125,12 @@ export default async function ExerciseDetailPage({
                       <Link
                         href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/weightlifting/${session.id}`}
                       >
-                        {formatSessionDate(session.performedAt)}
+                        {formatWeightliftingSessionDate(session.performedAt)}
                       </Link>
                     </h2>
                     <p>
-                      Total {formatDecimal(session.totalVolume)} kg, working{" "}
-                      {formatDecimal(session.workingVolume)} kg
+                      Total {formatWeightliftingDecimal(session.totalVolume)} kg,
+                      working {formatWeightliftingDecimal(session.workingVolume)} kg
                     </p>
                   </div>
                   <Link
@@ -147,9 +173,77 @@ export default async function ExerciseDetailPage({
             </nav>
           </>
         )
+      ) : exercise.sessionKind === SessionKind.PACE && paceSessions ? (
+        paceSessions.sessions.length === 0 ? (
+          <section className="empty-state section-block">
+            <p>No sessions yet.</p>
+          </section>
+        ) : (
+          <>
+            <section className="list section-block" aria-label="Sessions">
+              {paceSessions.sessions.map((session) => (
+                <article className="list-item" key={session.id}>
+                  <div>
+                    <h2>
+                      <Link
+                        href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/${session.id}`}
+                      >
+                        {formatPaceSessionDate(session.performedAt)}
+                      </Link>
+                    </h2>
+                    <p>
+                      {formatPaceDecimal(session.distance)} km,{" "}
+                      {Number(session.pace) === 0
+                        ? "0 min/km"
+                        : formatPace({
+                            paceMinutes: session.paceMinutes,
+                            paceSeconds: session.paceSeconds,
+                          })}
+                      , {formatPaceDecimal(session.speed)} km/h
+                    </p>
+                  </div>
+                  <Link
+                    className="text-link"
+                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/${session.id}/edit`}
+                  >
+                    Edit
+                  </Link>
+                </article>
+              ))}
+            </section>
+            <nav className="pagination" aria-label="Session pagination">
+              <span>
+                Page {paceSessions.pagination.page} of{" "}
+                {paceSessions.pagination.totalPages}
+              </span>
+              <div>
+                {paceSessions.pagination.page > 1 ? (
+                  <Link
+                    className="text-link"
+                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}?page=${
+                      paceSessions.pagination.page - 1
+                    }`}
+                  >
+                    Previous
+                  </Link>
+                ) : null}
+                {paceSessions.pagination.page < paceSessions.pagination.totalPages ? (
+                  <Link
+                    className="text-link"
+                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}?page=${
+                      paceSessions.pagination.page + 1
+                    }`}
+                  >
+                    Next
+                  </Link>
+                ) : null}
+              </div>
+            </nav>
+          </>
+        )
       ) : (
         <section className="empty-state section-block">
-          <p>Pace sessions will be added in the next milestone.</p>
+          <p>No sessions yet.</p>
         </section>
       )}
     </main>

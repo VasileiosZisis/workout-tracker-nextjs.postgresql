@@ -29,6 +29,7 @@ model User {
   logs                  Log[]
   exercises             Exercise[]
   weightliftingSessions WeightliftingSession[]
+  paceSessions          PaceSession[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -79,6 +80,7 @@ model Log {
   slug                  String
   exercises             Exercise[]
   weightliftingSessions WeightliftingSession[]
+  paceSessions          PaceSession[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -96,6 +98,7 @@ model Exercise {
   slug                  String
   sessionKind           SessionKind
   weightliftingSessions WeightliftingSession[]
+  paceSessions          PaceSession[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -134,4 +137,28 @@ model WeightliftingSet {
   volume      Decimal              @db.Decimal(12, 2)
 
   @@unique([sessionId, position])
+}
+
+model PaceSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logId       String
+  log         Log      @relation(fields: [logId], references: [id], onDelete: Cascade)
+  exerciseId  String
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  performedAt DateTime
+  hours       Int      @default(0)
+  minutes     Int      @default(0)
+  seconds     Int      @default(0)
+  distance    Decimal  @default(0) @db.Decimal(10, 2)
+  pace        Decimal  @default(0) @db.Decimal(10, 3)
+  paceMinutes Int      @default(0)
+  paceSeconds Int      @default(0)
+  speed       Decimal  @default(0) @db.Decimal(10, 3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, exerciseId, performedAt])
+  @@index([logId, exerciseId])
 }

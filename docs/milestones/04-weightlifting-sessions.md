@@ -89,4 +89,4 @@ Prefer session ids in URLs to avoid the old date-slug collision problem.
 - `npm run test`
 - `npm run build`
 - Authenticated local route check passed for exercise detail, new session, show session, and edit session pages.
-- Manual browser flow still needs your signed-in session to confirm create, edit, previous session display, and delete from the UI.
+- Manual browser flow tested: create, edit, previous session display, and delete weightlifting sessions.
