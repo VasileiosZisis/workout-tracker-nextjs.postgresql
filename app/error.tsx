@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function ErrorPage({
   error,
   reset,
@@ -9,14 +11,19 @@ export default function ErrorPage({
 }) {
   return (
     <main className="page">
-      <section className="page-header">
+      <section className="state-panel">
         <p className="eyebrow">Error</p>
         <h1>Something went wrong</h1>
-        <p className="lede">{error.message || "The page failed to load."}</p>
+        <p className="lede">
+          {error.message || "The page failed while loading training evidence."}
+        </p>
         <div className="actions">
           <button className="button" type="button" onClick={reset}>
             Try again
           </button>
+          <Link className="button-secondary" href="/logs">
+            Open logs
+          </Link>
         </div>
       </section>
     </main>

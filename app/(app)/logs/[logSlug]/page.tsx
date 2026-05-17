@@ -58,7 +58,13 @@ export default async function LogDetailPage({
       </section>
       {exercises.length === 0 ? (
         <section className="empty-state section-block">
-          <p>No exercises yet. Add one to start collecting sessions.</p>
+          <div>
+            <h2>No exercises yet</h2>
+            <p>Add one to start collecting sessions.</p>
+          </div>
+          <Link className="button" href={`/logs/${log.slug}/exercises/new`}>
+            Add exercise
+          </Link>
         </section>
       ) : (
         <section className="list section-block evidence-list" aria-label="Exercises">

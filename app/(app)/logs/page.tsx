@@ -35,7 +35,13 @@ export default async function LogsPage({
 
       {logs.length === 0 ? (
         <section className="empty-state section-block">
-          <p>No logs yet. Create the first place to collect training evidence.</p>
+          <div>
+            <h2>No logs yet</h2>
+            <p>Create the first place to collect training evidence.</p>
+          </div>
+          <Link className="button" href="/logs/new">
+            Create log
+          </Link>
         </section>
       ) : (
         <section className="list section-block evidence-list" aria-label="Logs">

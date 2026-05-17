@@ -1,10 +1,10 @@
-export default function Loading() {
+export default function AppLoading() {
   return (
     <main className="page">
-      <section className="state-panel" aria-live="polite" aria-busy="true">
+      <section className="state-panel compact-state" aria-live="polite" aria-busy="true">
         <p className="eyebrow">Loading</p>
-        <h1>Preparing the workspace</h1>
-        <p className="lede">Fetching the latest training evidence.</p>
+        <h1>Reading training data</h1>
+        <p className="lede">Preparing the current workspace.</p>
         <div className="skeleton-stack" aria-hidden="true">
           <span />
           <span />

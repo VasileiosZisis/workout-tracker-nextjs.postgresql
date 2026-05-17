@@ -140,7 +140,16 @@ export default async function ExerciseDetailPage({
           <>
             <WeightliftingProgressChart data={weightliftingProgressData} />
             <section className="empty-state section-block">
-              <p>No sessions yet. Add a session to start tracking working volume.</p>
+              <div>
+                <h2>No sessions yet</h2>
+                <p>Add a session to start tracking working volume.</p>
+              </div>
+              <Link
+                className="button"
+                href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/weightlifting/new`}
+              >
+                Add session
+              </Link>
             </section>
           </>
         ) : (
@@ -247,7 +256,16 @@ export default async function ExerciseDetailPage({
           <>
             <PaceProgressChart data={paceProgressData} />
             <section className="empty-state section-block">
-              <p>No sessions yet. Add a session to start tracking pace.</p>
+              <div>
+                <h2>No sessions yet</h2>
+                <p>Add a session to start tracking pace.</p>
+              </div>
+              <Link
+                className="button"
+                href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/new`}
+              >
+                Add session
+              </Link>
             </section>
           </>
         ) : (
@@ -357,7 +375,10 @@ export default async function ExerciseDetailPage({
         )
       ) : (
         <section className="empty-state section-block">
-          <p>No sessions yet.</p>
+          <div>
+            <h2>No sessions yet</h2>
+            <p>Add a session to start building progress evidence.</p>
+          </div>
         </section>
       )}
     </main>

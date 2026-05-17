@@ -29,7 +29,10 @@ export function WeightliftingProgressChart({
   if (data.length === 0) {
     return (
       <section className="empty-state section-block">
-        <p>No progress evidence yet.</p>
+        <div>
+          <h2>No progress evidence yet</h2>
+          <p>Charts appear after the first recorded session.</p>
+        </div>
       </section>
     );
   }
@@ -119,7 +122,10 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
   if (data.length === 0) {
     return (
       <section className="empty-state section-block">
-        <p>No progress evidence yet.</p>
+        <div>
+          <h2>No progress evidence yet</h2>
+          <p>Charts appear after the first recorded session.</p>
+        </div>
       </section>
     );
   }
