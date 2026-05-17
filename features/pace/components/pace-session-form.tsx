@@ -34,7 +34,7 @@ export function PaceSessionForm({
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form className="form-stack" action={formAction}>
+    <form className="form-stack form-panel" action={formAction}>
       {exerciseId ? <input name="exerciseId" type="hidden" value={exerciseId} /> : null}
       {sessionId ? <input name="sessionId" type="hidden" value={sessionId} /> : null}
       <div className="field">
@@ -52,6 +52,7 @@ export function PaceSessionForm({
       </div>
       <fieldset className="field">
         <legend>Time</legend>
+        <p className="field-help">Duration is used with distance to calculate pace.</p>
         <div className="inline-fields">
           <label>
             Hours
@@ -117,9 +118,11 @@ export function PaceSessionForm({
         ) : null}
       </div>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
-      <button className="button" type="submit" disabled={pending}>
-        {pending ? "Saving..." : submitLabel}
-      </button>
+      <div className="form-actions">
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : submitLabel}
+        </button>
+      </div>
     </form>
   );
 }

@@ -30,7 +30,7 @@ export function ExerciseForm({
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form className="form-stack" action={formAction}>
+    <form className="form-stack form-panel" action={formAction}>
       {logId ? <input name="logId" type="hidden" value={logId} /> : null}
       {exerciseId ? (
         <input name="exerciseId" type="hidden" value={exerciseId} />
@@ -45,31 +45,36 @@ export function ExerciseForm({
           required
           maxLength={80}
         />
+        <p className="field-help">Name the movement or activity you want to measure.</p>
         {state.fieldErrors?.title ? (
           <p className="form-error">{state.fieldErrors.title[0]}</p>
         ) : null}
       </div>
       <fieldset className="field">
         <legend>Session type</legend>
-        {Object.values(SessionKind).map((sessionKind) => (
-          <label className="radio-row" key={sessionKind}>
-            <input
-              type="radio"
-              name="sessionKind"
-              value={sessionKind}
-              defaultChecked={sessionKind === defaultSessionKind}
-            />
-            {sessionKindLabels[sessionKind]}
-          </label>
-        ))}
+        <div className="radio-grid">
+          {Object.values(SessionKind).map((sessionKind) => (
+            <label className="radio-row radio-option" key={sessionKind}>
+              <input
+                type="radio"
+                name="sessionKind"
+                value={sessionKind}
+                defaultChecked={sessionKind === defaultSessionKind}
+              />
+              {sessionKindLabels[sessionKind]}
+            </label>
+          ))}
+        </div>
         {state.fieldErrors?.sessionKind ? (
           <p className="form-error">{state.fieldErrors.sessionKind[0]}</p>
         ) : null}
       </fieldset>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
-      <button className="button" type="submit" disabled={pending}>
-        {pending ? "Saving..." : submitLabel}
-      </button>
+      <div className="form-actions">
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : submitLabel}
+        </button>
+      </div>
     </form>
   );
 }

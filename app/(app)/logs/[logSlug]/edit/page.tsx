@@ -59,7 +59,7 @@ export default async function EditLogPage({
       <section className="section-block narrow danger-zone">
         <h2>Delete log</h2>
         <p>Deleting a log cannot be undone.</p>
-        <DeleteLogForm logId={log.id} />
+        <DeleteLogForm logId={log.id} title={log.title} />
       </section>
     </main>
   );

@@ -56,7 +56,7 @@ export function WeightliftingSessionForm({
   }
 
   return (
-    <form className="form-stack" action={formAction}>
+    <form className="form-stack form-panel" action={formAction}>
       {exerciseId ? <input name="exerciseId" type="hidden" value={exerciseId} /> : null}
       {sessionId ? <input name="sessionId" type="hidden" value={sessionId} /> : null}
       <input name="setCount" type="hidden" value={sets.length} />
@@ -75,7 +75,10 @@ export function WeightliftingSessionForm({
       </div>
       <div className="set-editor">
         <div className="set-editor-header">
-          <h2>Sets</h2>
+          <div>
+            <h2>Sets</h2>
+            <p className="field-help">Mark hard sets to separate working volume.</p>
+          </div>
           <button className="button-secondary" type="button" onClick={addSet}>
             Add set
           </button>
@@ -150,9 +153,11 @@ export function WeightliftingSessionForm({
         </div>
       </div>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
-      <button className="button" type="submit" disabled={pending}>
-        {pending ? "Saving..." : submitLabel}
-      </button>
+      <div className="form-actions">
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : submitLabel}
+        </button>
+      </div>
     </form>
   );
 }

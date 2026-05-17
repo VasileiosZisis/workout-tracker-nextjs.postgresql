@@ -74,7 +74,7 @@ export default async function EditExercisePage({
       <section className="section-block narrow danger-zone">
         <h2>Delete exercise</h2>
         <p>Deleting an exercise cannot be undone.</p>
-        <DeleteExerciseForm exerciseId={exercise.id} />
+        <DeleteExerciseForm exerciseId={exercise.id} title={exercise.title} />
       </section>
     </main>
   );

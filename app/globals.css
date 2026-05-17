@@ -491,12 +491,20 @@ h2 {
   gap: 18px;
 }
 
+.form-panel {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0d131e;
+  padding: 18px;
+}
+
 .field {
   display: grid;
   gap: 8px;
 }
 
-.field label {
+.field label,
+.field > span {
   font-weight: 700;
 }
 
@@ -522,6 +530,19 @@ h2 {
   color: var(--foreground);
   font: inherit;
   padding: 8px 10px;
+}
+
+.field input:focus-visible,
+.set-row input:focus-visible {
+  border-color: var(--accent-strong);
+  outline: 3px solid rgba(56, 189, 248, 0.18);
+  outline-offset: 0;
+}
+
+.field-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .inline-fields {
@@ -557,13 +578,40 @@ fieldset.field {
   font-weight: 400;
 }
 
+.radio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.radio-option {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
 .form-error {
   margin: 0;
+  border-left: 3px solid var(--danger-strong);
+  background: rgba(239, 68, 68, 0.1);
   color: var(--danger-strong);
+  padding: 8px 10px;
 }
 
 .form-footer {
   margin-top: 16px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 .set-editor {
@@ -573,7 +621,7 @@ fieldset.field {
 
 .set-editor-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
@@ -712,8 +760,14 @@ fieldset.field {
 }
 
 .danger-zone {
-  border-top: 1px solid var(--border);
-  padding-top: 24px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.07);
+  padding: 18px;
+}
+
+.danger-zone p {
+  color: var(--muted-strong);
 }
 
 .danger-button {
@@ -729,6 +783,28 @@ fieldset.field {
   font: inherit;
   font-weight: 700;
   padding: 0 16px;
+}
+
+.danger-button:disabled,
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.delete-confirmation {
+  display: grid;
+  gap: 12px;
+}
+
+.delete-confirmation p {
+  margin: 0;
+  color: var(--muted-strong);
+}
+
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 @media (max-width: 720px) {
@@ -809,9 +885,22 @@ fieldset.field {
 
   .set-row,
   .inline-fields,
+  .radio-grid,
   .metric-grid,
   .evidence-strip {
     grid-template-columns: 1fr;
+  }
+
+  .form-panel,
+  .danger-zone {
+    padding: 16px;
+  }
+
+  .form-actions .button,
+  .form-actions .button-secondary,
+  .confirmation-actions .button-secondary,
+  .confirmation-actions .danger-button {
+    width: 100%;
   }
 
   .session-card {
