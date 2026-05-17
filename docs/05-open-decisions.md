@@ -79,12 +79,18 @@ Implementation notes:
 Decision:
 
 - Use a simple, functional design until the project is feature-complete.
-- Do a redesign before deployment.
+- Use Performance Lab as the final redesign direction, with a light Quantified Self influence in the information architecture.
+- Keep the placeholder name `Workout Trackr` until the final naming decision.
+- Use dark mode only for the redesign milestone.
 
 Implementation notes:
 
-- Prioritize layout stability, accessible forms, clear tables, and predictable navigation.
-- Avoid spending time on final visual branding during the core rewrite.
+- Build a mobile-first app UI with bottom navigation.
+- Use flat dark surfaces with spacious layouts and strong hierarchy.
+- Use bright amber, violet, blue, and lime accents for important numbers, charts, and status cues.
+- Prioritize working volume, hard sets, and pace as the most important v1 metrics.
+- Aim for Apple Fitness clarity, but darker, flatter, more technical, and more evidence-oriented.
+- Avoid glassmorphism, overly compact screens, generic gym-app styling, and marketing-style copy.
 
 ## 5. Units
 

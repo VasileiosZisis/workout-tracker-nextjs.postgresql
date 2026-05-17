@@ -13,9 +13,45 @@ Apply the final pre-deployment redesign pass now that the core product flows are
 - Accessibility pass for core flows.
 - Browser visual QA.
 
+## Visual Direction
+
+Use **Performance Lab** as the main product direction, with a light **Quantified Self** influence in the information architecture so the app can grow beyond workout tracking later.
+
+Visual thesis:
+
+- A mobile-first training intelligence app with a dark technical workspace, flat surfaces, spacious layouts, and bright metric accents.
+- The app should help users enter training data, read factual evidence, and decide what to improve in day-to-day activity.
+- The UI should feel analytical and precise, not generic gym-themed or lifestyle-heavy.
+
+Style decisions:
+
+- Keep the placeholder product name `Workout Trackr` until the final naming decision.
+- Use dark mode only for this redesign pass.
+- Use flat colors; avoid glassmorphism and glossy surfaces.
+- Gradients are acceptable for background depth, but primary UI surfaces should remain flat and readable.
+- Use a spacious mobile-first layout with fewer items per screen and stronger hierarchy.
+- Use a bottom navigation pattern on mobile.
+- Use bright amber, violet, blue, and lime accents for visually important metrics, charts, and status cues.
+- Prioritize working volume, hard sets, and pace as the most important v1 metrics.
+- Aim for Apple Fitness clarity, but darker, flatter, more technical, and more evidence-oriented.
+
+Information architecture direction:
+
+- Treat workouts as the first data domain, not the whole product boundary.
+- Keep page and navigation labels flexible enough to support future metrics such as recovery, bodyweight, habits, or broader performance indicators.
+- Favor progress, evidence, and trend language over motivational fitness copy.
+
+Avoid:
+
+- Glassy color treatments.
+- Overly compact dashboard layouts.
+- Card-heavy generic SaaS composition.
+- Decorative fitness imagery that does not help users read or enter data.
+- Copy that sounds like marketing instead of product UI.
+
 ## Tasks
 
-- Define the final visual direction for the app.
+- Define the final visual direction for the app. Done.
 - Redesign the authenticated app shell and navigation.
 - Polish log, exercise, weightlifting session, pace session, and chart pages.
 - Improve form layouts and destructive action states.
