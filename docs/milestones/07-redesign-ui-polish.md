@@ -52,7 +52,7 @@ Avoid:
 ## Tasks
 
 - Define the final visual direction for the app. Done.
-- Redesign the authenticated app shell and navigation.
+- Redesign the authenticated app shell and navigation. Done.
 - Polish log, exercise, weightlifting session, pace session, and chart pages.
 - Improve form layouts and destructive action states.
 - Improve empty, loading, not-found, and error states.
