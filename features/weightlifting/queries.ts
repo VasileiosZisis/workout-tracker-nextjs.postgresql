@@ -25,6 +25,17 @@ export async function getWeightliftingSessionsPage({
   const [sessions, totalItems] = await Promise.all([
     prisma.weightliftingSession.findMany({
       where,
+      include: {
+        _count: {
+          select: {
+            sets: {
+              where: {
+                isHard: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
       skip,
       take: limit,

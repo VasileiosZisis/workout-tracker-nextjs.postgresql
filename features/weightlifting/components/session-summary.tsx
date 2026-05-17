@@ -22,19 +22,19 @@ export function SessionSummary({ session }: SessionSummaryProps) {
   return (
     <div className="session-summary">
       <dl className="metric-grid">
-        <div>
+        <div className="metric-card metric-card-blue">
           <dt>Date</dt>
           <dd>{formatSessionDate(session.performedAt)}</dd>
         </div>
-        <div>
+        <div className="metric-card metric-card-violet">
           <dt>Total volume</dt>
           <dd>{formatDecimal(session.totalVolume)} kg</dd>
         </div>
-        <div>
+        <div className="metric-card metric-card-lime">
           <dt>Working volume</dt>
           <dd>{formatDecimal(session.workingVolume)} kg</dd>
         </div>
-        <div>
+        <div className="metric-card metric-card-amber">
           <dt>Junk volume</dt>
           <dd>{formatDecimal(session.junkVolume)} kg</dd>
         </div>

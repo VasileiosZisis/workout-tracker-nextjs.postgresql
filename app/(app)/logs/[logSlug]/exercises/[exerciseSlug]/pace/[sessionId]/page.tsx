@@ -51,6 +51,7 @@ export default async function PaceSessionPage({
       <section className="page-header compact-header">
         <p className="eyebrow">Pace session</p>
         <h1>{formatSessionDate(session.performedAt)}</h1>
+        <p className="lede">Pace, distance, and speed from this effort.</p>
         <div className="actions">
           <Link
             className="button-secondary"

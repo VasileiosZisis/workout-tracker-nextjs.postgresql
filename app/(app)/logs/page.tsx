@@ -23,9 +23,9 @@ export default async function LogsPage({
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Training logs</p>
+        <p className="eyebrow">Training evidence</p>
         <h1>Logs</h1>
-        <p className="lede">Create logs for plans, training phases, or goals.</p>
+        <p className="lede">Group sessions by plan, phase, or measurable goal.</p>
         <div className="actions">
           <Link className="button" href="/logs/new">
             Create log
@@ -35,12 +35,12 @@ export default async function LogsPage({
 
       {logs.length === 0 ? (
         <section className="empty-state section-block">
-          <p>No logs yet.</p>
+          <p>No logs yet. Create the first place to collect training evidence.</p>
         </section>
       ) : (
-        <section className="list section-block" aria-label="Logs">
+        <section className="list section-block evidence-list" aria-label="Logs">
           {logs.map((log) => (
-            <article className="list-item" key={log.id}>
+            <article className="list-item session-card" key={log.id}>
               <div>
                 <h2>
                   <Link href={`/logs/${log.slug}`}>{log.title}</Link>

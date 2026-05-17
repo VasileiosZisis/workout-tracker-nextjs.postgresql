@@ -29,7 +29,7 @@ export function WeightliftingProgressChart({
   if (data.length === 0) {
     return (
       <section className="empty-state section-block">
-        <p>No progress data yet.</p>
+        <p>No progress evidence yet.</p>
       </section>
     );
   }
@@ -37,7 +37,7 @@ export function WeightliftingProgressChart({
   return (
     <section className="section-block chart-section" aria-labelledby="progress-heading">
       <div className="section-heading">
-        <h2 id="progress-heading">Progress</h2>
+        <h2 id="progress-heading">Progress evidence</h2>
       </div>
       <div className="chart-frame" aria-label="Weightlifting volume chart">
         <ResponsiveContainer width="100%" height={320}>
@@ -46,16 +46,29 @@ export function WeightliftingProgressChart({
             data={data}
             margin={{ top: 12, right: 24, bottom: 8, left: 8 }}
           >
-            <CartesianGrid stroke="#d9d7cf" strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis tickFormatter={numberFormatter} />
-            <Tooltip formatter={(value) => `${numberFormatter(Number(value))} kg`} />
-            <Legend />
+            <CartesianGrid stroke="#273044" strokeDasharray="3 3" />
+            <XAxis dataKey="date" stroke="#8d96a8" tick={{ fill: "#8d96a8" }} />
+            <YAxis
+              stroke="#8d96a8"
+              tick={{ fill: "#8d96a8" }}
+              tickFormatter={numberFormatter}
+            />
+            <Tooltip
+              contentStyle={{
+                background: "#101520",
+                border: "1px solid #30384d",
+                borderRadius: 8,
+                color: "#f4f7fb",
+              }}
+              formatter={(value) => `${numberFormatter(Number(value))} kg`}
+              labelStyle={{ color: "#b9c2d3" }}
+            />
+            <Legend wrapperStyle={{ color: "#b9c2d3" }} />
             <Line
               dataKey="totalVolume"
               dot
               name="Total volume"
-              stroke="#154a3c"
+              stroke="#a78bfa"
               strokeWidth={2}
               type="monotone"
             />
@@ -63,7 +76,7 @@ export function WeightliftingProgressChart({
               dataKey="workingVolume"
               dot
               name="Working volume"
-              stroke="#256f5b"
+              stroke="#a3e635"
               strokeWidth={2}
               type="monotone"
             />
@@ -71,7 +84,7 @@ export function WeightliftingProgressChart({
               dataKey="junkVolume"
               dot
               name="Junk volume"
-              stroke="#8a6f2a"
+              stroke="#f59e0b"
               strokeWidth={2}
               type="monotone"
             />
@@ -106,7 +119,7 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
   if (data.length === 0) {
     return (
       <section className="empty-state section-block">
-        <p>No progress data yet.</p>
+        <p>No progress evidence yet.</p>
       </section>
     );
   }
@@ -114,7 +127,7 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
   return (
     <section className="section-block chart-section" aria-labelledby="progress-heading">
       <div className="section-heading">
-        <h2 id="progress-heading">Progress</h2>
+        <h2 id="progress-heading">Progress evidence</h2>
       </div>
       <div className="chart-frame" aria-label="Pace and speed chart">
         <ResponsiveContainer width="100%" height={320}>
@@ -123,16 +136,29 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
             data={data}
             margin={{ top: 12, right: 24, bottom: 8, left: 8 }}
           >
-            <CartesianGrid stroke="#d9d7cf" strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis tickFormatter={numberFormatter} />
-            <Tooltip formatter={(value) => numberFormatter(Number(value))} />
-            <Legend />
+            <CartesianGrid stroke="#273044" strokeDasharray="3 3" />
+            <XAxis dataKey="date" stroke="#8d96a8" tick={{ fill: "#8d96a8" }} />
+            <YAxis
+              stroke="#8d96a8"
+              tick={{ fill: "#8d96a8" }}
+              tickFormatter={numberFormatter}
+            />
+            <Tooltip
+              contentStyle={{
+                background: "#101520",
+                border: "1px solid #30384d",
+                borderRadius: 8,
+                color: "#f4f7fb",
+              }}
+              formatter={(value) => numberFormatter(Number(value))}
+              labelStyle={{ color: "#b9c2d3" }}
+            />
+            <Legend wrapperStyle={{ color: "#b9c2d3" }} />
             <Line
               dataKey="pace"
               dot
               name="Pace min/km"
-              stroke="#154a3c"
+              stroke="#60a5fa"
               strokeWidth={2}
               type="monotone"
             />
@@ -140,7 +166,7 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
               dataKey="speed"
               dot
               name="Speed km/h"
-              stroke="#256f5b"
+              stroke="#a78bfa"
               strokeWidth={2}
               type="monotone"
             />
@@ -148,7 +174,7 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
               dataKey="distance"
               dot
               name="Distance km"
-              stroke="#8a6f2a"
+              stroke="#a3e635"
               strokeWidth={2}
               type="monotone"
             />

@@ -44,9 +44,9 @@ export default async function LogDetailPage({
         Logs
       </Link>
       <section className="page-header compact-header">
-        <p className="eyebrow">Log</p>
+        <p className="eyebrow">Exercise library</p>
         <h1>{log.title}</h1>
-        <p className="lede">Create and manage exercises for this log.</p>
+        <p className="lede">Choose the movement or activity you want to measure.</p>
         <div className="actions">
           <Link className="button-secondary" href={`/logs/${log.slug}/edit`}>
             Edit log
@@ -58,19 +58,23 @@ export default async function LogDetailPage({
       </section>
       {exercises.length === 0 ? (
         <section className="empty-state section-block">
-          <p>No exercises yet.</p>
+          <p>No exercises yet. Add one to start collecting sessions.</p>
         </section>
       ) : (
-        <section className="list section-block" aria-label="Exercises">
+        <section className="list section-block evidence-list" aria-label="Exercises">
           {exercises.map((exercise) => (
-            <article className="list-item" key={exercise.id}>
+            <article className="list-item session-card" key={exercise.id}>
               <div>
                 <h2>
                   <Link href={`/logs/${log.slug}/exercises/${exercise.slug}`}>
                     {exercise.title}
                   </Link>
                 </h2>
-                <p>{sessionKindLabels[exercise.sessionKind]}</p>
+                <p>
+                  <span className="metric-pill">
+                    {sessionKindLabels[exercise.sessionKind]}
+                  </span>
+                </p>
               </div>
               <Link
                 className="text-link"

@@ -51,6 +51,7 @@ export default async function WeightliftingSessionPage({
       <section className="page-header compact-header">
         <p className="eyebrow">Weightlifting session</p>
         <h1>{formatSessionDate(session.performedAt)}</h1>
+        <p className="lede">Volume breakdown and set-level evidence.</p>
         <div className="actions">
           <Link
             className="button-secondary"
