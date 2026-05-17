@@ -74,6 +74,7 @@ All query functions that access user-owned data should require an authenticated 
 Selected auth approach:
 
 - Auth.js with Prisma Adapter.
+- Auth.js database session strategy.
 
 Initial provider recommendation:
 

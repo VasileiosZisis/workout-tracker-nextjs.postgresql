@@ -1,5 +1,35 @@
 # Milestone: Auth
 
+## Status
+
+Implemented.
+
+Verification completed:
+
+- Auth.js and Prisma Adapter dependencies are installed.
+- Auth.js adapter models were added to Prisma.
+- Database sessions are configured.
+- Google OAuth provider is configured.
+- Auth route handlers are available at `/api/auth/[...nextauth]`.
+- Protected app routes are guarded by `proxy.ts`.
+- `/logs` and `/profile` redirect anonymous users to `/login`.
+- `/api/auth/session` returns `null` when signed out.
+- Auth.js Google sign-in POST redirects to Google OAuth.
+- Prisma migration `20260517121035_auth_foundation` was created and applied.
+- Prisma migration status reports the database is up to date.
+- Prisma schema validation passes.
+- Vitest smoke test passes.
+- ESLint passes.
+- TypeScript check passes.
+- Production build passes.
+
+Manual verification still needed:
+
+- Complete Google sign-in in a browser.
+- Confirm the signed-in user can access `/logs` and `/profile`.
+- Confirm a `User`, `Account`, and `Session` record exist in Neon after sign-in.
+- Sign out and confirm protected routes are blocked again.
+
 ## Goal
 
 Add Auth.js with Prisma Adapter and protect authenticated app routes.
@@ -8,6 +38,7 @@ Add Auth.js with Prisma Adapter and protect authenticated app routes.
 
 - Auth.js configuration.
 - Prisma Adapter models.
+- Database session strategy.
 - Google OAuth provider.
 - Google as the only v1 login provider.
 - Sign-in and sign-out flow.
@@ -26,7 +57,7 @@ Add Auth.js with Prisma Adapter and protect authenticated app routes.
 - Add a protected `(app)` layout.
 - Add a minimal profile/account page.
 - Configure required environment variables in `.env.example`.
-- Decide whether sessions use database or JWT strategy before implementation.
+- Configure Auth.js to use database sessions.
 
 ## Tests
 

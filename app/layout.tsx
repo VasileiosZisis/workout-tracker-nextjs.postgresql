@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthButton } from "@/components/auth-button";
 import Link from "next/link";
 import "./globals.css";
 
@@ -23,8 +24,9 @@ export default function RootLayout({
             Workout Tracker
           </Link>
           <nav className="site-nav" aria-label="Main navigation">
-            <Link href="/login">Login</Link>
             <Link href="/logs">Logs</Link>
+            <Link href="/profile">Profile</Link>
+            <AuthButton />
           </nav>
         </header>
         {children}

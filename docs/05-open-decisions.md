@@ -8,6 +8,7 @@ This file tracks settled decisions, pending setup, and future considerations.
 - Deployment target: optimize for Vercel.
 - Database provider: use Neon Postgres.
 - Auth approach: use Auth.js with Prisma Adapter.
+- Auth session strategy: use database sessions.
 - Auth providers for v1: start with Google OAuth only.
 - Local database workflow: pending setup, but use a Neon `development` branch directly for local development.
 - Session URLs: use slugs for logs and exercises; use database ids for sessions.
@@ -19,11 +20,8 @@ This file tracks settled decisions, pending setup, and future considerations.
 
 ## Setup Still Pending
 
-- Create the Neon project.
-- Create Neon `production` and `development` branches.
-- Create Google OAuth credentials.
-- Configure local `.env`.
 - Configure Vercel project and environment variables later.
+- Manually confirm Google sign-in locally after Milestone 1 implementation.
 
 ## 1. Authentication
 
