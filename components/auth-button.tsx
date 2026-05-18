@@ -5,7 +5,7 @@ export async function AuthButton() {
   const session = await auth();
 
   if (!session?.user) {
-    return <Link href="/login">Login</Link>;
+    return <Link href="/login">Sign in</Link>;
   }
 
   return (

@@ -3,7 +3,7 @@ import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Login",
+  title: "Sign in",
 };
 
 function getSafeRedirectTo(callbackUrl: string | undefined) {
@@ -47,10 +47,10 @@ export default async function LoginPage({
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Auth foundation</p>
-        <h1>Login</h1>
+        <p className="eyebrow">Account access</p>
+        <h1>Sign in</h1>
         <p className="lede">
-          Continue with Google to access your workout logs.
+          Use Google to access your training evidence.
         </p>
         <form
           className="actions"
@@ -60,7 +60,7 @@ export default async function LoginPage({
           }}
         >
           <button className="button" type="submit">
-            Continue with Google
+            Sign in with Google
           </button>
         </form>
       </section>

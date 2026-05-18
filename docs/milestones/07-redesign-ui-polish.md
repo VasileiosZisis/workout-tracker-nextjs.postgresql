@@ -57,10 +57,10 @@ Avoid:
 - Improve form layouts and destructive action states. Done.
 - Improve empty, loading, not-found, and error states. Done.
 - Review chart readability and fallback tables. Done.
-- Audit mobile layouts for all core screens.
-- Audit keyboard navigation and focus states.
-- Audit color contrast and text sizing.
-- Remove temporary copy or placeholder UI from earlier milestones.
+- Audit mobile layouts for all core screens. Done.
+- Audit keyboard navigation and focus states. Done.
+- Audit color contrast and text sizing. Done.
+- Remove temporary copy or placeholder UI from earlier milestones. Done.
 
 ## Tests
 

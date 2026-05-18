@@ -8,7 +8,9 @@ export default function AuthLayout({
   return (
     <>
       <PublicHeader />
-      {children}
+      <div id="content" tabIndex={-1}>
+        {children}
+      </div>
     </>
   );
 }

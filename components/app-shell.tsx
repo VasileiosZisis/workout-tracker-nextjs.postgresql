@@ -15,6 +15,9 @@ export function AppShell({
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#content">
+        Skip to content
+      </a>
       <aside className="app-sidebar" aria-label="Workspace navigation">
         <div className="app-brand-block">
           <span className="app-brand-mark" aria-hidden="true">
@@ -50,7 +53,9 @@ export function AppShell({
           <AuthButton />
         </header>
 
-        {children}
+        <div id="content" className="app-main-content" tabIndex={-1}>
+          {children}
+        </div>
       </div>
 
       <AppNav placement="bottom" />

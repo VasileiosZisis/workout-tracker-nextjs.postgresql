@@ -4,15 +4,15 @@ export default function HomePage() {
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Next.js rewrite</p>
-        <h1>Log your training. Track your progress.</h1>
+        <p className="eyebrow">Performance Lab</p>
+        <h1>Workout Trackr</h1>
         <p className="lede">
-          A modern rebuild of Workout Tracker using Next.js, Neon Postgres,
-          Prisma, Auth.js, and Zod.
+          Record sessions, read the evidence, and adjust training with clearer
+          data.
         </p>
         <div className="actions">
           <Link className="button" href="/login">
-            Continue
+            Sign in
           </Link>
           <Link className="button-secondary" href="/logs">
             View logs
@@ -20,18 +20,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-grid" aria-label="Planned tracking areas">
+      <section className="section-grid" aria-label="Tracking areas">
         <div className="panel">
           <h2>Logs</h2>
-          <p>Create training logs for plans, goals, or phases.</p>
+          <p>Group work by plans, goals, or training phases.</p>
         </div>
         <div className="panel">
           <h2>Exercises</h2>
-          <p>Define custom weightlifting and pace exercises.</p>
+          <p>Track weightlifting and pace-based activities.</p>
         </div>
         <div className="panel">
-          <h2>Sessions</h2>
-          <p>Track volume, pace, speed, and progress over time.</p>
+          <h2>Evidence</h2>
+          <p>Review volume, pace, speed, and progress over time.</p>
         </div>
       </section>
     </main>
