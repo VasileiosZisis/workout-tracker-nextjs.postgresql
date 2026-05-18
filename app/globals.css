@@ -16,6 +16,7 @@
   --danger: #dc2626;
   --danger-strong: #f87171;
   --shadow: rgba(0, 0, 0, 0.3);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
 * {
@@ -51,6 +52,20 @@ a {
 button,
 input {
   font: inherit;
+}
+
+:where(a, button, input, select, textarea) {
+  transition:
+    background-color 160ms var(--ease-standard),
+    border-color 160ms var(--ease-standard),
+    box-shadow 160ms var(--ease-standard),
+    color 160ms var(--ease-standard),
+    opacity 160ms var(--ease-standard),
+    transform 160ms var(--ease-standard);
+}
+
+:where(button, [role="button"], .button, .button-secondary, .danger-button, .text-button):not(:disabled) {
+  cursor: pointer;
 }
 
 :where(a, button, input, select, textarea):focus-visible {
@@ -101,6 +116,10 @@ input {
   text-decoration: none;
 }
 
+.brand:hover {
+  color: var(--accent-strong);
+}
+
 .site-nav {
   display: flex;
   align-items: center;
@@ -110,6 +129,8 @@ input {
 }
 
 .site-nav a {
+  border-radius: 8px;
+  padding: 6px 0;
   text-decoration: none;
 }
 
@@ -129,6 +150,10 @@ input {
 
 .nav-button:hover {
   color: var(--accent-strong);
+}
+
+.nav-button:active {
+  transform: translateY(1px);
 }
 
 .app-shell {
@@ -177,6 +202,10 @@ input {
   text-decoration: none;
 }
 
+.app-brand:hover {
+  color: var(--accent-strong);
+}
+
 .app-brand-block p,
 .app-topbar p {
   margin: 2px 0 0;
@@ -197,6 +226,12 @@ input {
   color: var(--muted-strong);
   padding: 12px;
   text-decoration: none;
+  transition:
+    background-color 160ms var(--ease-standard),
+    border-color 160ms var(--ease-standard),
+    box-shadow 160ms var(--ease-standard),
+    color 160ms var(--ease-standard),
+    transform 160ms var(--ease-standard);
 }
 
 .app-nav-link span {
@@ -213,6 +248,15 @@ input {
   border-color: rgba(96, 165, 250, 0.28);
   background: #111827;
   color: var(--foreground);
+}
+
+.app-nav-link:hover {
+  box-shadow: inset 3px 0 0 rgba(56, 189, 248, 0.9);
+  transform: translateX(2px);
+}
+
+.app-nav-link:active {
+  transform: translateX(1px) translateY(1px);
 }
 
 .app-nav-link.is-active span {
@@ -322,9 +366,34 @@ h2 {
   color: #07111f;
 }
 
+.button:hover:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+  transform: translateY(-1px);
+}
+
+.button:active:not(:disabled) {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.12);
+  transform: translateY(0);
+}
+
 .button-secondary {
   background: transparent;
   color: var(--accent-strong);
+}
+
+.button-secondary:hover:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.08);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.button-secondary:active:not(:disabled) {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.08);
+  transform: translateY(0);
 }
 
 .section-grid {
@@ -420,6 +489,13 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :where(a, button, input, select, textarea),
+  .app-nav-link,
+  .list-item,
+  .radio-option {
+    transition: none;
+  }
+
   .skip-link {
     transition: none;
   }
@@ -459,6 +535,11 @@ h2 {
   border-radius: 8px;
   background: var(--surface);
   padding: 18px;
+  transition:
+    background-color 160ms var(--ease-standard),
+    border-color 160ms var(--ease-standard),
+    box-shadow 160ms var(--ease-standard),
+    transform 160ms var(--ease-standard);
 }
 
 .session-card {
@@ -472,7 +553,19 @@ h2 {
 }
 
 .list-item h2 a {
+  border-radius: 6px;
   text-decoration: none;
+}
+
+.list-item:has(a:hover),
+.list-item:focus-within {
+  border-color: rgba(96, 165, 250, 0.34);
+  background: #111827;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+}
+
+.list-item:has(a:hover) {
+  transform: translateY(-1px);
 }
 
 .list-item h2 a:hover,
@@ -481,9 +574,20 @@ h2 {
 }
 
 .text-link {
+  border-radius: 6px;
   color: var(--accent-strong);
   font-weight: 700;
   text-decoration: none;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.text-link:active {
+  color: var(--accent);
 }
 
 .evidence-strip {
@@ -638,9 +742,17 @@ h2 {
   padding: 8px 10px;
 }
 
+.field input:hover,
+.set-row input:hover {
+  border-color: var(--border-strong);
+  background: #101724;
+}
+
 .field input:focus-visible,
 .set-row input:focus-visible {
+  background: #111827;
   border-color: var(--accent-strong);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
   outline-color: rgba(56, 189, 248, 0.24);
   outline-offset: 0;
 }
@@ -699,11 +811,29 @@ fieldset.field {
   cursor: pointer;
   font-weight: 800;
   padding: 10px 12px;
+  transition:
+    background-color 160ms var(--ease-standard),
+    border-color 160ms var(--ease-standard),
+    box-shadow 160ms var(--ease-standard),
+    color 160ms var(--ease-standard),
+    transform 160ms var(--ease-standard);
+}
+
+.radio-option:hover {
+  border-color: rgba(56, 189, 248, 0.38);
+  background: #111827;
+  color: var(--accent-strong);
 }
 
 .radio-option:has(input:focus-visible) {
   border-color: var(--accent-strong);
   outline: 3px solid rgba(56, 189, 248, 0.2);
+}
+
+.radio-option:has(input:checked) {
+  border-color: rgba(163, 230, 53, 0.42);
+  background: rgba(163, 230, 53, 0.08);
+  color: var(--accent-lime);
 }
 
 .form-error {
@@ -785,6 +915,21 @@ fieldset.field {
   font: inherit;
   font-weight: 700;
   padding: 10px 0;
+}
+
+.text-button:hover:not(:disabled) {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.text-button.danger-text:hover:not(:disabled) {
+  color: var(--danger-strong);
+}
+
+.text-button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .text-button:disabled {
@@ -930,10 +1075,24 @@ fieldset.field {
   padding: 0 16px;
 }
 
+.danger-button:hover:not(:disabled) {
+  border-color: var(--danger-strong);
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
+  transform: translateY(-1px);
+}
+
+.danger-button:active:not(:disabled) {
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.12);
+  transform: translateY(0);
+}
+
 .danger-button:disabled,
-.button:disabled {
+.button:disabled,
+.button-secondary:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+  transform: none;
 }
 
 .delete-confirmation {
@@ -997,6 +1156,15 @@ fieldset.field {
     min-height: 58px;
     padding: 8px;
     text-align: center;
+  }
+
+  .app-nav-bottom .app-nav-link:hover {
+    box-shadow: inset 0 3px 0 rgba(56, 189, 248, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .app-nav-bottom .app-nav-link:active {
+    transform: translateY(0);
   }
 
   .app-nav-bottom .app-nav-link small {

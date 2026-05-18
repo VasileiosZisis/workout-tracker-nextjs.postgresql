@@ -61,6 +61,7 @@ Avoid:
 - Audit keyboard navigation and focus states. Done.
 - Audit color contrast and text sizing. Done.
 - Remove temporary copy or placeholder UI from earlier milestones. Done.
+- Add hover, focus, and active states for interactive elements. Done.
 
 ## Tests
 
