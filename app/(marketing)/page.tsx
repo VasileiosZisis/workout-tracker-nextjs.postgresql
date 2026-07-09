@@ -4,12 +4,7 @@ export default function HomePage() {
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Performance Lab</p>
         <h1>Workout Trackr</h1>
-        <p className="lede">
-          Record sessions, read the evidence, and adjust training with clearer
-          data.
-        </p>
         <div className="actions">
           <Link className="button" href="/login">
             Sign in

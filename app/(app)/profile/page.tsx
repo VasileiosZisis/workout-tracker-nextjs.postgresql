@@ -11,7 +11,6 @@ export default async function ProfilePage() {
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Account</p>
         <h1>Profile</h1>
         <div className="empty-state">
           <p>{user.email ?? user.name ?? "Signed in user"}</p>

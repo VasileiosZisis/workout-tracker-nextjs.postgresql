@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { updateLogAction } from "@/features/logs/actions";
 import { DeleteLogForm } from "@/features/logs/components/delete-log-form";
@@ -36,11 +37,8 @@ export default async function EditLogPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={`/logs/${log.slug}`}>
-        {log.title}
-      </Link>
+      <BackLink href={`/logs/${log.slug}`}>Edit log</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">Edit log</p>
         <h1>Edit {log.title}</h1>
       </section>
       <section className="section-block narrow">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { createWeightliftingSessionAction } from "@/features/weightlifting/actions";
 import { SessionSummary } from "@/features/weightlifting/components/session-summary";
@@ -41,11 +42,8 @@ export default async function NewWeightliftingSessionPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={exercisePath}>
-        {exercise.title}
-      </Link>
+      <BackLink href={exercisePath}>New session</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">New session</p>
         <h1>Create weightlifting session</h1>
       </section>
       {previousSession ? (

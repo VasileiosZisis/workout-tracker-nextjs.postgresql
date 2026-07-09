@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { createPaceSessionAction } from "@/features/pace/actions";
 import { PaceSessionForm } from "@/features/pace/components/pace-session-form";
@@ -44,11 +45,8 @@ export default async function NewPaceSessionPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={exercisePath}>
-        {exercise.title}
-      </Link>
+      <BackLink href={exercisePath}>New session</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">New session</p>
         <h1>Create pace session</h1>
       </section>
       {previousSession ? (

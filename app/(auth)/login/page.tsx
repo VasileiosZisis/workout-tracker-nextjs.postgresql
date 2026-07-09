@@ -47,11 +47,7 @@ export default async function LoginPage({
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Account access</p>
         <h1>Sign in</h1>
-        <p className="lede">
-          Use Google to access your training evidence.
-        </p>
         <form
           className="actions"
           action={async () => {

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { normalizePagination } from "@/features/logs/pagination";
 
 export async function getLogsPage({
   userId,
@@ -9,28 +10,25 @@ export async function getLogsPage({
   page: number;
   limit: number;
 }) {
-  const skip = (page - 1) * limit;
+  const totalItems = await prisma.log.count({
+    where: { userId },
+  });
+  const { skip, ...pagination } = normalizePagination({
+    page,
+    limit,
+    totalItems,
+  });
 
-  const [logs, totalItems] = await Promise.all([
-    prisma.log.findMany({
-      where: { userId },
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-      skip,
-      take: limit,
-    }),
-    prisma.log.count({
-      where: { userId },
-    }),
-  ]);
+  const logs = await prisma.log.findMany({
+    where: { userId },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    skip,
+    take: pagination.limit,
+  });
 
   return {
     logs,
-    pagination: {
-      page,
-      limit,
-      totalItems,
-      totalPages: Math.max(1, Math.ceil(totalItems / limit)),
-    },
+    pagination,
   };
 }
 

@@ -1,5 +1,6 @@
 import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
+import { normalizePagination } from "@/features/logs/pagination";
 
 export async function getPaceSessionsPage({
   userId,
@@ -12,8 +13,6 @@ export async function getPaceSessionsPage({
   page: number;
   limit: number;
 }) {
-  const skip = (page - 1) * limit;
-
   const where = {
     userId,
     exerciseId,
@@ -22,24 +21,22 @@ export async function getPaceSessionsPage({
     },
   };
 
-  const [sessions, totalItems] = await Promise.all([
-    prisma.paceSession.findMany({
-      where,
-      orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
-      skip,
-      take: limit,
-    }),
-    prisma.paceSession.count({ where }),
-  ]);
+  const totalItems = await prisma.paceSession.count({ where });
+  const { skip, ...pagination } = normalizePagination({
+    page,
+    limit,
+    totalItems,
+  });
+  const sessions = await prisma.paceSession.findMany({
+    where,
+    orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
+    skip,
+    take: pagination.limit,
+  });
 
   return {
     sessions,
-    pagination: {
-      page,
-      limit,
-      totalItems,
-      totalPages: Math.max(1, Math.ceil(totalItems / limit)),
-    },
+    pagination,
   };
 }
 

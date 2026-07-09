@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { createExerciseAction } from "@/features/exercises/actions";
 import { ExerciseForm } from "@/features/exercises/components/exercise-form";
@@ -25,11 +26,8 @@ export default async function NewExercisePage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={`/logs/${log.slug}`}>
-        {log.title}
-      </Link>
+      <BackLink href={`/logs/${log.slug}`}>New exercise</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">New exercise</p>
         <h1>Create exercise</h1>
       </section>
       <section className="section-block narrow">

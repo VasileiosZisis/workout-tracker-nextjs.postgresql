@@ -4,23 +4,46 @@ import {
   mapPaceProgressData,
   mapWeightliftingProgressData,
 } from "./mapping";
-
-const CHART_SESSION_LIMIT = 50;
+import {
+  getChartDateRange,
+  type ChartRangeState,
+} from "./date-range";
 
 export async function getWeightliftingProgressData({
+  chartRange,
   userId,
   exerciseId,
 }: {
+  chartRange: ChartRangeState;
   userId: string;
   exerciseId: string;
 }) {
+  const where = {
+    userId,
+    exerciseId,
+    exercise: {
+      sessionKind: SessionKind.WEIGHTLIFTING,
+    },
+  };
+  const latestSession = await prisma.weightliftingSession.findFirst({
+    where,
+    orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
+    select: { performedAt: true },
+  });
+  const dateRange = getChartDateRange({
+    latestPerformedAt: latestSession?.performedAt ?? null,
+    range: chartRange,
+  });
+
   const sessions = await prisma.weightliftingSession.findMany({
     where: {
-      userId,
-      exerciseId,
-      exercise: {
-        sessionKind: SessionKind.WEIGHTLIFTING,
-      },
+      ...where,
+      performedAt: dateRange
+        ? {
+            gte: dateRange.from,
+            lt: dateRange.toExclusive,
+          }
+        : undefined,
     },
     select: {
       id: true,
@@ -30,26 +53,46 @@ export async function getWeightliftingProgressData({
       junkVolume: true,
     },
     orderBy: [{ performedAt: "asc" }, { createdAt: "asc" }],
-    take: CHART_SESSION_LIMIT,
   });
 
   return mapWeightliftingProgressData(sessions);
 }
 
 export async function getPaceProgressData({
+  chartRange,
   userId,
   exerciseId,
 }: {
+  chartRange: ChartRangeState;
   userId: string;
   exerciseId: string;
 }) {
+  const where = {
+    userId,
+    exerciseId,
+    exercise: {
+      sessionKind: SessionKind.PACE,
+    },
+  };
+  const latestSession = await prisma.paceSession.findFirst({
+    where,
+    orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
+    select: { performedAt: true },
+  });
+  const dateRange = getChartDateRange({
+    latestPerformedAt: latestSession?.performedAt ?? null,
+    range: chartRange,
+  });
+
   const sessions = await prisma.paceSession.findMany({
     where: {
-      userId,
-      exerciseId,
-      exercise: {
-        sessionKind: SessionKind.PACE,
-      },
+      ...where,
+      performedAt: dateRange
+        ? {
+            gte: dateRange.from,
+            lt: dateRange.toExclusive,
+          }
+        : undefined,
     },
     select: {
       id: true,
@@ -59,7 +102,6 @@ export async function getPaceProgressData({
       speed: true,
     },
     orderBy: [{ performedAt: "asc" }, { createdAt: "asc" }],
-    take: CHART_SESSION_LIMIT,
   });
 
   return mapPaceProgressData(sessions);

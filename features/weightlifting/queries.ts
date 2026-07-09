@@ -1,5 +1,6 @@
 import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
+import { normalizePagination } from "@/features/logs/pagination";
 
 export async function getWeightliftingSessionsPage({
   userId,
@@ -12,8 +13,6 @@ export async function getWeightliftingSessionsPage({
   page: number;
   limit: number;
 }) {
-  const skip = (page - 1) * limit;
-
   const where = {
     userId,
     exerciseId,
@@ -22,35 +21,33 @@ export async function getWeightliftingSessionsPage({
     },
   };
 
-  const [sessions, totalItems] = await Promise.all([
-    prisma.weightliftingSession.findMany({
-      where,
-      include: {
-        _count: {
-          select: {
-            sets: {
-              where: {
-                isHard: true,
-              },
+  const totalItems = await prisma.weightliftingSession.count({ where });
+  const { skip, ...pagination } = normalizePagination({
+    page,
+    limit,
+    totalItems,
+  });
+  const sessions = await prisma.weightliftingSession.findMany({
+    where,
+    include: {
+      _count: {
+        select: {
+          sets: {
+            where: {
+              isHard: true,
             },
           },
         },
       },
-      orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
-      skip,
-      take: limit,
-    }),
-    prisma.weightliftingSession.count({ where }),
-  ]);
+    },
+    orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
+    skip,
+    take: pagination.limit,
+  });
 
   return {
     sessions,
-    pagination: {
-      page,
-      limit,
-      totalItems,
-      totalPages: Math.max(1, Math.ceil(totalItems / limit)),
-    },
+    pagination,
   };
 }
 

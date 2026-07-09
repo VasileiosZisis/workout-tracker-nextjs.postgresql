@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { updatePaceSessionAction } from "@/features/pace/actions";
 import { DeletePaceSessionForm } from "@/features/pace/components/delete-pace-session-form";
@@ -48,11 +49,8 @@ export default async function EditPaceSessionPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={sessionPath}>
-        {session.exercise.title}
-      </Link>
+      <BackLink href={sessionPath}>Edit session</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">Edit session</p>
         <h1>{formatSessionDate(session.performedAt)}</h1>
       </section>
       <section className="section-block narrow">

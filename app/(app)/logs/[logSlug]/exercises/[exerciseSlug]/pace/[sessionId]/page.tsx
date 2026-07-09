@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { PaceSessionSummary } from "@/features/pace/components/pace-session-summary";
 import { formatSessionDate } from "@/features/pace/format";
@@ -45,13 +46,9 @@ export default async function PaceSessionPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={exercisePath}>
-        {session.exercise.title}
-      </Link>
+      <BackLink href={exercisePath}>Pace session</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">Pace session</p>
         <h1>{formatSessionDate(session.performedAt)}</h1>
-        <p className="lede">Pace, distance, and speed from this effort.</p>
         <div className="actions">
           <Link
             className="button-secondary"

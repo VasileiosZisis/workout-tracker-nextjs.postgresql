@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { getLogsPage } from "@/features/logs/queries";
 import { parsePagination } from "@/features/logs/pagination";
@@ -23,15 +24,23 @@ export default async function LogsPage({
   return (
     <main className="page">
       <section className="page-header">
-        <p className="eyebrow">Training evidence</p>
         <h1>Logs</h1>
-        <p className="lede">Group sessions by plan, phase, or measurable goal.</p>
         <div className="actions">
           <Link className="button" href="/logs/new">
             Create log
           </Link>
         </div>
       </section>
+
+      <PaginationNav
+        ariaLabel="Log pagination"
+        baseHref="/logs"
+        limit={pagination.limit}
+        page={pagination.page}
+        placement="top"
+        totalItems={pagination.totalItems}
+        totalPages={pagination.totalPages}
+      />
 
       {logs.length === 0 ? (
         <section className="empty-state section-block">
@@ -46,44 +55,29 @@ export default async function LogsPage({
       ) : (
         <section className="list section-block evidence-list" aria-label="Logs">
           {logs.map((log) => (
-            <article className="list-item session-card" key={log.id}>
+            <Link
+              className="list-item session-card"
+              href={`/logs/${log.slug}`}
+              key={log.id}
+            >
               <div>
-                <h2>
-                  <Link href={`/logs/${log.slug}`}>{log.title}</Link>
-                </h2>
+                <h2>{log.title}</h2>
                 <p>Updated {log.updatedAt.toLocaleDateString()}</p>
               </div>
-              <Link className="text-link" href={`/logs/${log.slug}/edit`}>
-                Edit
-              </Link>
-            </article>
+            </Link>
           ))}
         </section>
       )}
 
-      <nav className="pagination" aria-label="Pagination">
-        <span>
-          Page {pagination.page} of {pagination.totalPages}
-        </span>
-        <div>
-          {pagination.page > 1 ? (
-            <Link
-              className="text-link"
-              href={`/logs?page=${pagination.page - 1}&limit=${pagination.limit}`}
-            >
-              Previous
-            </Link>
-          ) : null}
-          {pagination.page < pagination.totalPages ? (
-            <Link
-              className="text-link"
-              href={`/logs?page=${pagination.page + 1}&limit=${pagination.limit}`}
-            >
-              Next
-            </Link>
-          ) : null}
-        </div>
-      </nav>
+      <PaginationNav
+        ariaLabel="Log pagination"
+        baseHref="/logs"
+        limit={pagination.limit}
+        page={pagination.page}
+        placement="bottom"
+        totalItems={pagination.totalItems}
+        totalPages={pagination.totalPages}
+      />
     </main>
   );
 }

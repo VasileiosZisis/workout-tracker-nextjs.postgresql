@@ -2,7 +2,7 @@ import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import {
   getExerciseBySlug,
-  getExercisesForLog,
+  getExercisesPage,
   getExistingExerciseSlugs,
 } from "./queries";
 
@@ -83,13 +83,60 @@ describe("exercise queries", () => {
   });
 
   it("lists only exercises in the requested signed-in user's log", async () => {
-    const exercises = await getExercisesForLog({
+    const { exercises, pagination } = await getExercisesPage({
       userId: userAId,
       logId: userALogId,
+      page: 1,
+      limit: 12,
     });
 
     expect(exercises).toHaveLength(1);
     expect(exercises[0].title).toBe("Visible Exercise");
+    expect(pagination).toEqual({
+      page: 1,
+      limit: 12,
+      totalItems: 1,
+      totalPages: 1,
+    });
+  });
+
+  it("paginates exercises within the requested signed-in user's log", async () => {
+    await prisma.exercise.create({
+      data: {
+        id: `${testRunId}-exercise-a-2`,
+        userId: userAId,
+        logId: userALogId,
+        title: "Second Visible Exercise",
+        slug: "squat",
+        sessionKind: SessionKind.WEIGHTLIFTING,
+      },
+    });
+
+    const [firstPage, secondPage] = await Promise.all([
+      getExercisesPage({
+        userId: userAId,
+        logId: userALogId,
+        page: 1,
+        limit: 1,
+      }),
+      getExercisesPage({
+        userId: userAId,
+        logId: userALogId,
+        page: 2,
+        limit: 1,
+      }),
+    ]);
+
+    expect(firstPage.exercises).toHaveLength(1);
+    expect(secondPage.exercises).toHaveLength(1);
+    expect(firstPage.exercises[0].id).not.toBe(secondPage.exercises[0].id);
+    expect(firstPage.pagination).toEqual({
+      page: 1,
+      limit: 1,
+      totalItems: 2,
+      totalPages: 2,
+    });
+    expect(secondPage.pagination.page).toBe(2);
   });
 
   it("finds exercises by scoped user, log slug, and exercise slug", async () => {

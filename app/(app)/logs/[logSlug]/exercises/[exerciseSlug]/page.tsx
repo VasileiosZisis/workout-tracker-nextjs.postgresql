@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SessionKind } from "@/generated/prisma/enums";
+import { BackLink } from "@/components/back-link";
+import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { getExerciseBySlug } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
@@ -14,6 +16,7 @@ import {
   getPaceProgressData,
   getWeightliftingProgressData,
 } from "@/features/progress/queries";
+import { parseChartRangeSearchParams } from "@/features/progress/date-range";
 import {
   formatDecimal as formatPaceDecimal,
   formatPace,
@@ -49,11 +52,19 @@ export default async function ExerciseDetailPage({
   searchParams,
 }: {
   params: Promise<{ logSlug: string; exerciseSlug: string }>;
-  searchParams: Promise<{ page?: string | string[]; limit?: string | string[] }>;
+  searchParams: Promise<{
+    chartFrom?: string | string[];
+    chartRange?: string | string[];
+    chartTo?: string | string[];
+    page?: string | string[];
+    limit?: string | string[];
+  }>;
 }) {
   const user = await requireUser();
   const { logSlug, exerciseSlug } = await params;
-  const paginationInput = parsePagination(await searchParams);
+  const resolvedSearchParams = await searchParams;
+  const paginationInput = parsePagination(resolvedSearchParams);
+  const chartRange = parseChartRangeSearchParams(resolvedSearchParams);
   const exercise = await getExerciseBySlug({
     userId: user.id,
     logSlug,
@@ -76,6 +87,7 @@ export default async function ExerciseDetailPage({
   const weightliftingProgressData =
     exercise.sessionKind === SessionKind.WEIGHTLIFTING
       ? await getWeightliftingProgressData({
+          chartRange,
           userId: user.id,
           exerciseId: exercise.id,
         })
@@ -92,6 +104,7 @@ export default async function ExerciseDetailPage({
   const paceProgressData =
     exercise.sessionKind === SessionKind.PACE
       ? await getPaceProgressData({
+          chartRange,
           userId: user.id,
           exerciseId: exercise.id,
         })
@@ -101,13 +114,11 @@ export default async function ExerciseDetailPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={`/logs/${exercise.log.slug}`}>
-        {exercise.log.title}
-      </Link>
+      <BackLink href={`/logs/${exercise.log.slug}`}>
+        {sessionKindLabels[exercise.sessionKind]}
+      </BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">{sessionKindLabels[exercise.sessionKind]}</p>
         <h1>{exercise.title}</h1>
-        <p className="lede">Read the latest evidence before adding the next session.</p>
         <div className="actions">
           <Link
             className="button-secondary"
@@ -138,7 +149,10 @@ export default async function ExerciseDetailPage({
       weightliftingProgressData ? (
         weightliftingSessions.sessions.length === 0 ? (
           <>
-            <WeightliftingProgressChart data={weightliftingProgressData} />
+            <WeightliftingProgressChart
+              data={weightliftingProgressData}
+              range={chartRange}
+            />
             <section className="empty-state section-block">
               <div>
                 <h2>No sessions yet</h2>
@@ -180,22 +194,32 @@ export default async function ExerciseDetailPage({
                 </strong>
               </div>
             </section>
-            <WeightliftingProgressChart data={weightliftingProgressData} />
+            <WeightliftingProgressChart
+              data={weightliftingProgressData}
+              range={chartRange}
+            />
             <section className="section-block">
               <div className="section-heading">
                 <h2>Session history</h2>
               </div>
+              <PaginationNav
+                ariaLabel="Session pagination"
+                baseHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
+                limit={weightliftingSessions.pagination.limit}
+                page={weightliftingSessions.pagination.page}
+                placement="top"
+                totalItems={weightliftingSessions.pagination.totalItems}
+                totalPages={weightliftingSessions.pagination.totalPages}
+              />
               <div className="list evidence-list" aria-label="Sessions">
               {weightliftingSessions.sessions.map((session) => (
-                <article className="list-item session-card" key={session.id}>
+                <Link
+                  className="list-item session-card"
+                  href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/weightlifting/${session.id}`}
+                  key={session.id}
+                >
                   <div>
-                    <h2>
-                      <Link
-                        href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/weightlifting/${session.id}`}
-                      >
-                        {formatWeightliftingSessionDate(session.performedAt)}
-                      </Link>
-                    </h2>
+                    <h2>{formatWeightliftingSessionDate(session.performedAt)}</h2>
                     <div className="session-metrics">
                       <span className="metric-pill metric-pill-lime">
                         Working {formatWeightliftingDecimal(session.workingVolume)} kg
@@ -208,45 +232,19 @@ export default async function ExerciseDetailPage({
                       </span>
                     </div>
                   </div>
-                  <Link
-                    className="text-link"
-                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/weightlifting/${session.id}/edit`}
-                  >
-                    Edit
-                  </Link>
-                </article>
+                </Link>
               ))}
               </div>
             </section>
-            <nav className="pagination" aria-label="Session pagination">
-              <span>
-                Page {weightliftingSessions.pagination.page} of{" "}
-                {weightliftingSessions.pagination.totalPages}
-              </span>
-              <div>
-                {weightliftingSessions.pagination.page > 1 ? (
-                  <Link
-                    className="text-link"
-                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}?page=${
-                      weightliftingSessions.pagination.page - 1
-                    }`}
-                  >
-                    Previous
-                  </Link>
-                ) : null}
-                {weightliftingSessions.pagination.page <
-                weightliftingSessions.pagination.totalPages ? (
-                  <Link
-                    className="text-link"
-                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}?page=${
-                      weightliftingSessions.pagination.page + 1
-                    }`}
-                  >
-                    Next
-                  </Link>
-                ) : null}
-              </div>
-            </nav>
+            <PaginationNav
+              ariaLabel="Session pagination"
+              baseHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
+              limit={weightliftingSessions.pagination.limit}
+              page={weightliftingSessions.pagination.page}
+              placement="bottom"
+              totalItems={weightliftingSessions.pagination.totalItems}
+              totalPages={weightliftingSessions.pagination.totalPages}
+            />
           </>
         )
       ) : exercise.sessionKind === SessionKind.PACE &&
@@ -254,7 +252,7 @@ export default async function ExerciseDetailPage({
         paceProgressData ? (
         paceSessions.sessions.length === 0 ? (
           <>
-            <PaceProgressChart data={paceProgressData} />
+            <PaceProgressChart data={paceProgressData} range={chartRange} />
             <section className="empty-state section-block">
               <div>
                 <h2>No sessions yet</h2>
@@ -299,22 +297,29 @@ export default async function ExerciseDetailPage({
                 </strong>
               </div>
             </section>
-            <PaceProgressChart data={paceProgressData} />
+            <PaceProgressChart data={paceProgressData} range={chartRange} />
             <section className="section-block">
               <div className="section-heading">
                 <h2>Session history</h2>
               </div>
+              <PaginationNav
+                ariaLabel="Session pagination"
+                baseHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
+                limit={paceSessions.pagination.limit}
+                page={paceSessions.pagination.page}
+                placement="top"
+                totalItems={paceSessions.pagination.totalItems}
+                totalPages={paceSessions.pagination.totalPages}
+              />
               <div className="list evidence-list" aria-label="Sessions">
               {paceSessions.sessions.map((session) => (
-                <article className="list-item session-card" key={session.id}>
+                <Link
+                  className="list-item session-card"
+                  href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/${session.id}`}
+                  key={session.id}
+                >
                   <div>
-                    <h2>
-                      <Link
-                        href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/${session.id}`}
-                      >
-                        {formatPaceSessionDate(session.performedAt)}
-                      </Link>
-                    </h2>
+                    <h2>{formatPaceSessionDate(session.performedAt)}</h2>
                     <div className="session-metrics">
                       <span className="metric-pill metric-pill-blue">
                         Pace{" "}
@@ -333,44 +338,19 @@ export default async function ExerciseDetailPage({
                       </span>
                     </div>
                   </div>
-                  <Link
-                    className="text-link"
-                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/${session.id}/edit`}
-                  >
-                    Edit
-                  </Link>
-                </article>
+                </Link>
               ))}
               </div>
             </section>
-            <nav className="pagination" aria-label="Session pagination">
-              <span>
-                Page {paceSessions.pagination.page} of{" "}
-                {paceSessions.pagination.totalPages}
-              </span>
-              <div>
-                {paceSessions.pagination.page > 1 ? (
-                  <Link
-                    className="text-link"
-                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}?page=${
-                      paceSessions.pagination.page - 1
-                    }`}
-                  >
-                    Previous
-                  </Link>
-                ) : null}
-                {paceSessions.pagination.page < paceSessions.pagination.totalPages ? (
-                  <Link
-                    className="text-link"
-                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}?page=${
-                      paceSessions.pagination.page + 1
-                    }`}
-                  >
-                    Next
-                  </Link>
-                ) : null}
-              </div>
-            </nav>
+            <PaginationNav
+              ariaLabel="Session pagination"
+              baseHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
+              limit={paceSessions.pagination.limit}
+              page={paceSessions.pagination.page}
+              placement="bottom"
+              totalItems={paceSessions.pagination.totalItems}
+              totalPages={paceSessions.pagination.totalPages}
+            />
           </>
         )
       ) : (

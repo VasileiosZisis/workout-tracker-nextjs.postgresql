@@ -1,5 +1,4 @@
 const DEFAULT_LIMIT = 12;
-const MAX_LIMIT = 100;
 
 function parsePositiveInt(value: string | string[] | undefined, fallback: number) {
   const rawValue = Array.isArray(value) ? value[0] : value;
@@ -17,7 +16,32 @@ export function parsePagination(searchParams: {
   limit?: string | string[];
 }) {
   const page = parsePositiveInt(searchParams.page, 1);
-  const limit = Math.min(parsePositiveInt(searchParams.limit, DEFAULT_LIMIT), MAX_LIMIT);
+  const limit = parsePositiveInt(searchParams.limit, DEFAULT_LIMIT);
 
   return { page, limit };
+}
+
+export function normalizePagination({
+  page,
+  limit,
+  totalItems,
+}: {
+  page: number;
+  limit: number;
+  totalItems: number;
+}) {
+  const normalizedLimit =
+    totalItems === 0
+      ? DEFAULT_LIMIT
+      : Math.min(limit, Math.max(totalItems, DEFAULT_LIMIT));
+  const totalPages = Math.max(1, Math.ceil(totalItems / normalizedLimit));
+  const normalizedPage = Math.min(page, totalPages);
+
+  return {
+    limit: normalizedLimit,
+    page: normalizedPage,
+    skip: (normalizedPage - 1) * normalizedLimit,
+    totalItems,
+    totalPages,
+  };
 }

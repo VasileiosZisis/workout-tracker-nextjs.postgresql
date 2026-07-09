@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -14,6 +15,8 @@ import type {
   PaceProgressPoint,
   WeightliftingProgressPoint,
 } from "../mapping";
+import type { ChartRangeState } from "../date-range";
+import { ChartRangeControl } from "./chart-range-control";
 
 const chartColors = {
   amber: "#f59e0b",
@@ -46,15 +49,38 @@ const axisTick = {
 
 export function WeightliftingProgressChart({
   data,
+  range,
 }: {
   data: WeightliftingProgressPoint[];
+  range: ChartRangeState;
 }) {
+  const [visibleSeries, setVisibleSeries] = useState({
+    junkVolume: true,
+    totalVolume: true,
+    workingVolume: true,
+  });
+
+  function toggleSeries(series: keyof typeof visibleSeries) {
+    setVisibleSeries((current) => ({
+      ...current,
+      [series]: !current[series],
+    }));
+  }
+
   if (data.length === 0) {
     return (
-      <section className="empty-state section-block">
-        <div>
-          <h2>No progress evidence yet</h2>
-          <p>Charts appear after the first recorded session.</p>
+      <section className="section-block chart-section" aria-labelledby="progress-heading">
+        <div className="section-heading">
+          <div>
+            <h2 id="progress-heading">Volume Over Time</h2>
+            <ChartRangeControl range={range} />
+          </div>
+        </div>
+        <div className="empty-state">
+          <div>
+            <h2>No volume data yet</h2>
+            <p>Charts appear after the first recorded session.</p>
+          </div>
         </div>
       </section>
     );
@@ -64,8 +90,38 @@ export function WeightliftingProgressChart({
     <section className="section-block chart-section" aria-labelledby="progress-heading">
       <div className="section-heading">
         <div>
-          <h2 id="progress-heading">Progress evidence</h2>
-          <p>Volume trend by recorded session. Working volume is the primary signal.</p>
+          <h2 id="progress-heading">Volume Over Time</h2>
+          <ChartRangeControl range={range} />
+          <div
+            className="chart-series-controls"
+            aria-label="Chart series"
+            role="group"
+          >
+            <label className="chart-series-toggle chart-series-violet">
+              <input
+                checked={visibleSeries.totalVolume}
+                onChange={() => toggleSeries("totalVolume")}
+                type="checkbox"
+              />
+              <span>Total volume</span>
+            </label>
+            <label className="chart-series-toggle chart-series-lime">
+              <input
+                checked={visibleSeries.workingVolume}
+                onChange={() => toggleSeries("workingVolume")}
+                type="checkbox"
+              />
+              <span>Working volume</span>
+            </label>
+            <label className="chart-series-toggle chart-series-amber">
+              <input
+                checked={visibleSeries.junkVolume}
+                onChange={() => toggleSeries("junkVolume")}
+                type="checkbox"
+              />
+              <span>Junk volume</span>
+            </label>
+          </div>
         </div>
       </div>
       <div className="chart-frame" aria-label="Weightlifting volume chart">
@@ -103,70 +159,106 @@ export function WeightliftingProgressChart({
               iconType="circle"
               wrapperStyle={{ color: chartColors.mutedStrong, paddingTop: 8 }}
             />
-            <Line
-              activeDot={{ r: 5 }}
-              dataKey="totalVolume"
-              dot={false}
-              name="Total volume"
-              stroke={chartColors.violet}
-              strokeWidth={2.5}
-              type="monotone"
-            />
-            <Line
-              activeDot={{ r: 5 }}
-              dataKey="workingVolume"
-              dot={false}
-              name="Working volume"
-              stroke={chartColors.lime}
-              strokeWidth={3}
-              type="monotone"
-            />
-            <Line
-              activeDot={{ r: 5 }}
-              dataKey="junkVolume"
-              dot={false}
-              name="Junk volume"
-              stroke={chartColors.amber}
-              strokeWidth={2.5}
-              type="monotone"
-            />
+            {visibleSeries.totalVolume ? (
+              <Line
+                activeDot={{ r: 5 }}
+                dataKey="totalVolume"
+                dot={false}
+                name="Total volume"
+                stroke={chartColors.violet}
+                strokeWidth={2.5}
+                type="monotone"
+              />
+            ) : null}
+            {visibleSeries.workingVolume ? (
+              <Line
+                activeDot={{ r: 5 }}
+                dataKey="workingVolume"
+                dot={false}
+                name="Working volume"
+                stroke={chartColors.lime}
+                strokeWidth={3}
+                type="monotone"
+              />
+            ) : null}
+            {visibleSeries.junkVolume ? (
+              <Line
+                activeDot={{ r: 5 }}
+                dataKey="junkVolume"
+                dot={false}
+                name="Junk volume"
+                stroke={chartColors.amber}
+                strokeWidth={2.5}
+                type="monotone"
+              />
+            ) : null}
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="chart-table-wrap">
-        <table className="data-table chart-table">
-          <caption>Weightlifting chart data</caption>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Total volume</th>
-              <th>Working volume</th>
-              <th>Junk volume</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((point) => (
-              <tr key={point.id}>
-                <td>{point.date}</td>
-                <td>{numberFormatter(point.totalVolume)} kg</td>
-                <td>{numberFormatter(point.workingVolume)} kg</td>
-                <td>{numberFormatter(point.junkVolume)} kg</td>
+      <details className="chart-data-disclosure">
+        <summary>Chart Data</summary>
+        <div className="chart-table-wrap">
+          <table className="data-table chart-table">
+            <caption>Chart Data</caption>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Total volume</th>
+                <th>Working volume</th>
+                <th>Junk volume</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.map((point) => (
+                <tr key={point.id}>
+                  <td>{point.date}</td>
+                  <td>{numberFormatter(point.totalVolume)} kg</td>
+                  <td>{numberFormatter(point.workingVolume)} kg</td>
+                  <td>{numberFormatter(point.junkVolume)} kg</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </section>
   );
 }
 
-export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
+export function PaceProgressChart({
+  data,
+  range,
+}: {
+  data: PaceProgressPoint[];
+  range: ChartRangeState;
+}) {
+  const [visibleSeries, setVisibleSeries] = useState({
+    distance: true,
+    pace: true,
+    speed: true,
+  });
+
+  function toggleSeries(series: keyof typeof visibleSeries) {
+    setVisibleSeries((current) => ({
+      ...current,
+      [series]: !current[series],
+    }));
+  }
+
   if (data.length === 0) {
     return (
-      <section className="empty-state section-block">
-        <div>
-          <h2>No progress evidence yet</h2>
-          <p>Charts appear after the first recorded session.</p>
+      <section className="section-block chart-section" aria-labelledby="progress-heading">
+        <div className="section-heading">
+          <div>
+            <h2 id="progress-heading">Pace and Speed Over Time</h2>
+            <ChartRangeControl range={range} />
+          </div>
+        </div>
+        <div className="empty-state">
+          <div>
+            <h2>No pace or speed data yet</h2>
+            <p>Charts appear after the first recorded session.</p>
+          </div>
         </div>
       </section>
     );
@@ -176,8 +268,38 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
     <section className="section-block chart-section" aria-labelledby="progress-heading">
       <div className="section-heading">
         <div>
-          <h2 id="progress-heading">Progress evidence</h2>
-          <p>Pace and speed trend by recorded session. Lower pace means faster effort.</p>
+          <h2 id="progress-heading">Pace and Speed Over Time</h2>
+          <ChartRangeControl range={range} />
+          <div
+            className="chart-series-controls"
+            aria-label="Chart series"
+            role="group"
+          >
+            <label className="chart-series-toggle chart-series-lime">
+              <input
+                checked={visibleSeries.distance}
+                onChange={() => toggleSeries("distance")}
+                type="checkbox"
+              />
+              <span>Distance</span>
+            </label>
+            <label className="chart-series-toggle chart-series-blue">
+              <input
+                checked={visibleSeries.pace}
+                onChange={() => toggleSeries("pace")}
+                type="checkbox"
+              />
+              <span>Pace</span>
+            </label>
+            <label className="chart-series-toggle chart-series-violet">
+              <input
+                checked={visibleSeries.speed}
+                onChange={() => toggleSeries("speed")}
+                type="checkbox"
+              />
+              <span>Speed</span>
+            </label>
+          </div>
         </div>
       </div>
       <div className="chart-frame" aria-label="Pace and speed chart">
@@ -215,59 +337,68 @@ export function PaceProgressChart({ data }: { data: PaceProgressPoint[] }) {
               iconType="circle"
               wrapperStyle={{ color: chartColors.mutedStrong, paddingTop: 8 }}
             />
-            <Line
-              activeDot={{ r: 5 }}
-              dataKey="pace"
-              dot={false}
-              name="Pace min/km"
-              stroke={chartColors.blue}
-              strokeWidth={3}
-              type="monotone"
-            />
-            <Line
-              activeDot={{ r: 5 }}
-              dataKey="speed"
-              dot={false}
-              name="Speed km/h"
-              stroke={chartColors.violet}
-              strokeWidth={2.5}
-              type="monotone"
-            />
-            <Line
-              activeDot={{ r: 5 }}
-              dataKey="distance"
-              dot={false}
-              name="Distance km"
-              stroke={chartColors.lime}
-              strokeWidth={2.5}
-              type="monotone"
-            />
+            {visibleSeries.pace ? (
+              <Line
+                activeDot={{ r: 5 }}
+                dataKey="pace"
+                dot={false}
+                name="Pace min/km"
+                stroke={chartColors.blue}
+                strokeWidth={3}
+                type="monotone"
+              />
+            ) : null}
+            {visibleSeries.speed ? (
+              <Line
+                activeDot={{ r: 5 }}
+                dataKey="speed"
+                dot={false}
+                name="Speed km/h"
+                stroke={chartColors.violet}
+                strokeWidth={2.5}
+                type="monotone"
+              />
+            ) : null}
+            {visibleSeries.distance ? (
+              <Line
+                activeDot={{ r: 5 }}
+                dataKey="distance"
+                dot={false}
+                name="Distance km"
+                stroke={chartColors.lime}
+                strokeWidth={2.5}
+                type="monotone"
+              />
+            ) : null}
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="chart-table-wrap">
-        <table className="data-table chart-table">
-          <caption>Pace chart data</caption>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Distance</th>
-              <th>Pace</th>
-              <th>Speed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((point) => (
-              <tr key={point.id}>
-                <td>{point.date}</td>
-                <td>{numberFormatter(point.distance)} km</td>
-                <td>{numberFormatter(point.pace)} min/km</td>
-                <td>{numberFormatter(point.speed)} km/h</td>
+      <details className="chart-data-disclosure">
+        <summary>Chart Data</summary>
+        <div className="chart-table-wrap">
+          <table className="data-table chart-table">
+            <caption>Chart Data</caption>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Distance</th>
+                <th>Pace</th>
+                <th>Speed</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {data.map((point) => (
+                <tr key={point.id}>
+                  <td>{point.date}</td>
+                  <td>{numberFormatter(point.distance)} km</td>
+                  <td>{numberFormatter(point.pace)} min/km</td>
+                  <td>{numberFormatter(point.speed)} km/h</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </section>
   );
 }

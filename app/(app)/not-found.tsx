@@ -4,7 +4,6 @@ export default function AppNotFound() {
   return (
     <main className="page">
       <section className="state-panel">
-        <p className="eyebrow">Not found</p>
         <h1>No matching record</h1>
         <p className="lede">
           The log, exercise, or session is unavailable for this account.

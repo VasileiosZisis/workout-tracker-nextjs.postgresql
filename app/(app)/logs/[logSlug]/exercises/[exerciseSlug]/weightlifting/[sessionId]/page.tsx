@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
 import { SessionSummary } from "@/features/weightlifting/components/session-summary";
 import { formatSessionDate } from "@/features/weightlifting/format";
@@ -45,13 +46,9 @@ export default async function WeightliftingSessionPage({
 
   return (
     <main className="page">
-      <Link className="text-link" href={exercisePath}>
-        {session.exercise.title}
-      </Link>
+      <BackLink href={exercisePath}>Weightlifting session</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">Weightlifting session</p>
         <h1>{formatSessionDate(session.performedAt)}</h1>
-        <p className="lede">Volume breakdown and set-level evidence.</p>
         <div className="actions">
           <Link
             className="button-secondary"

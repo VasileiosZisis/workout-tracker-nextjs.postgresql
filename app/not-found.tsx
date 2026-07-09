@@ -4,7 +4,6 @@ export default function NotFound() {
   return (
     <main className="page">
       <section className="state-panel">
-        <p className="eyebrow">404</p>
         <h1>Page not found</h1>
         <p className="lede">
           This route does not point to available training evidence.

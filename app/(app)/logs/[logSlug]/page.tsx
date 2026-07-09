@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
+import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { getLogBySlug } from "@/features/logs/queries";
-import { getExercisesForLog } from "@/features/exercises/queries";
+import { parsePagination } from "@/features/logs/pagination";
+import { getExercisesPage } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
 
 export async function generateMetadata({
@@ -22,31 +25,34 @@ export async function generateMetadata({
 
 export default async function LogDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ logSlug: string }>;
+  searchParams: Promise<{
+    page?: string | string[];
+    limit?: string | string[];
+  }>;
 }) {
   const user = await requireUser();
   const { logSlug } = await params;
+  const paginationInput = parsePagination(await searchParams);
   const log = await getLogBySlug({ userId: user.id, slug: logSlug });
 
   if (!log) {
     notFound();
   }
 
-  const exercises = await getExercisesForLog({
+  const { exercises, pagination } = await getExercisesPage({
     userId: user.id,
     logId: log.id,
+    ...paginationInput,
   });
 
   return (
     <main className="page">
-      <Link className="text-link" href="/logs">
-        Logs
-      </Link>
+      <BackLink href="/logs">Exercise library</BackLink>
       <section className="page-header compact-header">
-        <p className="eyebrow">Exercise library</p>
         <h1>{log.title}</h1>
-        <p className="lede">Choose the movement or activity you want to measure.</p>
         <div className="actions">
           <Link className="button-secondary" href={`/logs/${log.slug}/edit`}>
             Edit log
@@ -56,6 +62,15 @@ export default async function LogDetailPage({
           </Link>
         </div>
       </section>
+      <PaginationNav
+        ariaLabel="Exercise pagination"
+        baseHref={`/logs/${log.slug}`}
+        limit={pagination.limit}
+        page={pagination.page}
+        placement="top"
+        totalItems={pagination.totalItems}
+        totalPages={pagination.totalPages}
+      />
       {exercises.length === 0 ? (
         <section className="empty-state section-block">
           <div>
@@ -69,29 +84,32 @@ export default async function LogDetailPage({
       ) : (
         <section className="list section-block evidence-list" aria-label="Exercises">
           {exercises.map((exercise) => (
-            <article className="list-item session-card" key={exercise.id}>
+            <Link
+              className="list-item session-card"
+              href={`/logs/${log.slug}/exercises/${exercise.slug}`}
+              key={exercise.id}
+            >
               <div>
-                <h2>
-                  <Link href={`/logs/${log.slug}/exercises/${exercise.slug}`}>
-                    {exercise.title}
-                  </Link>
-                </h2>
+                <h2>{exercise.title}</h2>
                 <p>
                   <span className="metric-pill">
                     {sessionKindLabels[exercise.sessionKind]}
                   </span>
                 </p>
               </div>
-              <Link
-                className="text-link"
-                href={`/logs/${log.slug}/exercises/${exercise.slug}/edit`}
-              >
-                Edit
-              </Link>
-            </article>
+            </Link>
           ))}
         </section>
       )}
+      <PaginationNav
+        ariaLabel="Exercise pagination"
+        baseHref={`/logs/${log.slug}`}
+        limit={pagination.limit}
+        page={pagination.page}
+        placement="bottom"
+        totalItems={pagination.totalItems}
+        totalPages={pagination.totalPages}
+      />
     </main>
   );
 }

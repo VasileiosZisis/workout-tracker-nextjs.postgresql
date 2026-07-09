@@ -12,7 +12,6 @@ export default function ErrorPage({
   return (
     <main className="page">
       <section className="state-panel">
-        <p className="eyebrow">Error</p>
         <h1>Something went wrong</h1>
         <p className="lede">
           {error.message || "The page failed while loading training evidence."}
