@@ -47,6 +47,24 @@ const axisTick = {
   fontSize: 12,
 };
 
+function chartDot(color: string) {
+  return {
+    r: 4,
+    fill: chartColors.surface,
+    stroke: color,
+    strokeWidth: 2,
+  };
+}
+
+function activeChartDot(color: string) {
+  return {
+    r: 6,
+    fill: color,
+    stroke: "#f4f7fb",
+    strokeWidth: 2,
+  };
+}
+
 export function WeightliftingProgressChart({
   data,
   range,
@@ -161,9 +179,9 @@ export function WeightliftingProgressChart({
             />
             {visibleSeries.totalVolume ? (
               <Line
-                activeDot={{ r: 5 }}
+                activeDot={activeChartDot(chartColors.violet)}
                 dataKey="totalVolume"
-                dot={false}
+                dot={chartDot(chartColors.violet)}
                 name="Total volume"
                 stroke={chartColors.violet}
                 strokeWidth={2.5}
@@ -172,9 +190,9 @@ export function WeightliftingProgressChart({
             ) : null}
             {visibleSeries.workingVolume ? (
               <Line
-                activeDot={{ r: 5 }}
+                activeDot={activeChartDot(chartColors.lime)}
                 dataKey="workingVolume"
-                dot={false}
+                dot={chartDot(chartColors.lime)}
                 name="Working volume"
                 stroke={chartColors.lime}
                 strokeWidth={3}
@@ -183,9 +201,9 @@ export function WeightliftingProgressChart({
             ) : null}
             {visibleSeries.junkVolume ? (
               <Line
-                activeDot={{ r: 5 }}
+                activeDot={activeChartDot(chartColors.amber)}
                 dataKey="junkVolume"
-                dot={false}
+                dot={chartDot(chartColors.amber)}
                 name="Junk volume"
                 stroke={chartColors.amber}
                 strokeWidth={2.5}
@@ -339,9 +357,9 @@ export function PaceProgressChart({
             />
             {visibleSeries.pace ? (
               <Line
-                activeDot={{ r: 5 }}
+                activeDot={activeChartDot(chartColors.blue)}
                 dataKey="pace"
-                dot={false}
+                dot={chartDot(chartColors.blue)}
                 name="Pace min/km"
                 stroke={chartColors.blue}
                 strokeWidth={3}
@@ -350,9 +368,9 @@ export function PaceProgressChart({
             ) : null}
             {visibleSeries.speed ? (
               <Line
-                activeDot={{ r: 5 }}
+                activeDot={activeChartDot(chartColors.violet)}
                 dataKey="speed"
-                dot={false}
+                dot={chartDot(chartColors.violet)}
                 name="Speed km/h"
                 stroke={chartColors.violet}
                 strokeWidth={2.5}
@@ -361,9 +379,9 @@ export function PaceProgressChart({
             ) : null}
             {visibleSeries.distance ? (
               <Line
-                activeDot={{ r: 5 }}
+                activeDot={activeChartDot(chartColors.lime)}
                 dataKey="distance"
-                dot={false}
+                dot={chartDot(chartColors.lime)}
                 name="Distance km"
                 stroke={chartColors.lime}
                 strokeWidth={2.5}
