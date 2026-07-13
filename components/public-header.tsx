@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/auth-button";
 
-export function PublicHeader() {
+export function PublicHeader({
+  staticAuth = false,
+}: Readonly<{
+  staticAuth?: boolean;
+}>) {
   return (
     <>
       <a className="skip-link" href="#content">
@@ -13,7 +17,7 @@ export function PublicHeader() {
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
           <Link href="/logs">Logs</Link>
-          <AuthButton />
+          {staticAuth ? <Link href="/login">Sign in</Link> : <AuthButton />}
         </nav>
       </header>
     </>

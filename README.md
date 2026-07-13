@@ -1,6 +1,7 @@
 # Workout Tracker Next.js/PostgreSQL Rewrite
 
-This repository is the planned rewrite of `C:\Users\gonea\repos\workouttrackr-react-mongo`.
+This repository is the Next.js/PostgreSQL rewrite of
+`C:\Users\gonea\repos\workouttrackr-react-mongo`.
 
 The rewrite starts with an empty PostgreSQL database. MongoDB data migration is intentionally out of scope.
 
@@ -26,6 +27,7 @@ The rewrite starts with an empty PostgreSQL database. MongoDB data migration is 
 - [Implementation Plan](docs/04-implementation-plan.md)
 - [Open Decisions](docs/05-open-decisions.md)
 - [Milestones](docs/06-milestones.md)
+- [Production Runbook](docs/07-production-runbook.md)
 
 ## Current Assumptions
 
@@ -36,4 +38,8 @@ The rewrite starts with an empty PostgreSQL database. MongoDB data migration is 
 
 ## Current Status
 
-Milestones 0-6 are implemented: foundation, Auth.js with Google OAuth/database sessions, log CRUD, exercise CRUD inside logs, weightlifting session CRUD, pace session CRUD, and progress charts with accessible summary tables. Next step: continue to [Milestone 7: Redesign And UI Polish](docs/milestones/07-redesign-ui-polish.md), then [Milestone 8: Production Readiness](docs/milestones/08-production-readiness.md).
+Milestones 0-7 are implemented: foundation, Auth.js with Google OAuth/database
+sessions, workout CRUD, progress charts, and the production UI redesign.
+Repository work for [Milestone 8: Production Readiness](docs/milestones/08-production-readiness.md)
+is implemented. Vercel, Neon integration, production Google OAuth, deployment,
+and deployed smoke checks remain manual release steps.

@@ -1,27 +1,10 @@
 import Link from "next/link";
 import { PaginationPageSizeSelect } from "@/components/pagination-page-size-select";
-
-const PAGE_SIZE_STEP = 12;
-
-function getPageSizeOptions(totalItems: number) {
-  if (totalItems <= PAGE_SIZE_STEP) {
-    return [];
-  }
-
-  const options: number[] = [];
-
-  for (
-    let option = PAGE_SIZE_STEP;
-    option < totalItems;
-    option += PAGE_SIZE_STEP
-  ) {
-    options.push(option);
-  }
-
-  options.push(totalItems);
-
-  return options;
-}
+import {
+  buildPaginationHref,
+  type PreservedSearchParams,
+} from "@/components/pagination-url";
+import { getPageSizeOptions } from "@/features/logs/pagination";
 
 export function PaginationNav({
   ariaLabel,
@@ -29,6 +12,7 @@ export function PaginationNav({
   limit,
   page,
   placement,
+  preservedParams,
   totalItems,
   totalPages,
 }: Readonly<{
@@ -37,6 +21,7 @@ export function PaginationNav({
   limit: number;
   page: number;
   placement: "top" | "bottom";
+  preservedParams?: PreservedSearchParams;
   totalItems: number;
   totalPages: number;
 }>) {
@@ -62,6 +47,7 @@ export function PaginationNav({
             baseHref={baseHref}
             limit={limit}
             options={pageSizeOptions}
+            preservedParams={preservedParams}
           />
         </div>
       ) : (
@@ -78,7 +64,12 @@ export function PaginationNav({
         {page > 1 ? (
           <Link
             className="text-link"
-            href={`${baseHref}?page=${page - 1}&limit=${limit}`}
+            href={buildPaginationHref({
+              baseHref,
+              limit,
+              page: page - 1,
+              preservedParams,
+            })}
           >
             Previous
           </Link>
@@ -86,7 +77,12 @@ export function PaginationNav({
         {page < totalPages ? (
           <Link
             className="text-link"
-            href={`${baseHref}?page=${page + 1}&limit=${limit}`}
+            href={buildPaginationHref({
+              baseHref,
+              limit,
+              page: page + 1,
+              preservedParams,
+            })}
           >
             Next
           </Link>

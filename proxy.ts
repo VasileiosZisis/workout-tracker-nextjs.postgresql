@@ -10,7 +10,10 @@ export default auth((request) => {
 
   if (!request.auth && isProtectedRoute) {
     const loginUrl = new URL("/login", request.nextUrl);
-    loginUrl.searchParams.set("callbackUrl", request.nextUrl.href);
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    );
 
     return NextResponse.redirect(loginUrl);
   }

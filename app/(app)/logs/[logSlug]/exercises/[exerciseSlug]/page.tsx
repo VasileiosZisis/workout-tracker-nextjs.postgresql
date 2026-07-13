@@ -22,12 +22,18 @@ import {
   formatPace,
   formatSessionDate as formatPaceSessionDate,
 } from "@/features/pace/format";
-import { getPaceSessionsPage } from "@/features/pace/queries";
+import {
+  getLatestPaceSession,
+  getPaceSessionsPage,
+} from "@/features/pace/queries";
 import {
   formatDecimal as formatWeightliftingDecimal,
   formatSessionDate as formatWeightliftingSessionDate,
 } from "@/features/weightlifting/format";
-import { getWeightliftingSessionsPage } from "@/features/weightlifting/queries";
+import {
+  getLatestWeightliftingSession,
+  getWeightliftingSessionsPage,
+} from "@/features/weightlifting/queries";
 
 export async function generateMetadata({
   params,
@@ -75,42 +81,57 @@ export default async function ExerciseDetailPage({
     notFound();
   }
 
-  const weightliftingSessions =
+  const weightliftingData =
     exercise.sessionKind === SessionKind.WEIGHTLIFTING
-      ? await getWeightliftingSessionsPage({
-          userId: user.id,
-          exerciseId: exercise.id,
-          page: paginationInput.page,
-          limit: paginationInput.limit,
-        })
+      ? await Promise.all([
+          getWeightliftingSessionsPage({
+            userId: user.id,
+            exerciseId: exercise.id,
+            page: paginationInput.page,
+            limit: paginationInput.limit,
+          }),
+          getWeightliftingProgressData({
+            chartRange,
+            userId: user.id,
+            exerciseId: exercise.id,
+          }),
+          getLatestWeightliftingSession({
+            userId: user.id,
+            exerciseId: exercise.id,
+          }),
+        ])
       : null;
-  const weightliftingProgressData =
-    exercise.sessionKind === SessionKind.WEIGHTLIFTING
-      ? await getWeightliftingProgressData({
-          chartRange,
-          userId: user.id,
-          exerciseId: exercise.id,
-        })
-      : null;
-  const paceSessions =
+  const paceData =
     exercise.sessionKind === SessionKind.PACE
-      ? await getPaceSessionsPage({
-          userId: user.id,
-          exerciseId: exercise.id,
-          page: paginationInput.page,
-          limit: paginationInput.limit,
-        })
+      ? await Promise.all([
+          getPaceSessionsPage({
+            userId: user.id,
+            exerciseId: exercise.id,
+            page: paginationInput.page,
+            limit: paginationInput.limit,
+          }),
+          getPaceProgressData({
+            chartRange,
+            userId: user.id,
+            exerciseId: exercise.id,
+          }),
+          getLatestPaceSession({
+            userId: user.id,
+            exerciseId: exercise.id,
+          }),
+        ])
       : null;
-  const paceProgressData =
-    exercise.sessionKind === SessionKind.PACE
-      ? await getPaceProgressData({
-          chartRange,
-          userId: user.id,
-          exerciseId: exercise.id,
-        })
-      : null;
-  const latestWeightliftingSession = weightliftingSessions?.sessions[0] ?? null;
-  const latestPaceSession = paceSessions?.sessions[0] ?? null;
+  const weightliftingSessions = weightliftingData?.[0] ?? null;
+  const weightliftingProgressData = weightliftingData?.[1] ?? null;
+  const latestWeightliftingSession = weightliftingData?.[2] ?? null;
+  const paceSessions = paceData?.[0] ?? null;
+  const paceProgressData = paceData?.[1] ?? null;
+  const latestPaceSession = paceData?.[2] ?? null;
+  const preservedChartParams = {
+    chartFrom: chartRange.chartFrom || undefined,
+    chartRange: chartRange.chartRange,
+    chartTo: chartRange.chartTo || undefined,
+  };
 
   return (
     <main className="page">
@@ -181,7 +202,10 @@ export default async function ExerciseDetailPage({
               </div>
               <div className="metric-card metric-card-amber">
                 <span>Hard sets</span>
-                <strong>{latestWeightliftingSession?._count.sets ?? 0}</strong>
+                <strong>
+                  {latestWeightliftingSession?.sets.filter((set) => set.isHard)
+                    .length ?? 0}
+                </strong>
               </div>
               <div className="metric-card metric-card-violet">
                 <span>Total volume</span>
@@ -208,6 +232,7 @@ export default async function ExerciseDetailPage({
                 limit={weightliftingSessions.pagination.limit}
                 page={weightliftingSessions.pagination.page}
                 placement="top"
+                preservedParams={preservedChartParams}
                 totalItems={weightliftingSessions.pagination.totalItems}
                 totalPages={weightliftingSessions.pagination.totalPages}
               />
@@ -242,6 +267,7 @@ export default async function ExerciseDetailPage({
               limit={weightliftingSessions.pagination.limit}
               page={weightliftingSessions.pagination.page}
               placement="bottom"
+              preservedParams={preservedChartParams}
               totalItems={weightliftingSessions.pagination.totalItems}
               totalPages={weightliftingSessions.pagination.totalPages}
             />
@@ -308,6 +334,7 @@ export default async function ExerciseDetailPage({
                 limit={paceSessions.pagination.limit}
                 page={paceSessions.pagination.page}
                 placement="top"
+                preservedParams={preservedChartParams}
                 totalItems={paceSessions.pagination.totalItems}
                 totalPages={paceSessions.pagination.totalPages}
               />
@@ -348,6 +375,7 @@ export default async function ExerciseDetailPage({
               limit={paceSessions.pagination.limit}
               page={paceSessions.pagination.page}
               placement="bottom"
+              preservedParams={preservedChartParams}
               totalItems={paceSessions.pagination.totalItems}
               totalPages={paceSessions.pagination.totalPages}
             />

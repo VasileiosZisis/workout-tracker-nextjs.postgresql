@@ -15,17 +15,21 @@ Prepare the redesigned app for deployment.
 
 ## Tasks
 
-- Configure Vercel project settings.
-- Configure production environment variables.
-- Configure preview environment variables.
-- Confirm Neon production branch and development branch.
-- Add migration deployment instructions.
-- Add production build checks.
-- Add security headers and CSP.
-- Add rate limiting for sensitive routes/actions where needed.
-- Audit Auth.js callback URLs and OAuth settings.
-- Audit error handling and logging.
-- Run accessibility checks on core flows.
+- Add repository Vercel settings and a migration-aware build command. Done.
+- Validate production and preview environment configuration. Done.
+- Confirm Neon production and development branch separation. Done.
+- Add migration deployment and recovery instructions. Done.
+- Add production build checks. Done.
+- Add security headers and a static CSP. Done.
+- Audit rate limiting requirements. Done; use Vercel platform protection for v1.
+- Harden Auth.js callback URLs and disable preview OAuth. Done.
+- Add safe error handling and Vercel Runtime Log metadata. Done.
+- Add production metadata, robots rules, and sitemap behavior. Done.
+- Bound pagination and preserve chart filters. Done.
+- Configure the Vercel project and Neon integration. Manual release step.
+- Configure Preview and Production secrets. Manual release step.
+- Configure production Google OAuth. Manual release step.
+- Run accessibility and deployed browser checks. Manual release step.
 
 ## Tests
 
@@ -38,8 +42,12 @@ Prepare the redesigned app for deployment.
 
 ## App Flow Check
 
-- Open deployed preview.
-- Sign in with Google.
+- Open the deployed preview homepage and login page.
+- Confirm Preview reports that Google sign-in is unavailable.
+- Confirm protected routes redirect safely to login.
+- Confirm Preview migrations were applied to its disposable Neon branch.
+- Open deployed production.
+- Sign in with Google and confirm a database session is created.
 - Create, edit, and delete a log.
 - Create, edit, and delete an exercise.
 - Create, edit, and delete a weightlifting session.
@@ -48,6 +56,7 @@ Prepare the redesigned app for deployment.
 - Sign out.
 - Confirm protected routes are blocked.
 - Confirm no severe browser console errors.
+- Confirm no severe Vercel Runtime Log errors.
 
 ## Acceptance Criteria
 
@@ -55,7 +64,8 @@ Prepare the redesigned app for deployment.
 - Production database settings are separated from development settings.
 - Prisma migrations can be deployed repeatably.
 - Auth callback URLs work in deployed environments.
-- Core flows pass in the deployed preview.
+- Public and protected-route checks pass in Preview.
+- Authenticated core flows pass in Production.
 
 ## Out Of Scope
 
@@ -67,4 +77,7 @@ Prepare the redesigned app for deployment.
 
 Do not connect local development directly to production. Use the Neon development branch for local work and reserve production for deployed production traffic.
 
-Setup for Neon, Google OAuth, and Vercel is still pending until credentials and project resources are created.
+The existing `production` branch is empty and primary. The Neon plan does not
+support protected branches, so confirm the selected branch before every manual
+migration or database operation. Follow the
+[production runbook](../07-production-runbook.md) for external setup and release.

@@ -7,7 +7,7 @@ export default function MarketingLayout({
 }>) {
   return (
     <>
-      <PublicHeader />
+      <PublicHeader staticAuth />
       <div id="content" tabIndex={-1}>
         {children}
       </div>

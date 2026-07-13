@@ -20,8 +20,10 @@ This file tracks settled decisions, pending setup, and future considerations.
 
 ## Setup Still Pending
 
-- Configure Vercel project and environment variables later.
-- Manually confirm Google sign-in locally after Milestone 1 implementation.
+- Import the repository into Vercel and configure environment variables.
+- Connect the existing Neon project to Vercel.
+- Configure production Google OAuth after the stable Vercel URL is known.
+- Run preview and production deployment checks from the production runbook.
 
 ## 1. Authentication
 
@@ -51,16 +53,21 @@ Decision:
 Recommended workflow:
 
 - Use one Neon project for the app.
-- Use a protected `production` branch for production.
+- Use the primary `production` branch only for production deployments.
 - Use a long-lived `development` branch for local development.
 - Point local `.env` to the Neon `development` branch.
 - Use temporary Neon branches for preview deployments, migration testing, and CI when useful.
 - Use local Docker Postgres only if fully offline development becomes important.
 - Consider Neon Local if a localhost-style connection string is useful while still using Neon branches.
+- Enable branch protection later if the Neon plan adds support for it.
 
-Pending setup:
+Current setup:
 
-- Neon project and branches still need to be created.
+- The Neon project has an empty primary `production` branch and a separate
+  `development` branch.
+- Local `DATABASE_URL` and `DIRECT_URL` point only to `development`.
+- The current Neon plan does not support branch protection, so production
+  deletion/reset safeguards remain procedural.
 
 ## 3. Deployment Target
 

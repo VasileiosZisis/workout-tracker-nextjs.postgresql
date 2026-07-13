@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 export default function ErrorPage({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -14,7 +13,8 @@ export default function ErrorPage({
       <section className="state-panel">
         <h1>Something went wrong</h1>
         <p className="lede">
-          {error.message || "The page failed while loading training evidence."}
+          The page failed while loading training evidence. Try again or return
+          to your logs.
         </p>
         <div className="actions">
           <button className="button" type="button" onClick={reset}>

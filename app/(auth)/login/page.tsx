@@ -1,35 +1,12 @@
 import type { Metadata } from "next";
 import { auth, signIn } from "@/auth";
+import { getSafeRedirectTo } from "@/lib/auth-redirect";
+import { env } from "@/lib/env";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Sign in",
 };
-
-function getSafeRedirectTo(callbackUrl: string | undefined) {
-  if (!callbackUrl) {
-    return "/logs";
-  }
-
-  if (callbackUrl.startsWith("/")) {
-    return callbackUrl;
-  }
-
-  try {
-    const url = new URL(callbackUrl);
-    const appUrl = new URL(
-      process.env.NEXT_PUBLIC_APP_URL ?? process.env.AUTH_URL ?? "http://localhost:3000",
-    );
-
-    if (url.origin === appUrl.origin) {
-      return `${url.pathname}${url.search}${url.hash}`;
-    }
-  } catch {
-    return "/logs";
-  }
-
-  return "/logs";
-}
 
 export default async function LoginPage({
   searchParams,
@@ -48,17 +25,25 @@ export default async function LoginPage({
     <main className="page">
       <section className="page-header">
         <h1>Sign in</h1>
-        <form
-          className="actions"
-          action={async () => {
-            "use server";
-            await signIn("google", { redirectTo });
-          }}
-        >
-          <button className="button" type="submit">
-            Sign in with Google
-          </button>
-        </form>
+        {env.GOOGLE_AUTH_ENABLED ? (
+          <form
+            className="actions"
+            action={async () => {
+              "use server";
+              await signIn("google", { redirectTo });
+            }}
+          >
+            <button className="button" type="submit">
+              Sign in with Google
+            </button>
+          </form>
+        ) : (
+          <p className="lede">
+            {env.IS_PREVIEW
+              ? "Google sign-in is disabled for preview deployments."
+              : "Google sign-in is not configured for this environment."}
+          </p>
+        )}
       </section>
     </main>
   );

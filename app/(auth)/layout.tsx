@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { PublicHeader } from "@/components/public-header";
+
+export const metadata: Metadata = {
+  robots: { follow: false, index: false },
+};
 
 export default function AuthLayout({
   children,

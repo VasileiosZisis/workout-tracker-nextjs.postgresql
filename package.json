@@ -3,19 +3,24 @@
   "version": "1.0.0",
   "description": "Next.js and PostgreSQL rewrite of Workout Tracker.",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:vercel": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run build",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "prisma:validate": "prisma validate",
     "prisma:format": "prisma format",
     "prisma:generate": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },

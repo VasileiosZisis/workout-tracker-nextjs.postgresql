@@ -1,17 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import {
+  buildPaginationHref,
+  type PreservedSearchParams,
+} from "@/components/pagination-url";
 
 export function PaginationPageSizeSelect({
   ariaLabel,
   baseHref,
   limit,
   options,
+  preservedParams,
 }: Readonly<{
   ariaLabel: string;
   baseHref: string;
   limit: number;
   options: number[];
+  preservedParams?: PreservedSearchParams;
 }>) {
   const router = useRouter();
 
@@ -20,7 +26,14 @@ export function PaginationPageSizeSelect({
       aria-label={ariaLabel}
       className="pagination-page-size-select"
       onChange={(event) => {
-        router.push(`${baseHref}?page=1&limit=${event.currentTarget.value}`);
+        router.push(
+          buildPaginationHref({
+            baseHref,
+            limit: Number(event.currentTarget.value),
+            page: 1,
+            preservedParams,
+          }),
+        );
       }}
       value={limit}
     >
