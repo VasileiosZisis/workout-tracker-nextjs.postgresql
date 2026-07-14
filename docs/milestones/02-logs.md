@@ -25,11 +25,11 @@ Verification completed:
 - Production build passes.
 - Authenticated server logs show `/logs` and `/profile` returning 200 after Google sign-in.
 
-Manual verification still useful:
+Browser verification completed:
 
-- Create a log through the browser.
-- Edit the log title and confirm the URL slug updates when no collision exists.
-- Delete the log and confirm it disappears.
+- Created a log through the browser.
+- Edited the title and confirmed the URL slug updated without a collision.
+- Deleted the log and confirmed it disappeared.
 
 ## Goal
 

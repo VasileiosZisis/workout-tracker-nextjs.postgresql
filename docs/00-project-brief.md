@@ -1,85 +1,71 @@
 # Project Brief
 
-## Goal
+## Overview
 
-Rewrite the existing MERN workout tracker as a modern full-stack Next.js application backed by PostgreSQL and Prisma.
+Workout Trackr is a commercial performance-tracking application for recording
+structured training data and evaluating progress over time. The current product
+supports weightlifting and pace-based activities and is designed to expand into
+broader personal performance metrics.
 
-The rewrite should keep the useful product behavior, replace the Express/Mongoose API with Next.js server-side primitives, and start from an empty database.
+This repository is a ground-up modernization of an earlier MERN implementation.
+It preserves the useful domain behavior while replacing the client-heavy React,
+Express, Mongoose, and cookie-JWT architecture with a server-first Next.js and
+PostgreSQL system.
 
-## Source App
+## Product Objective
 
-Source repository:
+The application should help a user:
 
-`C:\Users\gonea\repos\workouttrackr-react-mongo`
+- Capture repeatable workout measurements with minimal ambiguity.
+- Review recent performance before recording the next session.
+- Compare historical measurements through paginated evidence and charts.
+- Use working volume, hard sets, pace, speed, and distance to make informed
+  training decisions.
 
-Current stack:
+The product is evidence-oriented rather than social. User data is private by
+default, and there is no public feed, leaderboard, or community layer in v1.
 
-- React 18 with Vite
-- React Router
-- Redux Toolkit Query
-- Express
-- MongoDB with Mongoose
-- JWT auth stored in an HTTP-only cookie
-- Joi validation
-- Cloudflare Turnstile on registration
-- Postmark password reset emails
-- Chart.js visualizations
+## Engineering Objectives
 
-## Existing Feature Inventory
+- Authorize every user-owned read and write on the server.
+- Model ownership and lifecycle relationships explicitly in PostgreSQL.
+- Validate all mutation input with Zod at the server boundary.
+- Calculate derived metrics in trusted domain functions.
+- Use Server Components for data-heavy screens and Client Components only for
+  interaction that requires browser state.
+- Keep application-owned mutations in Server Actions instead of duplicating an
+  internal REST API.
+- Make database changes repeatable through committed Prisma migrations.
+- Isolate local, Preview, and Production data through Neon branches.
+- Maintain a production verification path covering linting, types, tests,
+  builds, migrations, browser flows, and runtime logs.
 
-Public pages:
+## Implemented Scope
 
-- Landing page
-- Contact page
-- Login
-- Register
-- Forgot password
-- Reset password
+- Google OAuth through Auth.js and the Prisma Adapter.
+- Database-backed sessions and protected application routes.
+- Profile display and update flow.
+- Log and exercise CRUD with ownership-scoped slugs.
+- Weightlifting session CRUD with ordered sets and volume calculations.
+- Pace session CRUD with pace and speed calculations.
+- Previous-session evidence, paginated history, and progress charts.
+- Mobile-first dark interface with accessible chart fallback tables.
+- Vercel deployment, Neon branch-per-Preview integration, security headers,
+  environment validation, and structured request-error logging.
 
-Authenticated pages:
+## Non-Goals For V1
 
-- Profile update
-- Logs list with pagination
-- Create, edit, view, delete logs
-- Create, edit, view, delete exercises inside a log
-- Create, edit, view, delete weightlifting sessions
-- Create, edit, view, delete pace sessions
-- Previous-session preview when creating a new session
-- Progress tables and chart-oriented session data
+- Migrating legacy MongoDB records.
+- Email/password authentication and password recovery.
+- Public social or sharing features.
+- An administrative dashboard.
+- Unit switching beyond kilograms and kilometers.
+- A public application API.
+- Native mobile clients.
 
-Core domain concepts:
+## Current Status
 
-- User
-- Log
-- Exercise
-- Weightlifting session
-- Weightlifting set
-- Pace session
-
-## Rewrite Goals
-
-- Use server-side authorization for every user-owned query and mutation.
-- Replace client-side filtering of another user's data with database-level ownership filters.
-- Use Prisma relations and cascading deletes instead of Mongoose post-delete hooks.
-- Move all validation to Zod schemas that run on the server.
-- Keep client components focused on interactivity only: charts, dynamic field arrays, pending states, dialogs, and menus.
-- Prefer Server Actions for app-owned form mutations.
-- Keep Route Handlers for auth endpoints, webhooks, and API surfaces that must be called outside the UI.
-- Add TypeScript from the start.
-- Make the schema easier to evolve than the old document model.
-
-## Non-Goals
-
-- No MongoDB data migration.
-- No exact CSS copy of the old UI unless explicitly requested.
-- No public multi-user social/feed behavior unless explicitly requested.
-- No native mobile app.
-
-## Known Issues To Avoid From The Old App
-
-- Logs are fetched broadly and then filtered in the client; this should be server-side ownership filtering.
-- Log, exercise, and session slugs are globally unique; this creates unnecessary naming conflicts across users.
-- Session date slugs can collide when multiple sessions share a date.
-- Derived fields are mixed into document save hooks; this should be explicit domain logic with tests.
-- Controllers repeat nested ownership lookups; this should move into reusable server helpers.
-- Some route calculations and pagination logic are fragile and should be replaced with typed query helpers.
+The v1 feature set and production-readiness work are implemented. The
+application is deployed through Vercel, with local development using a
+long-lived Neon development branch and deployments using isolated Preview and
+Production database branches.

@@ -65,7 +65,8 @@ Allow users to manage exercises inside owned logs.
 
 ## Notes
 
-Do not add complex exercise libraries yet. The old app lets users name their own exercises, and this rewrite should preserve that simple model.
+The product uses user-defined exercise names rather than a predefined exercise
+library. A shared catalog remains outside the v1 scope.
 
 ## Implementation Notes
 

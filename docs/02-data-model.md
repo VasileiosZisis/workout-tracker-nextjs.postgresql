@@ -1,259 +1,118 @@
 # Data Model
 
-This is the initial PostgreSQL model proposal. It intentionally improves on the MongoDB shape instead of copying it directly.
+The authoritative schema is [`prisma/schema.prisma`](../prisma/schema.prisma).
+This document explains the domain relationships and the constraints behind
+them rather than duplicating the complete Prisma schema.
 
-## Entities
+## Entity Relationships
 
-### User
-
-Represents an account owner.
-
-Fields:
-
-- `id`
-- `name`
-- `email`
-- `image`
-- Auth.js adapter fields and relations
-- `role`
-- timestamps
-
-Use the Auth.js Prisma Adapter models for users, OAuth accounts, sessions, and verification tokens. Workout records should relate to the adapter `User` model.
-
-### Log
-
-A user-owned training log.
-
-Fields:
-
-- `id`
-- `userId`
-- `title`
-- `slug`
-- timestamps
-
-Constraints:
-
-- Unique `userId + slug`
-
-### Exercise
-
-A user-owned exercise inside a log.
-
-Fields:
-
-- `id`
-- `userId`
-- `logId`
-- `title`
-- `slug`
-- `sessionKind`: `WEIGHTLIFTING` or `PACE`
-- timestamps
-
-Constraints:
-
-- Unique `logId + slug`
-
-### WeightliftingSession
-
-A dated strength session for an exercise.
-
-Fields:
-
-- `id`
-- `userId`
-- `logId`
-- `exerciseId`
-- `performedAt`
-- `totalVolume`
-- `junkVolume`
-- `workingVolume`
-- timestamps
-
-Notes:
-
-- Route by `id` or by `performedAt + id`, not by globally unique date slug.
-- Volumes are calculated from sets on the server.
-
-### WeightliftingSet
-
-A set inside a weightlifting session.
-
-Fields:
-
-- `id`
-- `sessionId`
-- `position`
-- `repetitions`
-- `kilograms`
-- `isHard`
-- `volume`
-
-Constraints:
-
-- Unique `sessionId + position`
-
-### PaceSession
-
-A dated pace/speed session for an exercise.
-
-Fields:
-
-- `id`
-- `userId`
-- `logId`
-- `exerciseId`
-- `performedAt`
-- `hours`
-- `minutes`
-- `seconds`
-- `distance`
-- `pace`
-- `paceMinutes`
-- `paceSeconds`
-- `speed`
-- timestamps
-
-Notes:
-
-- Distance should keep the existing unit unless changed. The old UI appears to treat it as kilometers.
-- Pace and speed are calculated server-side from time and distance.
-
-## Prisma Sketch
-
-This is not the final schema file, but it captures the intended relationships.
-
-```prisma
-enum Role {
-  USER
-  ADMIN
-}
-
-enum SessionKind {
-  WEIGHTLIFTING
-  PACE
-}
-
-model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  role      Role     @default(USER)
-  logs      Log[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Log {
-  id        String     @id @default(cuid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  slug      String
-  exercises Exercise[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  @@unique([userId, slug])
-  @@index([userId, updatedAt])
-}
-
-model Exercise {
-  id                    String                 @id @default(cuid())
-  userId                String
-  logId                 String
-  log                   Log                    @relation(fields: [logId], references: [id], onDelete: Cascade)
-  title                 String
-  slug                  String
-  sessionKind           SessionKind
-  weightliftingSessions WeightliftingSession[]
-  paceSessions          PaceSession[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-
-  @@unique([logId, slug])
-  @@index([userId, logId])
-}
-
-model WeightliftingSession {
-  id            String             @id @default(cuid())
-  userId        String
-  logId         String
-  exerciseId    String
-  exercise      Exercise           @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  performedAt   DateTime
-  totalVolume   Decimal            @default(0)
-  junkVolume    Decimal            @default(0)
-  workingVolume Decimal            @default(0)
-  sets          WeightliftingSet[]
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-
-  @@index([userId, exerciseId, performedAt])
-}
-
-model WeightliftingSet {
-  id          String               @id @default(cuid())
-  sessionId   String
-  session     WeightliftingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  position    Int
-  repetitions Decimal
-  kilograms   Decimal
-  isHard      Boolean              @default(false)
-  volume      Decimal
-
-  @@unique([sessionId, position])
-}
-
-model PaceSession {
-  id          String   @id @default(cuid())
-  userId      String
-  logId       String
-  exerciseId  String
-  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  performedAt DateTime
-  hours       Int      @default(0)
-  minutes     Int      @default(0)
-  seconds     Int      @default(0)
-  distance    Decimal  @default(0)
-  pace        Decimal  @default(0)
-  paceMinutes Int      @default(0)
-  paceSeconds Int      @default(0)
-  speed       Decimal  @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId, exerciseId, performedAt])
-}
+```text
+User
+├── Account
+├── Session
+└── Log
+    └── Exercise
+        ├── WeightliftingSession
+        │   └── WeightliftingSet
+        └── PaceSession
 ```
 
-## Derived Metric Rules
+Workout sessions also store direct `userId` and `logId` references. These
+references support ownership-scoped queries and useful indexes without joining
+the full hierarchy for every operation. Server Actions resolve the owned parent
+records before creating or moving nested data.
+
+## Authentication Models
+
+| Model | Responsibility |
+| --- | --- |
+| `User` | Authenticated identity, role, profile, and root workout ownership |
+| `Account` | Google OAuth account linked through the Auth.js Prisma Adapter |
+| `Session` | Revocable database-backed Auth.js session |
+| `VerificationToken` | Adapter-compatible token storage for future providers |
+
+Deleting a user cascades through accounts, sessions, logs, exercises, and
+workout sessions.
+
+## Workout Models
+
+| Model | Responsibility | Key constraints |
+| --- | --- | --- |
+| `Log` | User-owned training collection | Unique `(userId, slug)` |
+| `Exercise` | Activity inside a log | Unique `(logId, slug)` and fixed session kind |
+| `WeightliftingSession` | Dated strength evidence and volume totals | Indexed by owner, exercise, and date |
+| `WeightliftingSet` | Ordered repetitions, load, classification, and volume | Unique `(sessionId, position)` |
+| `PaceSession` | Dated duration, distance, pace, and speed evidence | Indexed by owner, exercise, and date |
+
+`Exercise.sessionKind` is either `WEIGHTLIFTING` or `PACE`. Query and action
+modules include this discriminator when resolving session-specific records.
+
+## Identifier Strategy
+
+- Database records use CUID primary keys.
+- Logs use slugs unique within a user.
+- Exercises use slugs unique within a log.
+- Log and exercise slugs update with title changes when the target slug is
+  available.
+- Session routes use database identifiers rather than date slugs, allowing
+  multiple sessions for the same exercise on the same date.
+
+## Decimal Storage
+
+Measurements and derived values use PostgreSQL decimal columns instead of
+binary floating-point storage:
+
+- Repetitions and kilograms: `Decimal(8, 2)`
+- Set and session volume: `Decimal(12, 2)`
+- Distance: `Decimal(10, 2)`
+- Pace and speed: `Decimal(10, 3)`
+
+Domain functions calculate in JavaScript numbers, round at the defined metric
+precision, and persist through Prisma decimal fields.
+
+## Derived Metrics
 
 Weightlifting:
 
-- Set volume: `repetitions * kilograms`
-- Total volume: sum of all set volumes
-- Working volume: sum of volumes where `isHard` is true
-- Junk volume: sum of volumes where `isHard` is false
+```text
+setVolume = repetitions * kilograms
+totalVolume = sum(all setVolume)
+workingVolume = sum(setVolume where isHard = true)
+junkVolume = sum(setVolume where isHard = false)
+```
+
+Weightlifting values are rounded to two decimal places.
 
 Pace:
 
-- Total minutes: `hours * 60 + minutes + seconds / 60`
-- Pace: `totalMinutes / distance`, or `0` when distance is zero
-- Pace minutes: integer minutes from pace
-- Pace seconds: fractional pace converted to seconds
-- Speed: `distance / totalMinutes`, or `0` when total time is zero
+```text
+totalMinutes = hours * 60 + minutes + seconds / 60
+paceMinPerKm = totalMinutes / distance
+speedKmPerHour = distance / (totalMinutes / 60)
+```
 
-## Open Modeling Questions
+Pace and speed are zero when their divisor is zero and are rounded to three
+decimal places. Display helpers expose pace as minutes and seconds per kilometer.
 
-- Should weightlifting sets allow decimal repetitions, or should repetitions be integer-only?
-- Should derived metrics be stored for sorting/reporting, computed at read time, or both?
+## Ownership And Lifecycle
 
-## Modeling Decisions
+Prisma relations use cascading deletes for owned child records:
 
-- Users can have multiple sessions for the same exercise on the same date.
-- Distance uses kilometers in v1.
-- Weight uses kilograms in v1.
-- Log and exercise slugs are scoped and can update when titles change.
-- Session routes use ids instead of date slugs.
-- Keep an `ADMIN` role in the user model, but do not build admin UI in v1.
+- Deleting a log removes its exercises and sessions.
+- Deleting an exercise removes its weightlifting or pace sessions.
+- Deleting a weightlifting session removes its sets.
+- Deleting a user removes both authentication and workout data.
+
+Database cascades handle lifecycle cleanup; application code does not emulate
+relational deletion through post-delete hooks.
+
+## Modeling Tradeoffs
+
+- Derived metrics are stored as well as calculable. This makes progress queries
+  and chart mapping simple, at the cost of requiring all writes to use trusted
+  domain functions.
+- Direct ownership identifiers on nested records improve authorization queries
+  but rely on Server Actions to keep parent identifiers consistent.
+- Decimal repetitions support partial-repetition data but are more permissive
+  than an integer-only strength model.
+- The `ADMIN` role is retained for future use; v1 has no administrative UI.

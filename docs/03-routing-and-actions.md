@@ -1,120 +1,119 @@
-# Routing And Actions
+# Routing And Server Actions
 
-## Public Routes
+## Route Map
 
-| Current React route | Proposed Next.js route | Notes |
+### Public And Authentication
+
+| Route | Rendering | Responsibility |
 | --- | --- | --- |
-| `/` | `/` | Landing page. Redirect signed-in users to `/logs`. |
-| `/contact` | `/contact` | Keep if still useful. |
-| `/login` | `/login` or `/sign-in` | Depends on auth choice. |
-| `/register` | `/register` or `/sign-up` | Depends on auth choice. |
-| `/forgot-password` | `/forgot-password` | Needed for owned email/password auth. |
-| `/reset-password/:token` | `/reset-password/[token]` | Needed for owned email/password auth. |
+| `/` | Static | Product overview and entry point |
+| `/login` | Dynamic | Google sign-in or environment-specific availability notice |
+| `/api/auth/[...nextauth]` | Route Handler | Auth.js provider, callback, session, and sign-out endpoints |
+| `/robots.txt` | Static metadata route | Environment-aware crawler policy |
+| `/sitemap.xml` | Static metadata route | Public Production homepage only |
 
-## Authenticated App Routes
+### Authenticated Application
 
-| Current React route | Proposed Next.js route | Primary server work |
-| --- | --- | --- |
-| `/profile` | `/profile` | Read and update current user. |
-| `/logs` | `/logs` | List current user's logs with pagination. |
-| `/logs/create-new-log` | `/logs/new` | Create log action. |
-| `/logs/:slugLog` | `/logs/[logSlug]` | Show one owned log and paginated exercises. |
-| `/logs/edit/:id` | `/logs/[logSlug]/edit` | Edit log action. |
-| `/logs/:slugLog/create-new-exercise` | `/logs/[logSlug]/exercises/new` | Create exercise action. |
-| `/logs/:slugLog/:slugExercise` | `/logs/[logSlug]/exercises/[exerciseSlug]` | Show exercise, latest session, session list. |
-| `/logs/:slugLog/edit/:exerciseId` | `/logs/[logSlug]/exercises/[exerciseSlug]/edit` | Edit exercise action. |
-| `/logs/:slugLog/:slugExercise/wl/create-new-session` | `/logs/[logSlug]/exercises/[exerciseSlug]/weightlifting/new` | Create weightlifting session action. |
-| `/logs/:slugLog/:slugExercise/wl/:slugSession` | `/logs/[logSlug]/exercises/[exerciseSlug]/weightlifting/[sessionId]` | Show one weightlifting session. |
-| `/logs/:slugLog/:slugExercise/wl/edit/:wlsessionId` | `/logs/[logSlug]/exercises/[exerciseSlug]/weightlifting/[sessionId]/edit` | Edit weightlifting session action. |
-| `/logs/:slugLog/:slugExercise/pa/create-new-session` | `/logs/[logSlug]/exercises/[exerciseSlug]/pace/new` | Create pace session action. |
-| `/logs/:slugLog/:slugExercise/pa/:slugSession` | `/logs/[logSlug]/exercises/[exerciseSlug]/pace/[sessionId]` | Show one pace session. |
-| `/logs/:slugLog/:slugExercise/pa/edit/:pasessionId` | `/logs/[logSlug]/exercises/[exerciseSlug]/pace/[sessionId]/edit` | Edit pace session action. |
+| Route | Responsibility |
+| --- | --- |
+| `/logs` | Paginated owned logs |
+| `/logs/new` | Create a log |
+| `/logs/[logSlug]` | Owned log and its exercises |
+| `/logs/[logSlug]/edit` | Edit or delete a log |
+| `/logs/[logSlug]/exercises/new` | Create an exercise |
+| `/logs/[logSlug]/exercises/[exerciseSlug]` | Evidence, charts, and paginated session history |
+| `/logs/[logSlug]/exercises/[exerciseSlug]/edit` | Edit or delete an exercise |
+| `.../weightlifting/new` | Create a weightlifting session |
+| `.../weightlifting/[sessionId]` | View a weightlifting session |
+| `.../weightlifting/[sessionId]/edit` | Edit or delete a weightlifting session |
+| `.../pace/new` | Create a pace session |
+| `.../pace/[sessionId]` | View a pace session |
+| `.../pace/[sessionId]/edit` | Edit or delete a pace session |
+| `/profile` | View and update the authenticated profile |
 
-Routing decisions:
-
-- Logs and exercises use scoped slugs.
-- Sessions use database ids to avoid date collisions.
-- Log and exercise slugs update when titles change unless the new slug would collide.
+The authenticated route group exports `noindex` metadata and resolves the user
+before rendering the app shell. `proxy.ts` provides the early anonymous redirect,
+while page queries remain responsible for record ownership.
 
 ## Server Actions
 
-Initial action list:
+The implemented mutation surface is:
 
-- `createLog`
-- `updateLog`
-- `deleteLog`
-- `createExercise`
-- `updateExercise`
-- `deleteExercise`
-- `createWeightliftingSession`
-- `updateWeightliftingSession`
-- `deleteWeightliftingSession`
-- `createPaceSession`
-- `updatePaceSession`
-- `deletePaceSession`
-- `updateProfile`
-- `requestPasswordReset`, if owned auth is chosen
-- `resetPassword`, if owned auth is chosen
+```text
+createLogAction
+updateLogAction
+deleteLogAction
 
-Each action should:
+createExerciseAction
+updateExerciseAction
+deleteExerciseAction
 
-- Call `requireUser()`.
-- Parse input with Zod.
-- Check parent ownership before mutating nested data.
-- Use a Prisma transaction when writing parent/child records together.
-- Revalidate affected paths.
-- Redirect after successful create/delete where appropriate.
-- Return field-level errors for validation failures.
+createWeightliftingSessionAction
+updateWeightliftingSessionAction
+deleteWeightliftingSessionAction
 
-## Query Functions
+createPaceSessionAction
+updatePaceSessionAction
+deletePaceSessionAction
+```
 
-Initial query list:
+Profile updates use the same authenticated Server Action pattern. Auth.js owns
+OAuth and sign-out mutations.
 
-- `getLogsPage(userId, pagination)`
-- `getLogBySlug(userId, logSlug, pagination)`
-- `getExerciseBySlug(userId, logSlug, exerciseSlug, pagination)`
-- `getWeightliftingSession(userId, sessionId)`
-- `getPaceSession(userId, sessionId)`
-- `getLatestWeightliftingSession(userId, exerciseId)`
-- `getLatestPaceSession(userId, exerciseId)`
-- `getCurrentUserProfile(userId)`
+Actions return field-level validation errors for recoverable form input. Missing
+or unowned records use not-found behavior rather than revealing whether another
+user owns the identifier.
 
-## API Route Handlers
+## Query Modules
 
-Avoid duplicating CRUD as JSON endpoints unless needed. Add route handlers only for:
+Feature queries expose narrowly scoped operations instead of generic repository
+objects. Examples include:
 
-- Auth provider handlers
-- Webhooks
-- External integrations
-- Future public API needs
+- Paginated logs and exercises for an explicit user.
+- Log and exercise lookup through scoped slugs.
+- Session lookup through an explicit user and session identifier.
+- Latest-session evidence independent of the active history page.
+- Chart data constrained by exercise ownership and date range.
 
-## Pagination
+Pages call these functions directly from the server. Route Handlers are not used
+as an internal transport layer.
 
-Use query params:
+## Pagination And Chart Filters
+
+List routes accept:
 
 - `page`
 - `limit`
 
-Recommended defaults:
+Public page-size options are `12`, `24`, and `48`; unsupported values are
+normalized and the maximum is `48`. Requested pages are bounded to the available
+result set.
 
-- Default limit: `12`
-- Maximum limit: `100`
-- Invalid values clamp to safe values
+Exercise evidence pages additionally accept:
 
-Server queries should return:
+- `chartRange`
+- `chartFrom`
+- `chartTo`
 
-- `items`
-- `page`
-- `limit`
-- `totalItems`
-- `totalPages`
+Pagination and page-size navigation preserve chart filters. Chart range changes
+preserve the current URL state. Latest evidence is queried independently so it
+always describes the newest session, even while the user views an older history
+page.
+
+## Cache And Navigation Behavior
+
+- The marketing homepage is statically generated.
+- Authenticated pages are rendered on demand because they depend on the session
+  and user-owned data.
+- Successful Server Actions revalidate affected paths before navigation.
+- Creates and deletes redirect to the appropriate owned collection or detail
+  route.
+- Edits remain slug-aware when a title change produces a new scoped slug.
 
 ## Metadata
 
-Use Next.js metadata APIs instead of `react-helmet-async`.
-
-Suggested metadata:
-
-- Static metadata for landing/contact/auth routes
-- Dynamic titles for logs, exercises, and sessions
-- Open Graph image reuse from the old Cloudinary assets unless new branding is created
+- Root metadata defines the canonical Production origin and Open Graph basics.
+- Preview deployments and authenticated routes are non-indexable.
+- Dynamic detail pages generate record-specific titles after ownership checks.
+- `robots.txt` disallows API, login, and authenticated paths in Production and
+  disallows all crawling in Preview.

@@ -1,5 +1,9 @@
 # Milestone: Redesign And UI Polish
 
+## Status
+
+Implemented.
+
 ## Goal
 
 Apply the final pre-deployment redesign pass now that the core product flows are implemented.
@@ -103,4 +107,5 @@ Avoid:
 
 ## Notes
 
-Keep this redesign focused on the product UI, not deployment infrastructure. Production readiness is the next milestone.
+This milestone remained focused on product UI. Deployment infrastructure and
+operational hardening were completed in Milestone 8.

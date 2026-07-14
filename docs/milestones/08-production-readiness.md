@@ -1,5 +1,11 @@
 # Milestone: Production Readiness
 
+## Status
+
+Repository configuration is implemented and the Vercel/Neon deployment is
+operational. Deployment and recovery checks are repeated through the production
+runbook for each release.
+
 ## Goal
 
 Prepare the redesigned app for deployment.
@@ -26,10 +32,10 @@ Prepare the redesigned app for deployment.
 - Add safe error handling and Vercel Runtime Log metadata. Done.
 - Add production metadata, robots rules, and sitemap behavior. Done.
 - Bound pagination and preserve chart filters. Done.
-- Configure the Vercel project and Neon integration. Manual release step.
-- Configure Preview and Production secrets. Manual release step.
-- Configure production Google OAuth. Manual release step.
-- Run accessibility and deployed browser checks. Manual release step.
+- Configure the Vercel project and Neon integration. Configured externally.
+- Configure Preview and Production secrets. Configured externally.
+- Configure production Google OAuth. Configured externally.
+- Run accessibility and deployed browser checks. Repeat for relevant releases.
 
 ## Tests
 
@@ -80,4 +86,4 @@ Do not connect local development directly to production. Use the Neon developmen
 The existing `production` branch is empty and primary. The Neon plan does not
 support protected branches, so confirm the selected branch before every manual
 migration or database operation. Follow the
-[production runbook](../07-production-runbook.md) for external setup and release.
+[production runbook](../06-production-runbook.md) for release and recovery.

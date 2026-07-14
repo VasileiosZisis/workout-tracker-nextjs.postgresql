@@ -23,12 +23,13 @@ Verification completed:
 - TypeScript check passes.
 - Production build passes.
 
-Manual verification still needed:
+Browser verification completed:
 
-- Complete Google sign-in in a browser.
-- Confirm the signed-in user can access `/logs` and `/profile`.
-- Confirm a `User`, `Account`, and `Session` record exist in Neon after sign-in.
-- Sign out and confirm protected routes are blocked again.
+- Google sign-in completed in a browser.
+- The signed-in user accessed `/logs` and `/profile`.
+
+Database-session creation and sign-out rejection remain part of the Production
+smoke check for each release.
 
 ## Goal
 

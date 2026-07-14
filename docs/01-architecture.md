@@ -1,128 +1,149 @@
 # Architecture
 
-## Recommended Shape
+## System Shape
 
-Use a single Next.js application with the App Router:
+Workout Trackr is a single Next.js App Router application. UI rendering,
+authentication endpoints, reads, and mutations live in one deployable unit,
+while PostgreSQL remains the durable system of record.
+
+```text
+Browser
+  -> Next.js layouts and pages
+     -> Server Components -> feature queries -> Prisma
+     -> Server Actions -> auth + Zod + domain logic -> Prisma
+     -> Auth.js Route Handler -> Prisma Adapter -> Prisma
+  -> Neon PostgreSQL
+```
+
+The application uses the Node.js runtime and is deployed to Vercel. Neon
+provides pooled runtime connections and unpooled migration connections.
+
+## Repository Boundaries
 
 ```text
 app/
-  (marketing)/
-  (auth)/
-  (app)/
-  api/
-components/
-features/
-lib/
-prisma/
+  (marketing)/    public homepage
+  (auth)/         sign-in experience
+  (app)/          authenticated product routes
+  api/auth/       Auth.js Route Handler
+components/       reusable application UI
+features/         domain actions, queries, schemas, metrics, and UI
+lib/              auth, database, environment, metadata, and shared policy
+prisma/           schema and migrations
 ```
 
-Recommended boundaries:
+Feature modules own domain behavior. For example, `features/weightlifting`
+contains its Server Actions, Prisma queries, Zod schemas, calculations,
+formatters, tests, and interactive form components. Cross-cutting policy stays
+in `lib/` rather than being copied across features.
 
-- `app/(marketing)` for public landing/contact pages.
-- `app/(auth)` for sign-in, registration, forgot-password, and reset-password screens.
-- `app/(app)` for authenticated product routes.
-- `features/*` for domain-specific UI, actions, queries, and schemas.
-- `lib/auth` for session helpers and authorization checks.
-- `lib/db` for the Prisma client singleton.
-- `lib/validation` only for shared schema helpers; domain schemas should stay near their feature.
+## Read Path
 
-## Next.js Patterns
+Authenticated layouts call `requireUser()` before rendering application
+content. Server Components then call feature query functions directly. Every
+query for user-owned data receives `userId` and includes it in the Prisma
+filter, including nested log, exercise, and session lookups.
 
-Use Server Components by default.
+This avoids:
 
-Use Client Components for:
+- Fetching broad datasets and filtering them in the browser.
+- Maintaining a client data cache for server-owned screens.
+- Exposing an internal CRUD API that duplicates the same authorization rules.
 
-- Dynamic form field arrays for weightlifting sets
-- Charts
-- Optimistic/pending UI
-- Toasts or inline client feedback
-- Confirm dialogs
-- Navigation toggles and menus
+Independent reads are started concurrently where practical. Exercise detail
+pages fetch paginated history, latest evidence, and progress data in parallel.
 
-Use Server Actions for:
+## Mutation Path
 
-- Creating, editing, and deleting logs
-- Creating, editing, and deleting exercises
-- Creating, editing, and deleting sessions
-- Profile updates
-- Password reset request and completion, unless the chosen auth provider owns it
+Application forms call feature-specific Server Actions. Each action follows the
+same boundary:
 
-Use Route Handlers for:
+1. Resolve the authenticated user.
+2. Parse `FormData` with a Zod schema.
+3. Resolve and verify owned parent records.
+4. Recalculate slugs or derived metrics on the server.
+5. Commit the mutation, using a Prisma transaction for parent/child writes.
+6. Revalidate affected routes and redirect or return typed field errors.
 
-- Auth.js handlers, if Auth.js is chosen
-- Webhooks from email/auth providers
-- Optional JSON API endpoints needed outside the app UI
+Weightlifting session and set writes are transactional. Derived volume, pace,
+and speed values are never accepted as authoritative client input.
 
-## Data Access
+## Server And Client Components
 
-Server-side reads should call query functions directly from Server Components. Avoid rebuilding RTK Query patterns in the new app unless a screen genuinely needs client-side cache mutation behavior.
+Server Components are the default. Client Components are limited to behavior
+that requires browser state or event handling, including:
 
-Example feature shape:
+- Dynamic weightlifting set fields.
+- Recharts visualizations and series toggles.
+- Chart range controls.
+- Pagination page-size navigation.
+- Delete confirmation and pending form controls.
+- Mobile navigation and visual reveal behavior.
+
+## Authentication And Authorization
+
+Auth.js uses Google OAuth, the Prisma Adapter, and database sessions. The
+Auth.js models share the same `User` record used by the workout domain.
+
+`proxy.ts` redirects anonymous access to `/logs` and `/profile` through `/login`
+with a relative callback path. The login page sanitizes callback destinations
+again before redirecting. Authentication controls route access; ownership
+filters inside query and action modules control data access.
+
+Preview deployments disable Google OAuth by policy. Production and local OAuth
+use separate clients and secrets.
+
+## Data And Connection Management
+
+- `DATABASE_URL` is the pooled application connection.
+- Local Prisma commands use the unpooled `DIRECT_URL`.
+- Vercel Prisma commands use `DATABASE_URL_UNPOOLED` from the Neon integration.
+- `lib/db.ts` provides one Prisma Client instance per development process.
+- `prisma.config.ts` prevents local and Vercel migration commands from silently
+  falling back to the pooled runtime URL.
+
+The environment parser validates required values at startup and applies
+environment-specific OAuth rules.
+
+## Errors And Observability
+
+Expected form validation failures return typed field errors. Route-level errors
+render generic user-facing fallbacks so database or provider details are not
+exposed.
+
+Next.js instrumentation writes structured unhandled-request metadata to Vercel
+Runtime Logs. It records the error type, digest, method, request path, and route
+context, but does not record form fields, tokens, credentials, or connection
+strings.
+
+## Security Controls
+
+- Database-level ownership filters on reads and writes.
+- Auth.js CSRF and secure cookie handling.
+- Relative-only post-authentication redirects.
+- Startup environment validation.
+- Static Content Security Policy.
+- HSTS, MIME-sniffing, framing, referrer, permissions, and opener-isolation
+  headers.
+- Non-indexable authenticated and Preview routes.
+- Generic production error messages.
+- Environment-scoped secrets and isolated databases.
+
+Application-level rate limiting and external error tracking are deferred for
+v1. The current OAuth-only CRUD surface relies on Vercel platform protections.
+
+## Deployment Architecture
+
+Feature branches create Vercel Preview deployments. The Neon integration creates
+a disposable database branch from the primary Production branch and injects
+pooled and unpooled URLs. Merging into the configured production Git branch
+starts a separate Production build using Production-scoped credentials.
+
+The Vercel build sequence is:
 
 ```text
-features/logs/
-  actions.ts
-  queries.ts
-  schema.ts
-  components/
+prisma migrate deploy -> prisma generate -> next build
 ```
 
-All query functions that access user-owned data should require an authenticated user id and include it in the Prisma `where` clause.
-
-## Auth Options
-
-Selected auth approach:
-
-- Auth.js with Prisma Adapter.
-- Auth.js database session strategy.
-
-Initial provider recommendation:
-
-- Add Google OAuth first and use it as the only v1 login provider.
-- Add additional OAuth providers only when needed.
-- Add credentials/email-password later only if required, because that adds password hashing, reset emails, bot protection, and rate limiting responsibilities.
-
-Keep the auth boundary simple:
-
-- `requireUser()` returns the signed-in user or redirects/throws.
-- `requireOwnedLog(logSlugOrId)` verifies ownership and returns the log.
-- Similar helpers guard exercises and sessions.
-
-## Validation
-
-Use Zod as the source of truth for server input validation.
-
-Recommended pattern:
-
-- Parse `FormData` or JSON through Zod inside Server Actions and Route Handlers.
-- Return field errors in a typed action state.
-- Do not trust derived metric inputs from the client.
-- Recalculate volume, pace, speed, and slug values server-side.
-
-## Security
-
-Baseline requirements:
-
-- HTTP-only secure session cookies.
-- CSRF protection aligned with selected auth approach.
-- Cloudflare Turnstile on registration if email/password registration remains.
-- Per-user ownership checks in every data query and mutation.
-- Rate limiting for auth, registration, forgot-password, and reset-password flows.
-- Password reset tokens stored hashed with expiry, if custom password reset remains.
-- Content Security Policy configured after final image/email/auth providers are known.
-
-## Deployment
-
-Selected path:
-
-- Vercel for the Next.js app.
-- Neon Postgres for the database.
-- Prisma Migrate in CI/CD with `prisma migrate deploy`.
-
-Recommended environment model:
-
-- `production`: Neon production branch connected to the Vercel production deployment.
-- `development`: long-lived Neon development branch for local development.
-- `preview/*`: optional short-lived Neon branches for Vercel preview deployments and migration testing.
-
-Use direct Neon branch connection strings first. Local `.env` should point to the Neon `development` branch. Add Neon Local only if the project benefits from a stable localhost connection while still routing to Neon branches.
+Migrations are forward-only. Application rollback and database recovery are
+therefore separate operational procedures.
