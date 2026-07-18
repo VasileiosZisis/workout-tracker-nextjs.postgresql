@@ -15,7 +15,7 @@ export default async function MetricsLayout({
 
   return (
     <>
-      <PublicHeader staticAuth />
+      <PublicHeader signedIn={false} />
       <div id="content" tabIndex={-1}>
         {children}
       </div>

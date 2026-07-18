@@ -102,9 +102,9 @@ input {
 }
 
 .site-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
   border-bottom: 1px solid var(--border);
   background: rgba(7, 9, 15, 0.86);
@@ -118,16 +118,13 @@ input {
   text-decoration: none;
 }
 
-.brand:hover {
-  color: var(--accent-strong);
-}
-
 .site-nav {
   display: flex;
   align-items: center;
   gap: 16px;
-  color: var(--muted);
-  font-size: 0.95rem;
+  color: var(--foreground);
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .site-nav a {
@@ -2553,7 +2550,7 @@ fieldset.field {
   }
 
   .brand {
-    font-size: 1rem;
+    font-size: 0.82rem;
   }
 
   .site-nav {
