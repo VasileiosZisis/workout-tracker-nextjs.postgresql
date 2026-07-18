@@ -16,6 +16,7 @@ export function PublicHeader({
           Workout Trackr
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
+          <Link href="/metrics">Metrics</Link>
           <Link href="/logs">Logs</Link>
           {staticAuth ? <Link href="/login">Sign in</Link> : <AuthButton />}
         </nav>

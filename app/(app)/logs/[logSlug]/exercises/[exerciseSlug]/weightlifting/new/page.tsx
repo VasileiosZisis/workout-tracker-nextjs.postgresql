@@ -57,6 +57,7 @@ export default async function NewWeightliftingSessionPage({
           action={createWeightliftingSessionAction}
           defaultPerformedDate={todayDateInputValue()}
           exerciseId={exercise.id}
+          moveAddSetToActions
           submitLabel="Create session"
         />
         <div className="form-footer">

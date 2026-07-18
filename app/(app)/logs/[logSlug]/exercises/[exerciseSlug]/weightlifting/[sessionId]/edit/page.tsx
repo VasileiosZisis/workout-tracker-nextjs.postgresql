@@ -62,6 +62,7 @@ export default async function EditWeightliftingSessionPage({
             kilograms: formatDecimal(set.kilograms),
             isHard: set.isHard,
           }))}
+          moveAddSetToActions
           sessionId={session.id}
           submitLabel="Save session"
         />

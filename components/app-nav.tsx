@@ -11,6 +11,11 @@ const links = [
     supporting: "Sessions",
   },
   {
+    href: "/metrics",
+    label: "Metrics",
+    supporting: "What you can track",
+  },
+  {
     href: "/profile",
     label: "Profile",
     supporting: "Account",

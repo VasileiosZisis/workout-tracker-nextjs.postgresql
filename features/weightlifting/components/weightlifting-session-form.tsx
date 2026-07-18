@@ -11,6 +11,7 @@ type WeightliftingSessionFormProps = {
   defaultPerformedDate: string;
   defaultSets?: WeightliftingFormSet[];
   exerciseId?: string;
+  moveAddSetToActions?: boolean;
   sessionId?: string;
   submitLabel: string;
 };
@@ -27,6 +28,7 @@ export function WeightliftingSessionForm({
   defaultPerformedDate,
   defaultSets = [emptySet],
   exerciseId,
+  moveAddSetToActions = false,
   sessionId,
   submitLabel,
 }: WeightliftingSessionFormProps) {
@@ -79,9 +81,11 @@ export function WeightliftingSessionForm({
             <h2>Sets</h2>
             <p className="field-help">Mark hard sets to separate working volume.</p>
           </div>
-          <button className="button-secondary" type="button" onClick={addSet}>
-            Add set
-          </button>
+          {!moveAddSetToActions ? (
+            <button className="button-secondary" type="button" onClick={addSet}>
+              Add set
+            </button>
+          ) : null}
         </div>
         {state.fieldErrors?.sets ? (
           <p className="form-error">{state.fieldErrors.sets[0]}</p>
@@ -154,6 +158,11 @@ export function WeightliftingSessionForm({
       </div>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
       <div className="form-actions">
+        {moveAddSetToActions ? (
+          <button className="button-secondary" type="button" onClick={addSet}>
+            Add set
+          </button>
+        ) : null}
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : submitLabel}
         </button>

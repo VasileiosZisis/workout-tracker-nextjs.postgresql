@@ -1413,7 +1413,7 @@ fieldset.field {
     left: 12px;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     border: 1px solid var(--border-strong);
     border-radius: 12px;
@@ -1556,6 +1556,211 @@ fieldset.field {
   .data-table {
     display: block;
     overflow-x: auto;
+  }
+}
+
+/* Metrics catalog */
+
+.metrics-page {
+  padding-bottom: 72px;
+}
+
+.metrics-intro {
+  max-width: 700px;
+  border-left: 3px solid var(--accent-amber);
+  padding-left: 18px;
+}
+
+.metrics-intro h2 {
+  margin-bottom: 6px;
+  font-size: 1.35rem;
+}
+
+.metrics-intro p,
+.metrics-category-header p,
+.metric-definition dd,
+.metrics-history p,
+.metrics-history li span {
+  color: var(--muted);
+}
+
+.metrics-catalog {
+  display: grid;
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.metrics-category {
+  --metrics-accent: var(--accent-strong);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #111827 0%, #0d131e 100%);
+  padding: clamp(22px, 4vw, 32px);
+}
+
+.metrics-category::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--metrics-accent);
+  content: "";
+}
+
+.metrics-category-violet {
+  --metrics-accent: var(--accent-violet);
+}
+
+.metrics-category-blue {
+  --metrics-accent: var(--accent-strong);
+}
+
+.metrics-category-header {
+  max-width: 620px;
+}
+
+.metrics-category-header h2 {
+  margin-bottom: 6px;
+  color: var(--metrics-accent);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.metrics-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(24px, 5vw, 48px);
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.metrics-columns h3 {
+  margin-bottom: 2px;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metric-definition-list {
+  display: grid;
+}
+
+.metric-definition {
+  display: grid;
+  gap: 5px;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+
+.metric-definition:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.metric-definition-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-definition dt {
+  color: var(--foreground);
+  font-weight: 800;
+}
+
+.metric-definition-title span {
+  flex: 0 0 auto;
+  color: var(--metrics-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.metric-definition dd {
+  margin: 0;
+}
+
+.metric-definition code {
+  width: fit-content;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-soft);
+  color: var(--muted-strong);
+  font-size: 0.84rem;
+  padding: 3px 6px;
+}
+
+.metrics-history {
+  display: grid;
+  gap: 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: clamp(22px, 4vw, 32px);
+}
+
+.metrics-history h2 {
+  margin-bottom: 6px;
+  font-size: 1.35rem;
+}
+
+.metrics-history ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.metrics-history li {
+  display: grid;
+  gap: 5px;
+  border-left: 1px solid var(--border-strong);
+  padding: 0 20px;
+}
+
+.metrics-history li:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.metrics-history li:last-child {
+  padding-right: 0;
+}
+
+.metrics-history li strong {
+  color: var(--foreground);
+}
+
+@media (max-width: 720px) {
+  .metrics-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-history ul {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-history li,
+  .metrics-history li:first-child,
+  .metrics-history li:last-child {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+    padding: 14px 0;
+  }
+
+  .metrics-history li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .metrics-history li:last-child {
+    padding-bottom: 0;
   }
 }
 
@@ -2343,8 +2548,17 @@ fieldset.field {
 }
 
 @media (max-width: 420px) {
+  .site-header {
+    gap: 10px;
+  }
+
+  .brand {
+    font-size: 1rem;
+  }
+
   .site-nav {
-    font-size: 0.88rem;
+    gap: 9px;
+    font-size: 0.82rem;
   }
 
   .home-actions {
