@@ -6,10 +6,13 @@ declare module "next-auth" {
     user: {
       id: string;
       role: Role;
-    } & DefaultSession["user"];
+      isDemo: boolean;
+      demoExpiresAt: Date | null;
+    } & NonNullable<DefaultSession["user"]>;
   }
 
   interface User {
     role: Role;
+    demoExpiresAt?: Date | null;
   }
 }

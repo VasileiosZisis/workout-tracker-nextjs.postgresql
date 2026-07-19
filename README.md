@@ -13,6 +13,13 @@ deployment workflow.
 
 ![Workout Trackr exercise progress view](public/home/bench-progress.png)
 
+## Live Demo
+
+[Try the temporary Workout Trackr demo](https://www.workouttrackr.com/demo)
+without connecting a Google account. Each visitor receives an isolated,
+writable workspace with sample strength and running history. Demo data is
+permanently deleted after two hours or when the visitor exits the demo.
+
 ## Engineering Focus
 
 - Server Components for authenticated, read-heavy application screens.
@@ -22,6 +29,7 @@ deployment workflow.
 - Server-calculated metrics instead of trusting derived client input.
 - Relational constraints and cascading deletes for domain integrity.
 - Database-backed Auth.js sessions with Google OAuth.
+- Isolated, two-hour demo sandboxes with seeded training history.
 - Isolated Neon branches for local development, Preview deployments, and
   Production.
 - Forward-only Prisma migrations deployed automatically during Vercel builds.
@@ -175,6 +183,8 @@ Callback: http://localhost:3000/api/auth/callback/google
 | `AUTH_SECRET` | Environment-specific Auth.js secret of at least 32 characters |
 | `AUTH_GOOGLE_ID` | Google OAuth client identifier |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `DEMO_ENABLED` | Enables anonymous temporary demo creation when set to `true` |
+| `CRON_SECRET` | Secret used to authenticate scheduled demo cleanup |
 | `DATABASE_URL` | Pooled PostgreSQL connection used by the application |
 | `DIRECT_URL` | Local unpooled connection used by Prisma migrations |
 | `DATABASE_URL_UNPOOLED` | Vercel unpooled migration connection supplied by Neon |
@@ -217,6 +227,9 @@ The repository uses a three-environment database model:
 | Preview | Disposable Neon branch created per deployment | Google OAuth disabled by default |
 | Production | Primary Neon `production` branch | Production Google OAuth client |
 
+Temporary demo availability is controlled independently in each environment
+with `DEMO_ENABLED`. When enabled, `CRON_SECRET` must also be configured.
+
 Feature branches create Vercel Preview deployments and isolated Neon branches.
 Merging into the configured production Git branch creates a fresh Production
 deployment. The Vercel build runs `prisma migrate deploy` against the
@@ -228,7 +241,8 @@ reverse a migration that has already been applied.
 
 ## Current Constraints
 
-- Google OAuth is the only v1 sign-in method.
+- Google OAuth is the only persistent-account sign-in method; anonymous demo
+  workspaces expire after two hours.
 - Weight and distance are stored and displayed in kilograms and kilometers.
 - Preview authentication requires a future stable staging branch and dedicated
   OAuth client.

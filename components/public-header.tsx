@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 export function PublicHeader({
+  demoEnabled,
   signedIn,
 }: Readonly<{
+  demoEnabled: boolean;
   signedIn: boolean;
 }>) {
   return (
@@ -19,7 +21,10 @@ export function PublicHeader({
           {signedIn ? (
             <Link href="/logs">Logs</Link>
           ) : (
-            <Link href="/login">Sign in</Link>
+            <>
+              {demoEnabled ? <Link href="/demo">Try demo</Link> : null}
+              <Link href="/login">Sign in</Link>
+            </>
           )}
         </nav>
       </header>

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { PublicHeader } from "@/components/public-header";
+import { env } from "@/lib/env";
 
 export default async function MetricsLayout({
   children,
@@ -15,7 +16,7 @@ export default async function MetricsLayout({
 
   return (
     <>
-      <PublicHeader signedIn={false} />
+      <PublicHeader demoEnabled={env.DEMO_ENABLED} signedIn={false} />
       <div id="content" tabIndex={-1}>
         {children}
       </div>

@@ -29,6 +29,24 @@ describe("environment validation", () => {
     });
 
     expect(result.GOOGLE_AUTH_ENABLED).toBe(false);
+    expect(result.DEMO_ENABLED).toBe(false);
+  });
+
+  it("enables the temporary demo only with a cron secret", () => {
+    const result = parseEnvironment({
+      ...baseEnvironment,
+      DEMO_ENABLED: "true",
+      CRON_SECRET: "c".repeat(32),
+    });
+
+    expect(result.DEMO_ENABLED).toBe(true);
+
+    expect(() =>
+      parseEnvironment({
+        ...baseEnvironment,
+        DEMO_ENABLED: "true",
+      }),
+    ).toThrow();
   });
 
   it("requires production URL and Google OAuth credentials in production", () => {
@@ -84,6 +102,13 @@ describe("environment validation", () => {
       parseEnvironment({
         ...baseEnvironment,
         AUTH_GOOGLE_ID: "client-id-without-secret",
+      }),
+    ).toThrow();
+
+    expect(() =>
+      parseEnvironment({
+        ...baseEnvironment,
+        CRON_SECRET: "too-short",
       }),
     ).toThrow();
   });

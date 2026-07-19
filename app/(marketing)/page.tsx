@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { HomeRevealController } from "@/components/home-reveal-controller";
+import { env } from "@/lib/env";
 
 const principles = [
   {
@@ -62,8 +63,11 @@ export default function HomePage() {
               that matter, and see how your performance changes over time.
             </p>
             <div className="home-actions">
-              <Link className="button" href="/login">
-                Start tracking
+              <Link
+                className="button"
+                href={env.DEMO_ENABLED ? "/demo" : "/login"}
+              >
+                {env.DEMO_ENABLED ? "Try demo" : "Start tracking"}
               </Link>
               <Link className="button-secondary" href="/login">
                 Sign in
@@ -175,9 +179,19 @@ export default function HomePage() {
               Start capturing consistent training evidence and turn each session
               into a clearer view of your progress.
             </p>
-            <Link className="button" href="/login">
-              Start tracking
-            </Link>
+            <div className="home-actions">
+              <Link
+                className="button"
+                href={env.DEMO_ENABLED ? "/demo" : "/login"}
+              >
+                {env.DEMO_ENABLED ? "Try demo" : "Start tracking"}
+              </Link>
+              {env.DEMO_ENABLED ? (
+                <Link className="button-secondary" href="/login">
+                  Sign in
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       </section>

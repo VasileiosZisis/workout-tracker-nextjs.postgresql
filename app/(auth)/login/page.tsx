@@ -108,6 +108,12 @@ export default async function LoginPage({
               </div>
             )}
 
+            {env.DEMO_ENABLED ? (
+              <Link className="button-secondary login-demo-button" href="/demo">
+                Try the temporary demo
+              </Link>
+            ) : null}
+
             <p className="login-trust">
               Your account is used only to secure and retrieve your personal
               training data.

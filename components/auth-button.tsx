@@ -16,7 +16,7 @@ export async function AuthButton() {
       }}
     >
       <button className="nav-button" type="submit">
-        Sign out
+        {session.user.isDemo ? "Exit demo" : "Sign out"}
       </button>
     </form>
   );
