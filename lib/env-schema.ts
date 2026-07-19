@@ -8,6 +8,10 @@ const optionalUrl = z.preprocess(
   (value) => (value === "" ? undefined : value),
   z.string().url().optional(),
 );
+const optionalSecret = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.string().min(32).optional(),
+);
 
 const rawEnvSchema = z
   .object({
@@ -21,6 +25,8 @@ const rawEnvSchema = z
     AUTH_GOOGLE_ID: optionalText,
     AUTH_GOOGLE_SECRET: optionalText,
     DATABASE_URL: z.string().min(1),
+    DEMO_ENABLED: z.enum(["true", "false"]).default("false"),
+    CRON_SECRET: optionalSecret,
   })
   .superRefine((value, context) => {
     const hasGoogleId = Boolean(value.AUTH_GOOGLE_ID);
@@ -62,6 +68,14 @@ const rawEnvSchema = z
         path: ["NEXT_PUBLIC_APP_URL"],
       });
     }
+
+    if (value.DEMO_ENABLED === "true" && !value.CRON_SECRET) {
+      context.addIssue({
+        code: "custom",
+        message: "CRON_SECRET is required when the temporary demo is enabled.",
+        path: ["CRON_SECRET"],
+      });
+    }
   });
 
 export function parseEnvironment(source: NodeJS.ProcessEnv) {
@@ -81,6 +95,7 @@ export function parseEnvironment(source: NodeJS.ProcessEnv) {
     GOOGLE_AUTH_ENABLED:
       !isPreview &&
       Boolean(parsed.AUTH_GOOGLE_ID && parsed.AUTH_GOOGLE_SECRET),
+    DEMO_ENABLED: parsed.DEMO_ENABLED === "true",
     IS_PREVIEW: isPreview,
     IS_PRODUCTION: parsed.VERCEL_ENV === "production",
   };

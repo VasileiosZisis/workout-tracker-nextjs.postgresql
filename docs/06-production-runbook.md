@@ -10,6 +10,8 @@
 
 Local, Preview, and Production use separate `AUTH_SECRET` values. Production
 connection strings and OAuth secrets are stored only in Vercel Production.
+The temporary demo is independently controlled with `DEMO_ENABLED`. Enabling it
+also requires a unique `CRON_SECRET` in the same environment.
 
 ## Deployment Configuration
 
@@ -29,6 +31,11 @@ npm run build:vercel
 The Neon integration is available to Vercel Preview and Production, not Vercel
 Development. It creates database branches for Preview deployments only. The
 primary Neon `production` branch remains attached directly to Vercel Production.
+
+Vercel calls `/api/cron/demo-cleanup` daily at 03:00 UTC. The route accepts only
+`Authorization: Bearer CRON_SECRET` and removes expired demo users through the
+database's cascading relations. Demo creation also removes expired users before
+enforcing the active-workspace capacity limit.
 
 ## Routine Development And Release
 
@@ -91,8 +98,10 @@ After each Production deployment:
 4. For a domain-changing release, exercise the affected create/edit/delete flow.
 5. Confirm latest evidence, charts, filters, and pagination still agree.
 6. Sign out and confirm protected routes reject the anonymous request.
-7. Inspect the browser console and Vercel Runtime Logs.
-8. Confirm created records appear only on the Neon `production` branch.
+7. Open `/demo`, create a sandbox, exercise one mutation, and exit the demo.
+8. Confirm the demo user and its related data were cascade-deleted.
+9. Inspect the browser console and Vercel Runtime Logs.
+10. Confirm created records appear only on the Neon `production` branch.
 
 ## Database Safety
 

@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { PublicHeader } from "@/components/public-header";
+import { env } from "@/lib/env";
 
 export default async function MarketingLayout({
   children,
@@ -10,7 +11,10 @@ export default async function MarketingLayout({
 
   return (
     <>
-      <PublicHeader signedIn={Boolean(session?.user?.id)} />
+      <PublicHeader
+        demoEnabled={env.DEMO_ENABLED}
+        signedIn={Boolean(session?.user?.id)}
+      />
       <div id="content" tabIndex={-1}>
         {children}
       </div>

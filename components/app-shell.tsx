@@ -1,4 +1,4 @@
-import type { User } from "next-auth";
+import type { Session } from "next-auth";
 import Link from "next/link";
 import { AuthButton } from "@/components/auth-button";
 import { AppNav } from "@/components/app-nav";
@@ -8,10 +8,21 @@ export function AppShell({
   user,
 }: Readonly<{
   children: React.ReactNode;
-  user: User;
+  user: Session["user"];
 }>) {
   const accountLabel = user.name ?? user.email ?? "Signed in";
-  const accountDetail = user.email && user.name ? user.email : "Training data";
+  const accountDetail = user.isDemo
+    ? "Temporary demo workspace"
+    : user.email && user.name
+      ? user.email
+      : "Training data";
+  const demoExpiration = user.demoExpiresAt
+    ? `${new Intl.DateTimeFormat("en", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "UTC",
+      }).format(new Date(user.demoExpiresAt))} UTC`
+    : null;
 
   return (
     <div className="app-shell">
@@ -52,6 +63,16 @@ export function AppShell({
           </div>
           <AuthButton />
         </header>
+
+        {user.isDemo ? (
+          <aside className="demo-banner" aria-label="Temporary demo status">
+            <strong>Temporary demo</strong>
+            <span>
+              Your changes are private and will be deleted
+              {demoExpiration ? ` at ${demoExpiration}` : " after two hours"}.
+            </span>
+          </aside>
+        ) : null}
 
         <div id="content" className="app-main-content" tabIndex={-1}>
           {children}

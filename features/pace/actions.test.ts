@@ -32,6 +32,8 @@ describe("pace actions", () => {
     vi.mocked(requireUser).mockResolvedValue({
       id: userId,
       role: "USER",
+      isDemo: false,
+      demoExpiresAt: null,
     });
 
     await prisma.user.create({
