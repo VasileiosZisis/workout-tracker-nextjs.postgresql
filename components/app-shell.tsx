@@ -1,7 +1,9 @@
 import type { Session } from "next-auth";
+import Image from "next/image";
 import Link from "next/link";
 import { AuthButton } from "@/components/auth-button";
 import { AppNav } from "@/components/app-nav";
+import wtLogo from "@/public/brand/wt-logo.png";
 
 export function AppShell({
   children,
@@ -31,15 +33,15 @@ export function AppShell({
       </a>
       <aside className="app-sidebar" aria-label="Workspace navigation">
         <div className="app-brand-block">
-          <span className="app-brand-mark" aria-hidden="true">
-            WT
-          </span>
-          <div>
-            <Link className="app-brand" href="/logs">
-              Workout Trackr
-            </Link>
-            <p>Performance Lab</p>
-          </div>
+          <Link className="app-brand app-brand-logo-link" href="/logs">
+            <Image
+              className="app-brand-logo"
+              src={wtLogo}
+              alt="Workout Trackr"
+              priority
+              sizes="205px"
+            />
+          </Link>
         </div>
 
         <AppNav placement="sidebar" />

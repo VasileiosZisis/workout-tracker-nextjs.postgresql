@@ -13,6 +13,7 @@ export default async function MarketingLayout({
     <>
       <PublicHeader
         demoEnabled={env.DEMO_ENABLED}
+        showLogo
         signedIn={Boolean(session?.user?.id)}
       />
       <div id="content" tabIndex={-1}>
