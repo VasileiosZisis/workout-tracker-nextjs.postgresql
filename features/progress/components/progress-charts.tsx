@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -225,22 +225,32 @@ export function WeightliftingProgressChart({
         <div className="chart-table-wrap">
           <table className="data-table chart-table">
             <caption>Chart Data</caption>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Total volume</th>
-                <th>Working volume</th>
-                <th>Junk volume</th>
-              </tr>
-            </thead>
             <tbody>
               {data.map((point) => (
-                <tr key={point.id}>
-                  <td>{point.date}</td>
-                  <td>{numberFormatter(point.totalVolume)} kg</td>
-                  <td>{numberFormatter(point.workingVolume)} kg</td>
-                  <td>{numberFormatter(point.junkVolume)} kg</td>
-                </tr>
+                <Fragment key={point.id}>
+                  <tr className="chart-session-row">
+                    <td>{point.date}</td>
+                    <td>Junk Volume {numberFormatter(point.junkVolume)} kg</td>
+                    <td>
+                      Working Volume {numberFormatter(point.workingVolume)} kg
+                    </td>
+                    <td>Total Volume {numberFormatter(point.totalVolume)} kg</td>
+                  </tr>
+                  {point.sets.map((set) => (
+                    <tr
+                      className="chart-set-row"
+                      key={`${point.id}-${set.position}`}
+                    >
+                      <td colSpan={4}>
+                        <div className="chart-set-details">
+                          <span>Set {set.position}</span>
+                          <span>{set.type}</span>
+                          <span>{numberFormatter(set.volume)} kg</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
             </tbody>
           </table>

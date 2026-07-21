@@ -51,6 +51,14 @@ export async function getWeightliftingProgressData({
       totalVolume: true,
       workingVolume: true,
       junkVolume: true,
+      sets: {
+        select: {
+          position: true,
+          isHard: true,
+          volume: true,
+        },
+        orderBy: { position: "asc" },
+      },
     },
     orderBy: [{ performedAt: "asc" }, { createdAt: "asc" }],
   });
