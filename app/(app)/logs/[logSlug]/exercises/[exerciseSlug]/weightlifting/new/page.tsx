@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: "New Weightlifting Session",
 };
 
+const createSessionFormId = "create-weightlifting-session-form";
+
 function todayDateInputValue() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -57,13 +59,18 @@ export default async function NewWeightliftingSessionPage({
           action={createWeightliftingSessionAction}
           defaultPerformedDate={todayDateInputValue()}
           exerciseId={exercise.id}
+          formId={createSessionFormId}
           moveAddSetToActions
+          showSubmitButton={false}
           submitLabel="Create session"
         />
-        <div className="form-footer">
+        <div className="form-footer form-actions">
           <Link className="button-secondary" href={exercisePath}>
             Cancel
           </Link>
+          <button className="button" form={createSessionFormId} type="submit">
+            Create session
+          </button>
         </div>
       </section>
     </main>
