@@ -46,6 +46,7 @@ export function mapPaceProgressData(sessions: PaceSessionForChart[]) {
     date: toDateLabel(session.performedAt),
     distance: toNumber(session.distance),
     pace: toNumber(session.pace),
+    paceSecondsPerKm: Math.round(toNumber(session.pace) * 60),
     speed: toNumber(session.speed),
   }));
 }

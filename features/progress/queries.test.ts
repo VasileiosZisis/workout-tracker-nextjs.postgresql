@@ -248,6 +248,7 @@ describe("progress queries", () => {
         date: "2026-05-17",
         distance: 5,
         pace: 5,
+        paceSecondsPerKm: 300,
         speed: 12,
       },
     ]);

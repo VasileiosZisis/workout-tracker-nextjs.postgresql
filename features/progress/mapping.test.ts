@@ -51,6 +51,7 @@ describe("mapPaceProgressData", () => {
         date: "2026-05-17",
         distance: 5,
         pace: 5.125,
+        paceSecondsPerKm: 308,
         speed: 11.707,
       },
     ]);

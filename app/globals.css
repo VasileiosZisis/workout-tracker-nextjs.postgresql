@@ -1285,6 +1285,84 @@ fieldset.field {
   accent-color: var(--accent-violet);
 }
 
+.chart-metric-selector {
+  min-width: 210px;
+  margin: 12px 0 0;
+  border: 0;
+  padding: 0;
+}
+
+.chart-metric-options {
+  display: inline-flex;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0b1019;
+  padding: 3px;
+}
+
+.chart-metric-options label {
+  position: relative;
+  cursor: pointer;
+}
+
+.chart-metric-options input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+}
+
+.chart-metric-options span {
+  display: block;
+  min-width: 94px;
+  border-radius: 5px;
+  color: var(--muted-strong);
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 7px 16px;
+  text-align: center;
+  transition:
+    background-color 160ms var(--ease-standard),
+    color 160ms var(--ease-standard),
+    box-shadow 160ms var(--ease-standard);
+}
+
+.chart-metric-options label:hover span {
+  color: var(--foreground);
+}
+
+.chart-metric-options input:checked + span {
+  color: #07111f;
+}
+
+.chart-metric-options input[value="pace"]:checked + span {
+  background: var(--accent);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+}
+
+.chart-metric-options input[value="speed"]:checked + span {
+  background: var(--accent-violet);
+  box-shadow: 0 4px 14px rgba(167, 139, 250, 0.2);
+}
+
+.chart-metric-options label:has(input:focus-visible) span {
+  outline: 3px solid rgba(56, 189, 248, 0.42);
+  outline-offset: 3px;
+}
+
+.chart-frame-performance {
+  min-height: 312px;
+}
+
+.progress-heading {
+  font-size: 1rem;
+}
+
+.chart-frame-distance {
+  min-height: 252px;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1559,9 +1637,26 @@ fieldset.field {
     flex-direction: column;
   }
 
+  .chart-metric-selector,
+  .chart-metric-options {
+    width: 100%;
+  }
+
+  .chart-metric-options label {
+    flex: 1;
+  }
+
+  .chart-metric-options span {
+    min-width: 0;
+  }
+
   .chart-frame {
     min-height: 300px;
     padding: 14px 4px 8px;
+  }
+
+  .chart-frame-distance {
+    min-height: 244px;
   }
 
   .chart-table-wrap {
