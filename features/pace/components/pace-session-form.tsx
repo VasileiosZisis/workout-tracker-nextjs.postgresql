@@ -14,7 +14,9 @@ type PaceSessionFormProps = {
   defaultPerformedDate: string;
   defaultSeconds?: number;
   exerciseId?: string;
+  formId?: string;
   sessionId?: string;
+  showSubmitButton?: boolean;
   submitLabel: string;
 };
 
@@ -28,13 +30,15 @@ export function PaceSessionForm({
   defaultPerformedDate,
   defaultSeconds = 0,
   exerciseId,
+  formId,
   sessionId,
+  showSubmitButton = true,
   submitLabel,
 }: PaceSessionFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form className="form-stack form-panel" action={formAction}>
+    <form className="form-stack form-panel" action={formAction} id={formId}>
       {exerciseId ? <input name="exerciseId" type="hidden" value={exerciseId} /> : null}
       {sessionId ? <input name="sessionId" type="hidden" value={sessionId} /> : null}
       <div className="field">
@@ -118,11 +122,13 @@ export function PaceSessionForm({
         ) : null}
       </div>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
-      <div className="form-actions">
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : submitLabel}
-        </button>
-      </div>
+      {showSubmitButton ? (
+        <div className="form-actions">
+          <button className="button" type="submit" disabled={pending}>
+            {pending ? "Saving..." : submitLabel}
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

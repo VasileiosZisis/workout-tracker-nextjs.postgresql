@@ -145,10 +145,10 @@ export default function HomePage() {
       <section className="home-section home-proof home-reveal" aria-labelledby="home-metrics-title">
         <figure className="home-product-shot" data-reveal="left">
           <Image
-            alt="Tempo Run progress showing pace, distance, speed, and a pace-and-speed-over-time chart."
-            height={837}
+            alt="Tempo Run progress showing a pace-or-speed trend chart and distance per session."
+            height={1106}
             sizes="(max-width: 900px) 128vw, 58vw"
-            src="/home/tempo-progress.png"
+            src="/home/tempo-progress-v2.png"
             width={1016}
           />
         </figure>

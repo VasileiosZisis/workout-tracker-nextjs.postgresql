@@ -11,8 +11,10 @@ type WeightliftingSessionFormProps = {
   defaultPerformedDate: string;
   defaultSets?: WeightliftingFormSet[];
   exerciseId?: string;
+  formId?: string;
   moveAddSetToActions?: boolean;
   sessionId?: string;
+  showSubmitButton?: boolean;
   submitLabel: string;
 };
 
@@ -28,8 +30,10 @@ export function WeightliftingSessionForm({
   defaultPerformedDate,
   defaultSets = [emptySet],
   exerciseId,
+  formId,
   moveAddSetToActions = false,
   sessionId,
+  showSubmitButton = true,
   submitLabel,
 }: WeightliftingSessionFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -58,7 +62,7 @@ export function WeightliftingSessionForm({
   }
 
   return (
-    <form className="form-stack form-panel" action={formAction}>
+    <form className="form-stack form-panel" action={formAction} id={formId}>
       {exerciseId ? <input name="exerciseId" type="hidden" value={exerciseId} /> : null}
       {sessionId ? <input name="sessionId" type="hidden" value={sessionId} /> : null}
       <input name="setCount" type="hidden" value={sets.length} />
@@ -163,9 +167,11 @@ export function WeightliftingSessionForm({
             Add set
           </button>
         ) : null}
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : submitLabel}
-        </button>
+        {showSubmitButton ? (
+          <button className="button" type="submit" disabled={pending}>
+            {pending ? "Saving..." : submitLabel}
+          </button>
+        ) : null}
       </div>
     </form>
   );

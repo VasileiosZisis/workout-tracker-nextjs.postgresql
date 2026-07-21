@@ -18,6 +18,18 @@ describe("mapWeightliftingProgressData", () => {
         totalVolume: decimal("1000.00"),
         workingVolume: decimal("600.00"),
         junkVolume: decimal("400.00"),
+        sets: [
+          {
+            position: 1,
+            isHard: false,
+            volume: decimal("400.00"),
+          },
+          {
+            position: 2,
+            isHard: true,
+            volume: decimal("600.00"),
+          },
+        ],
       },
     ]);
 
@@ -28,6 +40,10 @@ describe("mapWeightliftingProgressData", () => {
         totalVolume: 1000,
         workingVolume: 600,
         junkVolume: 400,
+        sets: [
+          { position: 1, type: "Junk", volume: 400 },
+          { position: 2, type: "Hard", volume: 600 },
+        ],
       },
     ]);
   });
@@ -51,6 +67,7 @@ describe("mapPaceProgressData", () => {
         date: "2026-05-17",
         distance: 5,
         pace: 5.125,
+        paceSecondsPerKm: 308,
         speed: 11.707,
       },
     ]);

@@ -9,6 +9,8 @@ import { WeightliftingSessionForm } from "@/features/weightlifting/components/we
 import { formatDecimal, formatSessionDate } from "@/features/weightlifting/format";
 import { getWeightliftingSessionById } from "@/features/weightlifting/queries";
 
+const editSessionFormId = "edit-weightlifting-session-form";
+
 export async function generateMetadata({
   params,
 }: {
@@ -62,14 +64,19 @@ export default async function EditWeightliftingSessionPage({
             kilograms: formatDecimal(set.kilograms),
             isHard: set.isHard,
           }))}
+          formId={editSessionFormId}
           moveAddSetToActions
           sessionId={session.id}
+          showSubmitButton={false}
           submitLabel="Save session"
         />
-        <div className="form-footer">
+        <div className="form-footer form-actions">
           <Link className="button-secondary" href={sessionPath}>
             Cancel
           </Link>
+          <button className="button" form={editSessionFormId} type="submit">
+            Save session
+          </button>
         </div>
       </section>
       <section className="section-block narrow danger-zone">

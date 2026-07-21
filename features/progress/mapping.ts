@@ -8,6 +8,11 @@ type WeightliftingSessionForChart = {
   totalVolume: DecimalLike;
   workingVolume: DecimalLike;
   junkVolume: DecimalLike;
+  sets: {
+    position: number;
+    isHard: boolean;
+    volume: DecimalLike;
+  }[];
 };
 
 type PaceSessionForChart = {
@@ -37,6 +42,11 @@ export function mapWeightliftingProgressData(
     totalVolume: toNumber(session.totalVolume),
     workingVolume: toNumber(session.workingVolume),
     junkVolume: toNumber(session.junkVolume),
+    sets: session.sets.map((set) => ({
+      position: set.position,
+      type: set.isHard ? "Hard" : "Junk",
+      volume: toNumber(set.volume),
+    })),
   }));
 }
 
@@ -46,6 +56,7 @@ export function mapPaceProgressData(sessions: PaceSessionForChart[]) {
     date: toDateLabel(session.performedAt),
     distance: toNumber(session.distance),
     pace: toNumber(session.pace),
+    paceSecondsPerKm: Math.round(toNumber(session.pace) * 60),
     speed: toNumber(session.speed),
   }));
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
   Line,
@@ -16,6 +18,11 @@ import type {
   WeightliftingProgressPoint,
 } from "../mapping";
 import type { ChartRangeState } from "../date-range";
+import {
+  formatPaceSeconds,
+  getPaddedDomain,
+  type PaceChartMetric,
+} from "../pace-progress";
 import { ChartRangeControl } from "./chart-range-control";
 
 const chartColors = {
@@ -218,22 +225,32 @@ export function WeightliftingProgressChart({
         <div className="chart-table-wrap">
           <table className="data-table chart-table">
             <caption>Chart Data</caption>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Total volume</th>
-                <th>Working volume</th>
-                <th>Junk volume</th>
-              </tr>
-            </thead>
             <tbody>
               {data.map((point) => (
-                <tr key={point.id}>
-                  <td>{point.date}</td>
-                  <td>{numberFormatter(point.totalVolume)} kg</td>
-                  <td>{numberFormatter(point.workingVolume)} kg</td>
-                  <td>{numberFormatter(point.junkVolume)} kg</td>
-                </tr>
+                <Fragment key={point.id}>
+                  <tr className="chart-session-row">
+                    <td>{point.date}</td>
+                    <td>Junk Volume {numberFormatter(point.junkVolume)} kg</td>
+                    <td>
+                      Working Volume {numberFormatter(point.workingVolume)} kg
+                    </td>
+                    <td>Total Volume {numberFormatter(point.totalVolume)} kg</td>
+                  </tr>
+                  {point.sets.map((set) => (
+                    <tr
+                      className="chart-set-row"
+                      key={`${point.id}-${set.position}`}
+                    >
+                      <td colSpan={4}>
+                        <div className="chart-set-details">
+                          <span>Set {set.position}</span>
+                          <span>{set.type}</span>
+                          <span>{numberFormatter(set.volume)} kg</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -250,18 +267,8 @@ export function PaceProgressChart({
   data: PaceProgressPoint[];
   range: ChartRangeState;
 }) {
-  const [visibleSeries, setVisibleSeries] = useState({
-    distance: true,
-    pace: true,
-    speed: true,
-  });
-
-  function toggleSeries(series: keyof typeof visibleSeries) {
-    setVisibleSeries((current) => ({
-      ...current,
-      [series]: !current[series],
-    }));
-  }
+  const [selectedMetric, setSelectedMetric] =
+    useState<PaceChartMetric>("pace");
 
   if (data.length === 0) {
     return (
@@ -274,13 +281,22 @@ export function PaceProgressChart({
         </div>
         <div className="empty-state">
           <div>
-            <h2>No pace or speed data yet</h2>
+            <h2>No cardio data yet</h2>
             <p>Charts appear after the first recorded session.</p>
           </div>
         </div>
       </section>
     );
   }
+
+  const isPace = selectedMetric === "pace";
+  const performanceDomain = getPaddedDomain(
+    data.map((point) =>
+      isPace ? point.paceSecondsPerKm : point.speed,
+    ),
+    isPace ? 10 : 0.1,
+  );
+  const performanceTitle = isPace ? "Pace over time" : "Speed over time";
 
   return (
     <section className="section-block chart-section" aria-labelledby="progress-heading">
@@ -289,106 +305,149 @@ export function PaceProgressChart({
           <h2 id="progress-heading">Pace and Speed Over Time</h2>
           <ChartRangeControl range={range} />
           <div
-            className="chart-series-controls"
-            aria-label="Chart series"
-            role="group"
+            aria-label="Performance metric"
+            className="chart-metric-selector"
+            role="radiogroup"
           >
-            <label className="chart-series-toggle chart-series-lime">
-              <input
-                checked={visibleSeries.distance}
-                onChange={() => toggleSeries("distance")}
-                type="checkbox"
-              />
-              <span>Distance</span>
-            </label>
-            <label className="chart-series-toggle chart-series-blue">
-              <input
-                checked={visibleSeries.pace}
-                onChange={() => toggleSeries("pace")}
-                type="checkbox"
-              />
-              <span>Pace</span>
-            </label>
-            <label className="chart-series-toggle chart-series-violet">
-              <input
-                checked={visibleSeries.speed}
-                onChange={() => toggleSeries("speed")}
-                type="checkbox"
-              />
-              <span>Speed</span>
-            </label>
+            <div className="chart-metric-options">
+              <label>
+                <input
+                  checked={selectedMetric === "pace"}
+                  name="cardio-chart-metric"
+                  onChange={() => setSelectedMetric("pace")}
+                  type="radio"
+                  value="pace"
+                />
+                <span>Pace</span>
+              </label>
+              <label>
+                <input
+                  checked={selectedMetric === "speed"}
+                  name="cardio-chart-metric"
+                  onChange={() => setSelectedMetric("speed")}
+                  type="radio"
+                  value="speed"
+                />
+                <span>Speed</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
-      <div className="chart-frame" aria-label="Pace and speed chart">
-        <ResponsiveContainer width="100%" height={300}>
+      <div
+        className="chart-frame chart-frame-performance"
+        aria-label={`${performanceTitle} chart`}
+      >
+        <ResponsiveContainer width="100%" height={280}>
           <LineChart
             accessibilityLayer
             data={data}
             margin={{ top: 12, right: 18, bottom: 8, left: 0 }}
           >
-            <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
-            <XAxis
-              axisLine={false}
-              dataKey="date"
-              minTickGap={24}
-              stroke={chartColors.muted}
-              tick={axisTick}
-              tickLine={false}
-              tickMargin={10}
-            />
-            <YAxis
-              axisLine={false}
-              stroke={chartColors.muted}
-              tick={axisTick}
-              tickFormatter={numberFormatter}
-              tickLine={false}
-              tickMargin={8}
-              width={48}
-            />
-            <Tooltip
-              contentStyle={tooltipStyle}
-              formatter={(value) => numberFormatter(Number(value))}
-              labelStyle={{ color: chartColors.mutedStrong }}
-            />
-            <Legend
-              iconType="circle"
-              wrapperStyle={{ color: chartColors.mutedStrong, paddingTop: 8 }}
-            />
-            {visibleSeries.pace ? (
-              <Line
-                activeDot={activeChartDot(chartColors.blue)}
-                dataKey="pace"
-                dot={chartDot(chartColors.blue)}
-                name="Pace min/km"
-                stroke={chartColors.blue}
-                strokeWidth={3}
-                type="monotone"
+              <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+              <XAxis
+                axisLine={false}
+                dataKey="date"
+                minTickGap={24}
+                stroke={chartColors.muted}
+                tick={axisTick}
+                tickLine={false}
+                tickMargin={10}
               />
-            ) : null}
-            {visibleSeries.speed ? (
-              <Line
-                activeDot={activeChartDot(chartColors.violet)}
-                dataKey="speed"
-                dot={chartDot(chartColors.violet)}
-                name="Speed km/h"
-                stroke={chartColors.violet}
-                strokeWidth={2.5}
-                type="monotone"
+              <YAxis
+                axisLine={false}
+                domain={performanceDomain}
+                reversed={isPace}
+                stroke={chartColors.muted}
+                tick={axisTick}
+                tickFormatter={(value) =>
+                  isPace
+                    ? formatPaceSeconds(Number(value))
+                    : numberFormatter(Number(value))
+                }
+                tickLine={false}
+                tickMargin={8}
+                width={isPace ? 54 : 48}
               />
-            ) : null}
-            {visibleSeries.distance ? (
-              <Line
-                activeDot={activeChartDot(chartColors.lime)}
-                dataKey="distance"
-                dot={chartDot(chartColors.lime)}
-                name="Distance km"
-                stroke={chartColors.lime}
-                strokeWidth={2.5}
-                type="monotone"
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value) =>
+                  isPace
+                    ? `${formatPaceSeconds(Number(value))} min/km`
+                    : `${numberFormatter(Number(value))} km/h`
+                }
+                labelStyle={{ color: chartColors.mutedStrong }}
               />
-            ) : null}
+              {isPace ? (
+                <Line
+                  activeDot={activeChartDot(chartColors.blue)}
+                  dataKey="paceSecondsPerKm"
+                  dot={chartDot(chartColors.blue)}
+                  name="Pace min/km"
+                  stroke={chartColors.blue}
+                  strokeWidth={3}
+                  type="monotone"
+                />
+              ) : (
+                <Line
+                  activeDot={activeChartDot(chartColors.violet)}
+                  dataKey="speed"
+                  dot={chartDot(chartColors.violet)}
+                  name="Speed km/h"
+                  stroke={chartColors.violet}
+                  strokeWidth={2.5}
+                  type="monotone"
+                />
+              )}
           </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <h3 className="progress-heading" id="distance-progress-heading">
+        Distance per session
+      </h3>
+      <div
+        className="chart-frame chart-frame-distance"
+        aria-labelledby="distance-progress-heading"
+      >
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart
+            accessibilityLayer
+            data={data}
+            margin={{ top: 12, right: 18, bottom: 8, left: 0 }}
+          >
+              <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+              <XAxis
+                axisLine={false}
+                dataKey="date"
+                minTickGap={24}
+                stroke={chartColors.muted}
+                tick={axisTick}
+                tickLine={false}
+                tickMargin={10}
+              />
+              <YAxis
+                axisLine={false}
+                domain={[0, "auto"]}
+                stroke={chartColors.muted}
+                tick={axisTick}
+                tickFormatter={numberFormatter}
+                tickLine={false}
+                tickMargin={8}
+                width={48}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                formatter={(value) => `${numberFormatter(Number(value))} km`}
+                labelStyle={{ color: chartColors.mutedStrong }}
+              />
+              <Bar
+                dataKey="distance"
+                fill={chartColors.lime}
+                maxBarSize={54}
+                name="Distance km"
+                radius={[5, 5, 0, 0]}
+              />
+          </BarChart>
         </ResponsiveContainer>
       </div>
       <details className="chart-data-disclosure">
@@ -409,7 +468,7 @@ export function PaceProgressChart({
                 <tr key={point.id}>
                   <td>{point.date}</td>
                   <td>{numberFormatter(point.distance)} km</td>
-                  <td>{numberFormatter(point.pace)} min/km</td>
+                  <td>{formatPaceSeconds(point.paceSecondsPerKm)} min/km</td>
                   <td>{numberFormatter(point.speed)} km/h</td>
                 </tr>
               ))}

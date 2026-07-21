@@ -9,6 +9,8 @@ import { PaceSessionForm } from "@/features/pace/components/pace-session-form";
 import { formatDecimal, formatSessionDate } from "@/features/pace/format";
 import { getPaceSessionById } from "@/features/pace/queries";
 
+const editSessionFormId = "edit-pace-session-form";
+
 export async function generateMetadata({
   params,
 }: {
@@ -61,13 +63,18 @@ export default async function EditPaceSessionPage({
           defaultMinutes={session.minutes}
           defaultPerformedDate={formatSessionDate(session.performedAt)}
           defaultSeconds={session.seconds}
+          formId={editSessionFormId}
           sessionId={session.id}
+          showSubmitButton={false}
           submitLabel="Save session"
         />
-        <div className="form-footer">
+        <div className="form-footer form-actions">
           <Link className="button-secondary" href={sessionPath}>
             Cancel
           </Link>
+          <button className="button" form={editSessionFormId} type="submit">
+            Save session
+          </button>
         </div>
       </section>
       <section className="section-block narrow danger-zone">

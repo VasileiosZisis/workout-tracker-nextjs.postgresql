@@ -167,6 +167,29 @@ describe("progress queries", () => {
       ],
     });
 
+    await prisma.weightliftingSet.createMany({
+      data: [
+        {
+          id: `${testRunId}-wl-set-a-hard`,
+          sessionId: `${testRunId}-wl-session-a`,
+          position: 2,
+          repetitions: "5.00",
+          kilograms: "12.00",
+          isHard: true,
+          volume: "60.00",
+        },
+        {
+          id: `${testRunId}-wl-set-a-junk`,
+          sessionId: `${testRunId}-wl-session-a`,
+          position: 1,
+          repetitions: "5.00",
+          kilograms: "8.00",
+          isHard: false,
+          volume: "40.00",
+        },
+      ],
+    });
+
     await prisma.paceSession.createMany({
       data: [
         {
@@ -231,6 +254,10 @@ describe("progress queries", () => {
         totalVolume: 100,
         workingVolume: 60,
         junkVolume: 40,
+        sets: [
+          { position: 1, type: "Junk", volume: 40 },
+          { position: 2, type: "Hard", volume: 60 },
+        ],
       },
     ]);
   });
@@ -248,6 +275,7 @@ describe("progress queries", () => {
         date: "2026-05-17",
         distance: 5,
         pace: 5,
+        paceSecondsPerKm: 300,
         speed: 12,
       },
     ]);
