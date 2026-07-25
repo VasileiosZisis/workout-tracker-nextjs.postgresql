@@ -1262,7 +1262,8 @@ fieldset.field {
 .chart-set-details {
   display: grid;
   grid-template-columns:
-    minmax(72px, 0.5fr) minmax(72px, 0.5fr) minmax(100px, 1fr);
+    minmax(72px, 0.5fr) minmax(72px, 0.5fr) minmax(72px, 0.5fr)
+    minmax(72px, 0.5fr) minmax(100px, 1fr);
   gap: 16px;
   padding-left: 20px;
 }
@@ -1270,6 +1271,120 @@ fieldset.field {
 .chart-set-details span:first-child {
   color: var(--foreground);
   font-weight: 700;
+}
+
+.chart-volume-tooltip {
+  width: min(560px, calc(100vw - 32px));
+  border: 1px solid #30384d;
+  border-radius: 8px;
+  background: #101520;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  color: var(--muted-strong);
+  padding: 12px;
+}
+
+.chart-volume-tooltip-date {
+  color: var(--accent);
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.chart-volume-tooltip-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.chart-volume-tooltip-totals strong {
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.chart-volume-tooltip-totals .chart-volume-tooltip-junk {
+  color: var(--accent-amber);
+}
+
+.chart-volume-tooltip-totals .chart-volume-tooltip-working {
+  color: var(--accent-lime);
+}
+
+.chart-volume-tooltip-totals .chart-volume-tooltip-total {
+  color: var(--accent-violet);
+}
+
+.chart-volume-tooltip-sets {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.chart-volume-tooltip-set-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  align-items: center;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.chart-volume-tooltip-set-row span:first-child {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.chart-pace-tooltip {
+  width: min(420px, calc(100vw - 32px));
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.chart-pace-tooltip-date {
+  color: var(--accent);
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.chart-pace-tooltip-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-block: 8px;
+}
+
+.chart-pace-tooltip-row + .chart-pace-tooltip-row {
+  border-top: 1px solid var(--border);
+}
+
+.chart-pace-tooltip-row span {
+  display: grid;
+  gap: 3px;
+  font-size: 0.78rem;
+}
+
+.chart-pace-tooltip-row strong {
+  font-size: 0.88rem;
+}
+
+.chart-pace-tooltip-time {
+  color: var(--accent-amber);
+}
+
+.chart-pace-tooltip-distance {
+  color: var(--accent-lime);
+}
+
+.chart-pace-tooltip-pace {
+  color: var(--accent);
+}
+
+.chart-pace-tooltip-speed {
+  color: var(--accent-violet);
 }
 
 .chart-series-toggle {

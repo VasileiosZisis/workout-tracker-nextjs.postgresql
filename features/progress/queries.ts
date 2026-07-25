@@ -54,6 +54,8 @@ export async function getWeightliftingProgressData({
       sets: {
         select: {
           position: true,
+          repetitions: true,
+          kilograms: true,
           isHard: true,
           volume: true,
         },
@@ -105,6 +107,9 @@ export async function getPaceProgressData({
     select: {
       id: true,
       performedAt: true,
+      hours: true,
+      minutes: true,
+      seconds: true,
       distance: true,
       pace: true,
       speed: true,

@@ -255,8 +255,20 @@ describe("progress queries", () => {
         workingVolume: 60,
         junkVolume: 40,
         sets: [
-          { position: 1, type: "Junk", volume: 40 },
-          { position: 2, type: "Hard", volume: 60 },
+          {
+            position: 1,
+            repetitions: 5,
+            kilograms: 8,
+            type: "Junk",
+            volume: 40,
+          },
+          {
+            position: 2,
+            repetitions: 5,
+            kilograms: 12,
+            type: "Hard",
+            volume: 60,
+          },
         ],
       },
     ]);
@@ -273,6 +285,7 @@ describe("progress queries", () => {
       {
         id: `${testRunId}-pace-session-a`,
         date: "2026-05-17",
+        time: "0h 25m 0s",
         distance: 5,
         pace: 5,
         paceSecondsPerKm: 300,

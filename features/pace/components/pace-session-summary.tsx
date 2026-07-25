@@ -28,7 +28,7 @@ export function PaceSessionSummary({ session }: PaceSessionSummaryProps) {
           <dt>Date</dt>
           <dd>{formatSessionDate(session.performedAt)}</dd>
         </div>
-        <div className="metric-card metric-card-violet">
+        <div className="metric-card metric-card-amber">
           <dt>Time</dt>
           <dd>{formatDuration(session)}</dd>
         </div>
