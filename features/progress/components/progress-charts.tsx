@@ -36,18 +36,17 @@ const chartColors = {
   violet: "#a78bfa",
 };
 
+const weightliftingVolumeSeriesOrder: Record<string, number> = {
+  junkVolume: 0,
+  workingVolume: 1,
+  totalVolume: 2,
+};
+
 function numberFormatter(value: number) {
   return new Intl.NumberFormat("en", {
     maximumFractionDigits: 2,
   }).format(value);
 }
-
-const tooltipStyle = {
-  background: chartColors.surface,
-  border: "1px solid #30384d",
-  borderRadius: 8,
-  color: "#f4f7fb",
-};
 
 const axisTick = {
   fill: chartColors.muted,
@@ -70,6 +69,105 @@ function activeChartDot(color: string) {
     stroke: "#f4f7fb",
     strokeWidth: 2,
   };
+}
+
+type WeightliftingVolumeTooltipProps = {
+  active?: boolean;
+  label?: string | number;
+  payload?: ReadonlyArray<{
+    payload?: WeightliftingProgressPoint;
+  }>;
+};
+
+function WeightliftingVolumeTooltip({
+  active,
+  label,
+  payload,
+}: WeightliftingVolumeTooltipProps) {
+  const point = payload?.[0]?.payload;
+
+  if (!active || !point) {
+    return null;
+  }
+
+  return (
+    <div className="chart-volume-tooltip">
+      <div className="chart-volume-tooltip-date">{label ?? point.date}</div>
+      <div className="chart-volume-tooltip-totals">
+        <strong className="chart-volume-tooltip-junk">
+          {numberFormatter(point.junkVolume)} kg
+        </strong>
+        <strong className="chart-volume-tooltip-working">
+          {numberFormatter(point.workingVolume)} kg
+        </strong>
+        <strong className="chart-volume-tooltip-total">
+          {numberFormatter(point.totalVolume)} kg
+        </strong>
+      </div>
+      <div className="chart-volume-tooltip-sets">
+        {point.sets.map((set) => (
+          <div
+            className="chart-volume-tooltip-set-row"
+            key={`${point.id}-${set.position}`}
+          >
+            <span>Set {set.position}</span>
+            <span>{numberFormatter(set.repetitions)} reps</span>
+            <span>{numberFormatter(set.kilograms)} kg</span>
+            <span>{set.type}</span>
+            <span>{numberFormatter(set.volume)} kg</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type PaceSessionTooltipProps = {
+  active?: boolean;
+  label?: string | number;
+  payload?: ReadonlyArray<{
+    payload?: PaceProgressPoint;
+  }>;
+};
+
+function PaceSessionTooltip({
+  active,
+  label,
+  payload,
+}: PaceSessionTooltipProps) {
+  const point = payload?.[0]?.payload;
+
+  if (!active || !point) {
+    return null;
+  }
+
+  return (
+    <div className="chart-pace-tooltip">
+      <div className="chart-pace-tooltip-date">{label ?? point.date}</div>
+      <div className="chart-pace-tooltip-row">
+        <span>
+          <strong className="chart-pace-tooltip-time">{point.time}</strong>
+        </span>
+        <span>
+          <strong className="chart-pace-tooltip-distance">
+            {numberFormatter(point.distance)} km
+          </strong>
+        </span>
+      </div>
+      <div className="chart-pace-tooltip-row">
+        <span>
+          <strong className="chart-pace-tooltip-pace">
+            {formatPaceSeconds(point.paceSecondsPerKm)} min/km
+          </strong>
+        </span>
+        <span>
+          <strong className="chart-pace-tooltip-speed">
+            {numberFormatter(point.speed)} km/h
+          </strong>
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export function WeightliftingProgressChart({
@@ -122,13 +220,13 @@ export function WeightliftingProgressChart({
             aria-label="Chart series"
             role="group"
           >
-            <label className="chart-series-toggle chart-series-violet">
+            <label className="chart-series-toggle chart-series-amber">
               <input
-                checked={visibleSeries.totalVolume}
-                onChange={() => toggleSeries("totalVolume")}
+                checked={visibleSeries.junkVolume}
+                onChange={() => toggleSeries("junkVolume")}
                 type="checkbox"
               />
-              <span>Total volume</span>
+              <span>Junk volume</span>
             </label>
             <label className="chart-series-toggle chart-series-lime">
               <input
@@ -138,13 +236,13 @@ export function WeightliftingProgressChart({
               />
               <span>Working volume</span>
             </label>
-            <label className="chart-series-toggle chart-series-amber">
+            <label className="chart-series-toggle chart-series-violet">
               <input
-                checked={visibleSeries.junkVolume}
-                onChange={() => toggleSeries("junkVolume")}
+                checked={visibleSeries.totalVolume}
+                onChange={() => toggleSeries("totalVolume")}
                 type="checkbox"
               />
-              <span>Junk volume</span>
+              <span>Total volume</span>
             </label>
           </div>
         </div>
@@ -176,21 +274,24 @@ export function WeightliftingProgressChart({
               width={58}
             />
             <Tooltip
-              contentStyle={tooltipStyle}
-              formatter={(value) => `${numberFormatter(Number(value))} kg`}
-              labelStyle={{ color: chartColors.mutedStrong }}
+              allowEscapeViewBox={{ x: false, y: true }}
+              content={<WeightliftingVolumeTooltip />}
+              wrapperStyle={{ zIndex: 10 }}
             />
             <Legend
               iconType="circle"
+              itemSorter={(item) =>
+                weightliftingVolumeSeriesOrder[String(item.dataKey)] ?? 3
+              }
               wrapperStyle={{ color: chartColors.mutedStrong, paddingTop: 8 }}
             />
-            {visibleSeries.totalVolume ? (
+            {visibleSeries.junkVolume ? (
               <Line
-                activeDot={activeChartDot(chartColors.violet)}
-                dataKey="totalVolume"
-                dot={chartDot(chartColors.violet)}
-                name="Total volume"
-                stroke={chartColors.violet}
+                activeDot={activeChartDot(chartColors.amber)}
+                dataKey="junkVolume"
+                dot={chartDot(chartColors.amber)}
+                name="Junk volume"
+                stroke={chartColors.amber}
                 strokeWidth={2.5}
                 type="monotone"
               />
@@ -206,13 +307,13 @@ export function WeightliftingProgressChart({
                 type="monotone"
               />
             ) : null}
-            {visibleSeries.junkVolume ? (
+            {visibleSeries.totalVolume ? (
               <Line
-                activeDot={activeChartDot(chartColors.amber)}
-                dataKey="junkVolume"
-                dot={chartDot(chartColors.amber)}
-                name="Junk volume"
-                stroke={chartColors.amber}
+                activeDot={activeChartDot(chartColors.violet)}
+                dataKey="totalVolume"
+                dot={chartDot(chartColors.violet)}
+                name="Total volume"
+                stroke={chartColors.violet}
                 strokeWidth={2.5}
                 type="monotone"
               />
@@ -226,7 +327,7 @@ export function WeightliftingProgressChart({
           <table className="data-table chart-table">
             <caption>Chart Data</caption>
             <tbody>
-              {data.map((point) => (
+              {[...data].reverse().map((point) => (
                 <Fragment key={point.id}>
                   <tr className="chart-session-row">
                     <td>{point.date}</td>
@@ -244,6 +345,8 @@ export function WeightliftingProgressChart({
                       <td colSpan={4}>
                         <div className="chart-set-details">
                           <span>Set {set.position}</span>
+                          <span>{numberFormatter(set.repetitions)} reps</span>
+                          <span>{numberFormatter(set.kilograms)} kg</span>
                           <span>{set.type}</span>
                           <span>{numberFormatter(set.volume)} kg</span>
                         </div>
@@ -370,13 +473,9 @@ export function PaceProgressChart({
                 width={isPace ? 54 : 48}
               />
               <Tooltip
-                contentStyle={tooltipStyle}
-                formatter={(value) =>
-                  isPace
-                    ? `${formatPaceSeconds(Number(value))} min/km`
-                    : `${numberFormatter(Number(value))} km/h`
-                }
-                labelStyle={{ color: chartColors.mutedStrong }}
+                allowEscapeViewBox={{ x: false, y: true }}
+                content={<PaceSessionTooltip />}
+                wrapperStyle={{ zIndex: 10 }}
               />
               {isPace ? (
                 <Line
@@ -436,9 +535,9 @@ export function PaceProgressChart({
                 width={48}
               />
               <Tooltip
-                contentStyle={tooltipStyle}
-                formatter={(value) => `${numberFormatter(Number(value))} km`}
-                labelStyle={{ color: chartColors.mutedStrong }}
+                allowEscapeViewBox={{ x: false, y: true }}
+                content={<PaceSessionTooltip />}
+                wrapperStyle={{ zIndex: 10 }}
               />
               <Bar
                 dataKey="distance"
@@ -458,15 +557,17 @@ export function PaceProgressChart({
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Time</th>
                 <th>Distance</th>
                 <th>Pace</th>
                 <th>Speed</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((point) => (
+              {[...data].reverse().map((point) => (
                 <tr key={point.id}>
                   <td>{point.date}</td>
+                  <td>{point.time}</td>
                   <td>{numberFormatter(point.distance)} km</td>
                   <td>{formatPaceSeconds(point.paceSecondsPerKm)} min/km</td>
                   <td>{numberFormatter(point.speed)} km/h</td>

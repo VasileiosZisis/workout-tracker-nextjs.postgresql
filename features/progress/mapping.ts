@@ -10,6 +10,8 @@ type WeightliftingSessionForChart = {
   junkVolume: DecimalLike;
   sets: {
     position: number;
+    repetitions: DecimalLike;
+    kilograms: DecimalLike;
     isHard: boolean;
     volume: DecimalLike;
   }[];
@@ -18,6 +20,9 @@ type WeightliftingSessionForChart = {
 type PaceSessionForChart = {
   id: string;
   performedAt: Date;
+  hours: number;
+  minutes: number;
+  seconds: number;
   distance: DecimalLike;
   pace: DecimalLike;
   speed: DecimalLike;
@@ -44,6 +49,8 @@ export function mapWeightliftingProgressData(
     junkVolume: toNumber(session.junkVolume),
     sets: session.sets.map((set) => ({
       position: set.position,
+      repetitions: toNumber(set.repetitions),
+      kilograms: toNumber(set.kilograms),
       type: set.isHard ? "Hard" : "Junk",
       volume: toNumber(set.volume),
     })),
@@ -54,6 +61,7 @@ export function mapPaceProgressData(sessions: PaceSessionForChart[]) {
   return sessions.map((session) => ({
     id: session.id,
     date: toDateLabel(session.performedAt),
+    time: `${session.hours}h ${session.minutes}m ${session.seconds}s`,
     distance: toNumber(session.distance),
     pace: toNumber(session.pace),
     paceSecondsPerKm: Math.round(toNumber(session.pace) * 60),
