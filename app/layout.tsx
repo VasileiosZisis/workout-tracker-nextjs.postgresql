@@ -19,6 +19,9 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
   },
+  twitter: {
+    card: "summary_large_image",
+  },
   robots: env.IS_PREVIEW
     ? { follow: false, index: false }
     : { follow: true, index: true },

@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 
 const pageDescription =
   "See the weightlifting and pace metrics you can record and calculate with Workout Trackr.";
+const socialImage = {
+  alt: "Workout Trackr — log workouts and measure progress",
+  height: 630,
+  type: "image/png",
+  url: "/opengraph-image",
+  width: 1200,
+};
 
 export const metadata: Metadata = {
   title: "Metrics",
@@ -12,6 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Metrics",
     description: pageDescription,
+    images: [socialImage],
     type: "website",
     url: "/metrics",
   },

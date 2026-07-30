@@ -16,7 +16,7 @@ describe("site metadata", () => {
     ).toEqual([]);
   });
 
-  it("publishes only the public production homepage", () => {
+  it("publishes the public production pages", () => {
     const appUrl = "https://workout-trackr.vercel.app";
 
     expect(createRobotsPolicy({ appUrl, isPreview: false })).toMatchObject({
@@ -27,6 +27,11 @@ describe("site metadata", () => {
         changeFrequency: "weekly",
         priority: 1,
         url: appUrl,
+      },
+      {
+        changeFrequency: "monthly",
+        priority: 0.8,
+        url: `${appUrl}/metrics`,
       },
     ]);
   });
