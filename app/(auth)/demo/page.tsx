@@ -55,10 +55,10 @@ export default async function DemoPage({
 
           <figure className="login-preview">
             <Image
-              src="/home/tempo-progress.png"
+              src="/home/tempo-progress-v2.png"
               alt="Tempo Run progress with pace, distance, speed, and historical charts"
               width={1016}
-              height={837}
+              height={1106}
               priority
               sizes="(max-width: 820px) 100vw, 62vw"
             />
