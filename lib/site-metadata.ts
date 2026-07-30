@@ -40,5 +40,10 @@ export function createSitemap({
       priority: 1,
       url: appUrl,
     },
+    {
+      changeFrequency: "monthly",
+      priority: 0.8,
+      url: `${appUrl}/metrics`,
+    },
   ];
 }
