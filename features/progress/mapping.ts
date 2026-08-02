@@ -1,3 +1,5 @@
+import { calculateAverageWorkingLoad } from "@/features/weightlifting/metrics";
+
 type DecimalLike = {
   toString(): string;
 };
@@ -41,20 +43,29 @@ function toDateLabel(date: Date) {
 export function mapWeightliftingProgressData(
   sessions: WeightliftingSessionForChart[],
 ) {
-  return sessions.map((session) => ({
-    id: session.id,
-    date: toDateLabel(session.performedAt),
-    totalVolume: toNumber(session.totalVolume),
-    workingVolume: toNumber(session.workingVolume),
-    junkVolume: toNumber(session.junkVolume),
-    sets: session.sets.map((set) => ({
+  return sessions.map((session) => {
+    const numericSets = session.sets.map((set) => ({
       position: set.position,
       repetitions: toNumber(set.repetitions),
       kilograms: toNumber(set.kilograms),
-      type: set.isHard ? "Hard" : "Junk",
+      isHard: set.isHard,
       volume: toNumber(set.volume),
-    })),
-  }));
+    }));
+
+    return {
+      id: session.id,
+      date: toDateLabel(session.performedAt),
+      totalVolume: toNumber(session.totalVolume),
+      workingVolume: toNumber(session.workingVolume),
+      junkVolume: toNumber(session.junkVolume),
+      averageWorkingLoad: calculateAverageWorkingLoad(numericSets),
+      sets: numericSets.map(({ isHard, ...set }) => ({
+        ...set,
+        averageWorkingLoad: isHard ? set.kilograms : null,
+        type: isHard ? "Hard" : "Junk",
+      })),
+    };
+  });
 }
 
 export function mapPaceProgressData(sessions: PaceSessionForChart[]) {

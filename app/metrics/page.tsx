@@ -63,7 +63,8 @@ const metricCatalog: MetricCatalog[] = [
       {
         name: "Hard set status",
         description:
-          "Mark a set as hard when it should contribute to working volume.",
+          "Mark a set as hard when it should contribute to working volume " +
+          "and average working load.",
       },
     ],
     calculated: [
@@ -83,6 +84,15 @@ const metricCatalog: MetricCatalog[] = [
         name: "Working volume",
         description: "The combined volume of sets marked as hard.",
         formula: "sum of hard-set volume",
+        unit: "kg",
+      },
+      {
+        name: "Average working load per rep",
+        description:
+          "The repetition-weighted average load of hard sets. For one hard " +
+          "set, this equals its recorded weight. Sessions without hard sets " +
+          "have no value.",
+        formula: "working volume ÷ hard-set repetitions",
         unit: "kg",
       },
       {

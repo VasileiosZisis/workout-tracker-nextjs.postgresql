@@ -30,14 +30,16 @@ export async function getWeightliftingSessionsPage({
   const sessions = await prisma.weightliftingSession.findMany({
     where,
     include: {
-      _count: {
-        select: {
-          sets: {
-            where: {
-              isHard: true,
-            },
-          },
+      sets: {
+        where: {
+          isHard: true,
         },
+        select: {
+          repetitions: true,
+          kilograms: true,
+          isHard: true,
+        },
+        orderBy: { position: "asc" },
       },
     },
     orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],

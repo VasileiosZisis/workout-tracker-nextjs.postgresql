@@ -254,6 +254,7 @@ describe("progress queries", () => {
         totalVolume: 100,
         workingVolume: 60,
         junkVolume: 40,
+        averageWorkingLoad: 12,
         sets: [
           {
             position: 1,
@@ -261,6 +262,7 @@ describe("progress queries", () => {
             kilograms: 8,
             type: "Junk",
             volume: 40,
+            averageWorkingLoad: null,
           },
           {
             position: 2,
@@ -268,6 +270,7 @@ describe("progress queries", () => {
             kilograms: 12,
             type: "Hard",
             volume: 60,
+            averageWorkingLoad: 12,
           },
         ],
       },

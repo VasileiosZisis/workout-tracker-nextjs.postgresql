@@ -44,6 +44,7 @@ describe("mapWeightliftingProgressData", () => {
         totalVolume: 1000,
         workingVolume: 600,
         junkVolume: 400,
+        averageWorkingLoad: 120,
         sets: [
           {
             position: 1,
@@ -51,6 +52,7 @@ describe("mapWeightliftingProgressData", () => {
             kilograms: 40,
             type: "Junk",
             volume: 400,
+            averageWorkingLoad: null,
           },
           {
             position: 2,
@@ -58,6 +60,7 @@ describe("mapWeightliftingProgressData", () => {
             kilograms: 120,
             type: "Hard",
             volume: 600,
+            averageWorkingLoad: 120,
           },
         ],
       },

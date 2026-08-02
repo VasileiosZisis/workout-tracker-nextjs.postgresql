@@ -1223,7 +1223,7 @@ fieldset.field {
 }
 
 .chart-table-wrap {
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .chart-table {
@@ -1263,7 +1263,7 @@ fieldset.field {
   display: grid;
   grid-template-columns:
     minmax(72px, 0.5fr) minmax(72px, 0.5fr) minmax(72px, 0.5fr)
-    minmax(72px, 0.5fr) minmax(100px, 1fr);
+    minmax(72px, 0.5fr) minmax(100px, 1fr) minmax(112px, 1fr);
   gap: 16px;
   padding-left: 20px;
 }
@@ -1274,7 +1274,7 @@ fieldset.field {
 }
 
 .chart-volume-tooltip {
-  width: min(560px, calc(100vw - 32px));
+  width: min(680px, calc(100vw - 32px));
   border: 1px solid #30384d;
   border-radius: 8px;
   background: #101520;
@@ -1291,7 +1291,7 @@ fieldset.field {
 
 .chart-volume-tooltip-totals {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
@@ -1314,15 +1314,20 @@ fieldset.field {
   color: var(--accent-violet);
 }
 
+.chart-volume-tooltip-totals .chart-volume-tooltip-average-load {
+  color: var(--accent);
+}
+
 .chart-volume-tooltip-sets {
   display: grid;
   gap: 8px;
+  overflow-x: auto;
   padding-top: 10px;
 }
 
 .chart-volume-tooltip-set-row {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(72px, 1fr));
   gap: 10px;
   align-items: center;
   font-size: 0.8rem;
@@ -1809,7 +1814,7 @@ fieldset.field {
 
   .chart-table-wrap .chart-table {
     display: table;
-    min-width: 560px;
+    min-width: 840px;
   }
 
   .data-table {

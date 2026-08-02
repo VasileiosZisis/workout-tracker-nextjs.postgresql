@@ -40,6 +40,7 @@ const weightliftingVolumeSeriesOrder: Record<string, number> = {
   junkVolume: 0,
   workingVolume: 1,
   totalVolume: 2,
+  averageWorkingLoad: 3,
 };
 
 function numberFormatter(value: number) {
@@ -51,6 +52,11 @@ function numberFormatter(value: number) {
 const axisTick = {
   fill: chartColors.muted,
   fontSize: 12,
+};
+
+const blueAxisTick = {
+  ...axisTick,
+  fill: chartColors.blue,
 };
 
 function chartDot(color: string) {
@@ -103,6 +109,11 @@ function WeightliftingVolumeTooltip({
         <strong className="chart-volume-tooltip-total">
           {numberFormatter(point.totalVolume)} kg
         </strong>
+        <strong className="chart-volume-tooltip-average-load">
+          {point.averageWorkingLoad === null
+            ? "—"
+            : `${numberFormatter(point.averageWorkingLoad)} kg`}
+        </strong>
       </div>
       <div className="chart-volume-tooltip-sets">
         {point.sets.map((set) => (
@@ -115,6 +126,12 @@ function WeightliftingVolumeTooltip({
             <span>{numberFormatter(set.kilograms)} kg</span>
             <span>{set.type}</span>
             <span>{numberFormatter(set.volume)} kg</span>
+            <span>
+              Avg load{" "}
+              {set.averageWorkingLoad === null
+                ? "—"
+                : `${numberFormatter(set.averageWorkingLoad)} kg`}
+            </span>
           </div>
         ))}
       </div>
@@ -178,6 +195,7 @@ export function WeightliftingProgressChart({
   range: ChartRangeState;
 }) {
   const [visibleSeries, setVisibleSeries] = useState({
+    averageWorkingLoad: true,
     junkVolume: true,
     totalVolume: true,
     workingVolume: true,
@@ -195,7 +213,7 @@ export function WeightliftingProgressChart({
       <section className="section-block chart-section" aria-labelledby="progress-heading">
         <div className="section-heading">
           <div>
-            <h2 id="progress-heading">Volume Over Time</h2>
+            <h2 id="progress-heading">Volume and Average Load Over Time</h2>
             <ChartRangeControl range={range} />
           </div>
         </div>
@@ -209,11 +227,18 @@ export function WeightliftingProgressChart({
     );
   }
 
+  const averageWorkingLoadDomain = getPaddedDomain(
+    data.flatMap((point) =>
+      point.averageWorkingLoad === null ? [] : [point.averageWorkingLoad],
+    ),
+    2.5,
+  );
+
   return (
     <section className="section-block chart-section" aria-labelledby="progress-heading">
       <div className="section-heading">
         <div>
-          <h2 id="progress-heading">Volume Over Time</h2>
+          <h2 id="progress-heading">Volume and Average Load Over Time</h2>
           <ChartRangeControl range={range} />
           <div
             className="chart-series-controls"
@@ -244,10 +269,21 @@ export function WeightliftingProgressChart({
               />
               <span>Total volume</span>
             </label>
+            <label className="chart-series-toggle chart-series-blue">
+              <input
+                checked={visibleSeries.averageWorkingLoad}
+                onChange={() => toggleSeries("averageWorkingLoad")}
+                type="checkbox"
+              />
+              <span>Average working load per rep</span>
+            </label>
           </div>
         </div>
       </div>
-      <div className="chart-frame" aria-label="Weightlifting volume chart">
+      <div
+        className="chart-frame"
+        aria-label="Weightlifting volume and average load chart"
+      >
         <ResponsiveContainer width="100%" height={300}>
           <LineChart
             accessibilityLayer
@@ -273,6 +309,20 @@ export function WeightliftingProgressChart({
               tickMargin={8}
               width={58}
             />
+            {visibleSeries.averageWorkingLoad ? (
+              <YAxis
+                axisLine={false}
+                domain={averageWorkingLoadDomain}
+                orientation="right"
+                stroke={chartColors.blue}
+                tick={blueAxisTick}
+                tickFormatter={numberFormatter}
+                tickLine={false}
+                tickMargin={8}
+                width={58}
+                yAxisId="averageWorkingLoad"
+              />
+            ) : null}
             <Tooltip
               allowEscapeViewBox={{ x: false, y: true }}
               content={<WeightliftingVolumeTooltip />}
@@ -318,6 +368,20 @@ export function WeightliftingProgressChart({
                 type="monotone"
               />
             ) : null}
+            {visibleSeries.averageWorkingLoad ? (
+              <Line
+                activeDot={activeChartDot(chartColors.blue)}
+                connectNulls={false}
+                dataKey="averageWorkingLoad"
+                dot={chartDot(chartColors.blue)}
+                name="Average working load per rep"
+                stroke={chartColors.blue}
+                strokeDasharray="6 4"
+                strokeWidth={2.5}
+                type="monotone"
+                yAxisId="averageWorkingLoad"
+              />
+            ) : null}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -336,19 +400,31 @@ export function WeightliftingProgressChart({
                       Working Volume {numberFormatter(point.workingVolume)} kg
                     </td>
                     <td>Total Volume {numberFormatter(point.totalVolume)} kg</td>
+                    <td>
+                      Average Load per Rep{" "}
+                      {point.averageWorkingLoad === null
+                        ? "—"
+                        : `${numberFormatter(point.averageWorkingLoad)} kg`}
+                    </td>
                   </tr>
                   {point.sets.map((set) => (
                     <tr
                       className="chart-set-row"
                       key={`${point.id}-${set.position}`}
                     >
-                      <td colSpan={4}>
+                      <td colSpan={5}>
                         <div className="chart-set-details">
                           <span>Set {set.position}</span>
                           <span>{numberFormatter(set.repetitions)} reps</span>
                           <span>{numberFormatter(set.kilograms)} kg</span>
                           <span>{set.type}</span>
                           <span>{numberFormatter(set.volume)} kg</span>
+                          <span>
+                            Avg load{" "}
+                            {set.averageWorkingLoad === null
+                              ? "—"
+                              : `${numberFormatter(set.averageWorkingLoad)} kg`}
+                          </span>
                         </div>
                       </td>
                     </tr>

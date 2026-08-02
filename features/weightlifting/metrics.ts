@@ -10,6 +10,7 @@ export type WeightliftingSetWithVolume = WeightliftingSetInput & {
 };
 
 export type WeightliftingMetrics = {
+  averageWorkingLoad: number | null;
   sets: WeightliftingSetWithVolume[];
   totalVolume: number;
   junkVolume: number;
@@ -25,6 +26,28 @@ export function calculateSetVolume({
   kilograms,
 }: Pick<WeightliftingSetInput, "repetitions" | "kilograms">) {
   return roundToTwo(repetitions * kilograms);
+}
+
+export function calculateAverageWorkingLoad(
+  sets: readonly WeightliftingSetInput[],
+): number | null {
+  const workingTotals = sets.reduce(
+    (totals, set) => {
+      if (set.isHard) {
+        totals.repetitions += set.repetitions;
+        totals.volume += set.repetitions * set.kilograms;
+      }
+
+      return totals;
+    },
+    { repetitions: 0, volume: 0 },
+  );
+
+  if (workingTotals.repetitions <= 0) {
+    return null;
+  }
+
+  return roundToTwo(workingTotals.volume / workingTotals.repetitions);
 }
 
 export function calculateWeightliftingMetrics(
@@ -58,6 +81,7 @@ export function calculateWeightliftingMetrics(
   );
 
   return {
+    averageWorkingLoad: calculateAverageWorkingLoad(sets),
     sets: setsWithVolume,
     ...totals,
   };

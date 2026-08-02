@@ -30,10 +30,31 @@ import {
   formatDecimal as formatWeightliftingDecimal,
   formatSessionDate as formatWeightliftingSessionDate,
 } from "@/features/weightlifting/format";
+import { calculateAverageWorkingLoad } from "@/features/weightlifting/metrics";
 import {
   getLatestWeightliftingSession,
   getWeightliftingSessionsPage,
 } from "@/features/weightlifting/queries";
+
+function formatAverageWorkingLoad(
+  sets: readonly {
+    repetitions: { toString(): string };
+    kilograms: { toString(): string };
+    isHard: boolean;
+  }[],
+) {
+  const averageWorkingLoad = calculateAverageWorkingLoad(
+    sets.map((set) => ({
+      repetitions: Number(set.repetitions),
+      kilograms: Number(set.kilograms),
+      isHard: set.isHard,
+    })),
+  );
+
+  return averageWorkingLoad === null
+    ? "—"
+    : `${formatWeightliftingDecimal(averageWorkingLoad)} kg`;
+}
 
 export async function generateMetadata({
   params,
@@ -207,14 +228,12 @@ export default async function ExerciseDetailPage({
                     .length ?? 0}
                 </strong>
               </div>
-              <div className="metric-card metric-card-violet">
-                <span>Total volume</span>
+              <div className="metric-card metric-card-blue">
+                <span>Average working load per rep</span>
                 <strong>
                   {latestWeightliftingSession
-                    ? `${formatWeightliftingDecimal(
-                        latestWeightliftingSession.totalVolume,
-                      )} kg`
-                    : "0 kg"}
+                    ? formatAverageWorkingLoad(latestWeightliftingSession.sets)
+                    : "—"}
                 </strong>
               </div>
             </section>
@@ -250,10 +269,11 @@ export default async function ExerciseDetailPage({
                         Working {formatWeightliftingDecimal(session.workingVolume)} kg
                       </span>
                       <span className="metric-pill metric-pill-amber">
-                        Hard sets {session._count.sets}
+                        Hard sets {session.sets.length}
                       </span>
-                      <span className="metric-pill metric-pill-violet">
-                        Total {formatWeightliftingDecimal(session.totalVolume)} kg
+                      <span className="metric-pill metric-pill-blue">
+                        Average working load per rep{" "}
+                        {formatAverageWorkingLoad(session.sets)}
                       </span>
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { formatDecimal, formatSessionDate } from "../format";
+import { calculateAverageWorkingLoad } from "../metrics";
 
 type SessionSummaryProps = {
   session: {
@@ -19,6 +20,14 @@ type SessionSummaryProps = {
 };
 
 export function SessionSummary({ session }: SessionSummaryProps) {
+  const averageWorkingLoad = calculateAverageWorkingLoad(
+    session.sets.map((set) => ({
+      repetitions: Number(set.repetitions),
+      kilograms: Number(set.kilograms),
+      isHard: set.isHard,
+    })),
+  );
+
   return (
     <div className="session-summary">
       <dl className="metric-grid">
@@ -34,6 +43,14 @@ export function SessionSummary({ session }: SessionSummaryProps) {
           <dt>Working volume</dt>
           <dd>{formatDecimal(session.workingVolume)} kg</dd>
         </div>
+        <div className="metric-card metric-card-blue">
+          <dt>Average working load per rep</dt>
+          <dd>
+            {averageWorkingLoad === null
+              ? "—"
+              : `${formatDecimal(averageWorkingLoad)} kg`}
+          </dd>
+        </div>
         <div className="metric-card metric-card-amber">
           <dt>Junk volume</dt>
           <dd>{formatDecimal(session.junkVolume)} kg</dd>
@@ -47,6 +64,7 @@ export function SessionSummary({ session }: SessionSummaryProps) {
             <th>kg</th>
             <th>Type</th>
             <th>Volume</th>
+            <th>Average working load per rep</th>
           </tr>
         </thead>
         <tbody>
@@ -57,6 +75,7 @@ export function SessionSummary({ session }: SessionSummaryProps) {
               <td>{formatDecimal(set.kilograms)}</td>
               <td>{set.isHard ? "Hard" : "Junk"}</td>
               <td>{formatDecimal(set.volume)} kg</td>
+              <td>{set.isHard ? `${formatDecimal(set.kilograms)} kg` : "—"}</td>
             </tr>
           ))}
         </tbody>

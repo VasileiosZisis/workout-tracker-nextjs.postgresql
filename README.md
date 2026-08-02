@@ -116,11 +116,15 @@ training data. Logs use user-scoped slugs, exercises use log-scoped slugs, and
 sessions use stable database identifiers. This avoids cross-user slug conflicts
 and same-date session collisions.
 
-Derived metrics are persisted as PostgreSQL decimal values after being computed
-on the server:
+Derived metrics are computed on the server. Session aggregates are persisted as
+PostgreSQL decimal values, while average working load is calculated from the
+stored hard sets:
 
 - Set volume: `repetitions * kilograms`
 - Working volume: sum of hard-set volume
+- Average working load per rep: hard-set volume divided by hard-set repetitions
+  (for one hard set, this equals its recorded weight; sessions without hard
+  sets have no value)
 - Junk volume: sum of non-hard-set volume
 - Pace: elapsed minutes divided by distance
 - Speed: distance divided by elapsed time

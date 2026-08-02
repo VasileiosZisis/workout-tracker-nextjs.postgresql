@@ -161,6 +161,8 @@ describe("weightlifting queries", () => {
 
     expect(result.sessions).toHaveLength(1);
     expect(result.sessions[0].id).toBe(userASessionId);
+    expect(result.sessions[0].sets).toHaveLength(1);
+    expect(result.sessions[0].sets[0].kilograms.toString()).toBe("100");
     expect(result.pagination.totalItems).toBe(1);
   });
 
