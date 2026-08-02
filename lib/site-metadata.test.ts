@@ -19,7 +19,12 @@ describe("site metadata", () => {
   it("publishes the public production pages", () => {
     const appUrl = "https://workout-trackr.vercel.app";
 
-    expect(createRobotsPolicy({ appUrl, isPreview: false })).toMatchObject({
+    expect(createRobotsPolicy({ appUrl, isPreview: false })).toEqual({
+      rules: {
+        allow: "/",
+        disallow: "/api/",
+        userAgent: "*",
+      },
       sitemap: `${appUrl}/sitemap.xml`,
     });
     expect(createSitemap({ appUrl, isPreview: false })).toEqual([

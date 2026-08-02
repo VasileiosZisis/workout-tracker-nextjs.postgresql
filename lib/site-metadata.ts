@@ -16,7 +16,7 @@ export function createRobotsPolicy({
   return {
     rules: {
       allow: "/",
-      disallow: ["/api/", "/login", "/logs", "/profile"],
+      disallow: "/api/",
       userAgent: "*",
     },
     sitemap: `${appUrl}/sitemap.xml`,

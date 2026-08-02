@@ -50,9 +50,23 @@ const metrics = [
   "Distance",
 ];
 
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  alternateName: "workouttrackr.com",
+  name: "Workout Trackr",
+  url: env.APP_URL,
+};
+
 export default function HomePage() {
   return (
     <main className="home">
+      <script
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
+        }}
+        type="application/ld+json"
+      />
       <HomeRevealController />
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-inner">

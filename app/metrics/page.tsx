@@ -2,22 +2,23 @@ import type { Metadata } from "next";
 
 const pageDescription =
   "See the weightlifting and pace metrics you can record and calculate with Workout Trackr.";
+const pageTitle = "Weightlifting & Pace Metrics";
 const socialImage = {
-  alt: "Workout Trackr — log workouts and measure progress",
+  alt: "Workout Trackr homepage alongside a Bench Press progress dashboard",
   height: 630,
   type: "image/png",
-  url: "/opengraph-image",
-  width: 1200,
+  url: "/brand/social-preview.png",
+  width: 1201,
 };
 
 export const metadata: Metadata = {
-  title: "Metrics",
+  title: pageTitle,
   description: pageDescription,
   alternates: {
     canonical: "/metrics",
   },
   openGraph: {
-    title: "Metrics",
+    title: pageTitle,
     description: pageDescription,
     images: [socialImage],
     type: "website",
