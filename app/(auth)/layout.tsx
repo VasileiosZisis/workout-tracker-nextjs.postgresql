@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { auth } from "@/auth";
+import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { env } from "@/lib/env";
 
@@ -23,6 +24,7 @@ export default async function AuthLayout({
       <div id="content" tabIndex={-1}>
         {children}
       </div>
+      <PublicFooter />
     </>
   );
 }

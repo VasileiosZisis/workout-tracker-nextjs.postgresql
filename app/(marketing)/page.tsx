@@ -72,10 +72,6 @@ export default function HomePage() {
         <div className="home-hero-inner">
           <div className="home-hero-copy">
             <h1 id="home-title">Record the work. Read the progress.</h1>
-            <p>
-              Track weightlifting and pace-based sessions, calculate the metrics
-              that matter, and see how your performance changes over time.
-            </p>
             <div className="home-actions">
               <Link
                 className="button"
@@ -91,11 +87,11 @@ export default function HomePage() {
 
           <figure className="home-hero-visual">
             <Image
-              alt="Bench Press progress showing working volume, hard sets, total volume, and a volume-over-time chart."
+              alt="Bench Press progress showing working volume, hard sets, average working load per rep, and volume-and-load trends over time."
               height={840}
               priority
               sizes="(max-width: 900px) 142vw, (max-width: 1100px) 85vw, 64vw"
-              src="/home/bench-progress.png"
+              src="/home/bench-progress-v2.png"
               width={1016}
             />
           </figure>
@@ -147,7 +143,7 @@ export default function HomePage() {
                   } as CSSProperties
                 }
               >
-                <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span aria-hidden="true">{index + 1}</span>
                 <h3>{step.title}</h3>
                 <p>{step.copy}</p>
               </li>
@@ -210,18 +206,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="home-footer">
-        <p>
-          Created by{" "}
-          <a
-            href="https://www.vasiliszisis.me/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Vasilis Zisis
-          </a>
-        </p>
-      </footer>
     </main>
   );
 }

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AuthButton } from "@/components/auth-button";
 import { AppNav } from "@/components/app-nav";
+import { PublicFooter } from "@/components/public-footer";
 import wtLogo from "@/public/brand/wt-logo.png";
 
 export function AppShell({
@@ -79,6 +80,8 @@ export function AppShell({
         <div id="content" className="app-main-content" tabIndex={-1}>
           {children}
         </div>
+
+        <PublicFooter />
       </div>
 
       <AppNav placement="bottom" />

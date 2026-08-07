@@ -286,7 +286,14 @@ input {
 }
 
 .app-main {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 100vh;
+}
+
+.app-main-content {
+  flex: 1;
 }
 
 .demo-banner {
@@ -2395,9 +2402,8 @@ fieldset.field {
 
 .home-workflow li > span {
   display: block;
-  margin-bottom: 24px;
   color: var(--accent-amber);
-  font-size: 1.45rem;
+  font-size: 3rem;
   font-weight: 800;
   letter-spacing: 0.12em;
 }
@@ -2525,20 +2531,20 @@ fieldset.field {
   margin-top: 8px;
 }
 
-.home-footer {
+.site-footer {
   border-top: 1px solid var(--border);
   padding: 24px;
   color: var(--muted);
   text-align: center;
 }
 
-.home-footer a {
+.site-footer a {
   color: var(--muted-strong);
   font-weight: 700;
   text-underline-offset: 4px;
 }
 
-.home-footer a:hover {
+.site-footer a:hover {
   color: var(--accent-strong);
 }
 
@@ -2978,6 +2984,16 @@ fieldset.field {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.login-preview-cropped {
+  aspect-ratio: 1016 / 840;
+}
+
+.login-preview-cropped img {
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
 }
 
 .login-preview figcaption {

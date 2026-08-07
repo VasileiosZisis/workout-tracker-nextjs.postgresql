@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
+import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { env } from "@/lib/env";
 
@@ -20,6 +21,7 @@ export default async function MetricsLayout({
       <div id="content" tabIndex={-1}>
         {children}
       </div>
+      <PublicFooter />
     </>
   );
 }

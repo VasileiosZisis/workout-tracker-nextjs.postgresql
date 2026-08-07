@@ -45,15 +45,10 @@ export default async function DemoPage({
       <div className="login-stage">
         <section className="login-story" aria-labelledby="demo-title">
           <div className="login-story-copy">
-            <p className="login-kicker">Temporary workspace</p>
             <h1 id="demo-title">Explore the complete training workflow.</h1>
-            <p>
-              Start with realistic strength and running history, then create,
-              edit, and delete anything without connecting a Google account.
-            </p>
           </div>
 
-          <figure className="login-preview">
+          <figure className="login-preview login-preview-cropped">
             <Image
               src="/home/tempo-progress-v2.png"
               alt="Tempo Run progress with pace, distance, speed, and historical charts"

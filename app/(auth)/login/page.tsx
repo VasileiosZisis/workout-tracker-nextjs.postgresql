@@ -28,12 +28,7 @@ export default async function LoginPage({
       <div className="login-stage">
         <section className="login-story" aria-labelledby="login-title">
           <div className="login-story-copy">
-            <p className="login-kicker">Performance Lab</p>
             <h1 id="login-title">Pick up where your training left off.</h1>
-            <p>
-              Record sessions, compare measurable effort, and keep a clear view
-              of your progress over time.
-            </p>
           </div>
 
           <figure className="login-preview">
