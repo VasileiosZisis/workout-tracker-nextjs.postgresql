@@ -4,12 +4,10 @@ import wtLogo from "@/public/brand/wt-logo.png";
 
 export function PublicHeader({
   demoEnabled,
-  highlightSignIn = false,
   showLogo = false,
   signedIn,
 }: Readonly<{
   demoEnabled: boolean;
-  highlightSignIn?: boolean;
   showLogo?: boolean;
   signedIn: boolean;
 }>) {
@@ -34,18 +32,11 @@ export function PublicHeader({
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
           <Link href="/metrics">Metrics</Link>
+          {demoEnabled ? <Link href="/demo">Try demo</Link> : null}
           {signedIn ? (
             <Link href="/logs">Logs</Link>
           ) : (
-            <>
-              {demoEnabled ? <Link href="/demo">Try demo</Link> : null}
-              <Link
-                className={highlightSignIn ? "button-secondary" : undefined}
-                href="/login"
-              >
-                Sign in
-              </Link>
-            </>
+            <Link href="/login">Sign in</Link>
           )}
         </nav>
       </header>

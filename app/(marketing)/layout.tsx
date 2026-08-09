@@ -13,7 +13,6 @@ export default async function MarketingLayout({
     <>
       <PublicHeader
         demoEnabled
-        highlightSignIn
         showLogo
         signedIn={Boolean(session?.user?.id)}
       />
