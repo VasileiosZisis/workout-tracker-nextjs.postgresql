@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
-import { env } from "@/lib/env";
 
 export default async function MarketingLayout({
   children,
@@ -13,7 +12,8 @@ export default async function MarketingLayout({
   return (
     <>
       <PublicHeader
-        demoEnabled={env.DEMO_ENABLED}
+        demoEnabled
+        highlightSignIn
         showLogo
         signedIn={Boolean(session?.user?.id)}
       />

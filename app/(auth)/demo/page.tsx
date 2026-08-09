@@ -45,7 +45,7 @@ export default async function DemoPage({
       <div className="login-stage">
         <section className="login-story" aria-labelledby="demo-title">
           <div className="login-story-copy">
-            <h1 id="demo-title">Explore the complete training workflow.</h1>
+            <h1 id="demo-title">Explore the complete training workflow</h1>
           </div>
 
           <figure className="login-preview login-preview-cropped">
@@ -94,7 +94,7 @@ export default async function DemoPage({
               deleted after two hours or when you exit the demo.
             </p>
             <Link className="login-back" href="/login">
-              <span aria-hidden="true">←</span> Sign in with Google instead
+              <span aria-hidden="true">←</span> Go to Sign in
             </Link>
           </div>
         </section>

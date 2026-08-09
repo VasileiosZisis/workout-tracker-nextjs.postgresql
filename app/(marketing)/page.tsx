@@ -45,6 +45,7 @@ const metrics = [
   "Working volume",
   "Hard sets",
   "Total volume",
+  "Load per rep",
   "Pace",
   "Speed",
   "Distance",
@@ -73,14 +74,11 @@ export default function HomePage() {
           <div className="home-hero-copy">
             <h1 id="home-title">Record the work. Read the progress.</h1>
             <div className="home-actions">
-              <Link
-                className="button"
-                href={env.DEMO_ENABLED ? "/demo" : "/login"}
-              >
-                {env.DEMO_ENABLED ? "Try demo" : "Start tracking"}
+              <Link className="button" href="">
+                Try demo
               </Link>
               <Link className="button-secondary" href="/login">
-                Sign in
+                Start Tracking
               </Link>
             </div>
           </div>
@@ -178,7 +176,7 @@ export default function HomePage() {
           <div className="home-privacy">
             <h2>Your training data stays yours</h2>
             <p>
-              Every log, exercise, and session belongs to your private account.
+              Every log, exercise and session belongs to your private account.
               Workout Trackr is a personal workspace, not a social feed.
             </p>
           </div>
@@ -190,17 +188,12 @@ export default function HomePage() {
               into a clearer view of your progress.
             </p>
             <div className="home-actions">
-              <Link
-                className="button"
-                href={env.DEMO_ENABLED ? "/demo" : "/login"}
-              >
-                {env.DEMO_ENABLED ? "Try demo" : "Start tracking"}
+              <Link className="button" href="">
+                Try demo
               </Link>
-              {env.DEMO_ENABLED ? (
-                <Link className="button-secondary" href="/login">
-                  Sign in
-                </Link>
-              ) : null}
+              <Link className="button-secondary" href="/login">
+                Start Tracking
+              </Link>
             </div>
           </div>
         </div>

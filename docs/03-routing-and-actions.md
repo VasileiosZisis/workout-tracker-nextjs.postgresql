@@ -7,10 +7,15 @@
 | Route | Rendering | Responsibility |
 | --- | --- | --- |
 | `/` | Static | Product overview and entry point |
+| `/demo` | Dynamic | Anonymous sandbox entry; creation requires `DEMO_ENABLED` |
 | `/login` | Dynamic | Google sign-in or environment-specific availability notice |
 | `/api/auth/[...nextauth]` | Route Handler | Auth.js provider, callback, session, and sign-out endpoints |
 | `/robots.txt` | Static metadata route | Environment-aware crawler policy |
 | `/sitemap.xml` | Static metadata route | Public Production homepage only |
+
+The marketing header and homepage display demo calls to action consistently
+across environments. `DEMO_ENABLED` gates anonymous sandbox creation on
+`/demo`; it does not control whether the marketing labels are visible.
 
 ### Authenticated Application
 
