@@ -111,7 +111,9 @@ export default async function LoginPage({
 
             <p className="login-trust">
               Your account is used only to secure and retrieve your personal
-              training data.
+              training data. By continuing, you agree to the{" "}
+              <Link href="/terms">Terms of Service</Link> and acknowledge the{" "}
+              <Link href="/privacy">Privacy Policy</Link>.
             </p>
             <Link className="login-back" href="/">
               <span aria-hidden="true">←</span> Back to homepage

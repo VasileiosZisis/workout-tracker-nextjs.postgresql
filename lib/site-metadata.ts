@@ -45,5 +45,15 @@ export function createSitemap({
       priority: 0.8,
       url: `${appUrl}/metrics`,
     },
+    {
+      changeFrequency: "yearly",
+      priority: 0.3,
+      url: `${appUrl}/privacy`,
+    },
+    {
+      changeFrequency: "yearly",
+      priority: 0.3,
+      url: `${appUrl}/terms`,
+    },
   ];
 }
