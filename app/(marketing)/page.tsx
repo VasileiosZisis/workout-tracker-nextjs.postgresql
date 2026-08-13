@@ -74,7 +74,7 @@ export default function HomePage() {
           <div className="home-hero-copy">
             <h1 id="home-title">Record the work. Read the progress.</h1>
             <div className="home-actions">
-              <Link className="button" href="">
+              <Link className="button" href="/demo">
                 Try demo
               </Link>
               <Link className="button-secondary" href="/login">
@@ -188,7 +188,7 @@ export default function HomePage() {
               into a clearer view of your progress.
             </p>
             <div className="home-actions">
-              <Link className="button" href="">
+              <Link className="button" href="/demo">
                 Try demo
               </Link>
               <Link className="button-secondary" href="/login">

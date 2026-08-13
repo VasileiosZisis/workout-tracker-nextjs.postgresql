@@ -32,7 +32,7 @@ export function PublicFooter() {
             admin@workouttrackr.com
           </a>
           <p className="site-footer-copyright">
-            Copyright © {currentYear} All rights reserved.
+            Copyright © {currentYear} All rights reserved
           </p>
           <p className="site-footer-credit">
             Created by{" "}
@@ -43,7 +43,6 @@ export function PublicFooter() {
             >
               Vasilis Zisis
             </a>
-            .
           </p>
         </div>
       </div>
