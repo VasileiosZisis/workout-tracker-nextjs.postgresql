@@ -188,7 +188,7 @@ Callback: http://localhost:3000/api/auth/callback/google
 | `AUTH_SECRET` | Environment-specific Auth.js secret of at least 32 characters |
 | `AUTH_GOOGLE_ID` | Google OAuth client identifier |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
-| `DEMO_ENABLED` | Enables anonymous temporary demo creation when set to `true`; marketing demo calls to action remain visible in every environment |
+| `DEMO_ENABLED` | Enables anonymous temporary demo creation and the public-header demo link when set to `true`; homepage demo calls to action remain visible in every environment |
 | `CRON_SECRET` | Secret used to authenticate scheduled demo cleanup |
 | `DATABASE_URL` | Pooled PostgreSQL connection used by the application |
 | `DIRECT_URL` | Local unpooled connection used by Prisma migrations |
@@ -233,8 +233,9 @@ The repository uses a three-environment database model:
 | Production | Primary Neon `production` branch | Production Google OAuth client |
 
 Temporary demo availability is controlled independently in each environment
-with `DEMO_ENABLED`. Marketing demo calls to action remain visible regardless of
-this setting. When enabled, `CRON_SECRET` must also be configured.
+with `DEMO_ENABLED`. The public-header demo link follows this setting, while
+homepage demo calls to action remain visible regardless of it. When enabled,
+`CRON_SECRET` must also be configured.
 
 Feature branches create Vercel Preview deployments and isolated Neon branches.
 Merging into the configured production Git branch creates a fresh Production

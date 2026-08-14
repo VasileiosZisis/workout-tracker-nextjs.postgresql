@@ -10,15 +10,18 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
+// Temporarily hidden while Postmark investigates accepted emails that are not delivered.
+const EMAIL_SIGN_IN_VISIBLE = false;
+
 const loginErrorMessages: Record<string, string> = {
   EmailRateLimited:
     "Too many sign-in links were requested. Wait 15 minutes and try again.",
   EmailSignin:
     "We could not send the sign-in email. Check the address and try again.",
   OAuthAccountNotLinked:
-    "This email is already associated with another sign-in method. Use your original sign-in option or continue with email.",
+    "This email is already associated with another sign-in method. Use your original sign-in option.",
   Verification:
-    "This sign-in link is invalid, expired, or has already been used. Request a new link below.",
+    "This sign-in link is invalid, expired, or has already been used.",
 };
 
 function getLoginErrorMessage(error: string | string[] | undefined) {
@@ -48,7 +51,9 @@ export default async function LoginPage({
   ]);
   const redirectTo = getSafeRedirectTo(callbackUrl);
   const errorMessage = getLoginErrorMessage(error);
-  const signInAvailable = env.GOOGLE_AUTH_ENABLED || env.EMAIL_AUTH_ENABLED;
+  const emailSignInVisible =
+    EMAIL_SIGN_IN_VISIBLE && env.EMAIL_AUTH_ENABLED;
+  const signInAvailable = env.GOOGLE_AUTH_ENABLED || emailSignInVisible;
 
   if (session?.user) {
     redirect(redirectTo);
@@ -137,7 +142,7 @@ export default async function LoginPage({
                   </form>
                 ) : null}
 
-                {env.GOOGLE_AUTH_ENABLED && env.EMAIL_AUTH_ENABLED ? (
+                {env.GOOGLE_AUTH_ENABLED && emailSignInVisible ? (
                   <div className="login-separator" aria-hidden="true">
                     <span />
                     or
@@ -145,7 +150,7 @@ export default async function LoginPage({
                   </div>
                 ) : null}
 
-                {env.EMAIL_AUTH_ENABLED ? (
+                {emailSignInVisible ? (
                   <form
                     className="login-form login-email-form"
                     action={async (formData) => {

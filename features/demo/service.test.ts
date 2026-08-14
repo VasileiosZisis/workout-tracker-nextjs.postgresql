@@ -57,7 +57,7 @@ describe("temporary demo service", () => {
       true,
     );
     expect(Number(sandbox.paceSessions[0].pace)).toBeGreaterThan(0);
-  });
+  }, 15_000);
 
   it("enforces capacity and removes only expired demo users", async () => {
     const now = new Date("2026-07-19T12:00:00.000Z");

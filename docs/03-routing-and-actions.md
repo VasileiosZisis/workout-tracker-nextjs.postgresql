@@ -14,9 +14,9 @@
 | `/robots.txt` | Static metadata route | Environment-aware crawler policy |
 | `/sitemap.xml` | Static metadata route | Public Production homepage only |
 
-The marketing header and homepage display demo calls to action consistently
-across environments. `DEMO_ENABLED` gates anonymous sandbox creation on
-`/demo`; it does not control whether the marketing labels are visible.
+The public header displays its demo link only when `DEMO_ENABLED` is enabled.
+Homepage demo calls to action remain visible across environments, while
+`DEMO_ENABLED` gates anonymous sandbox creation on `/demo`.
 
 ### Authenticated Application
 

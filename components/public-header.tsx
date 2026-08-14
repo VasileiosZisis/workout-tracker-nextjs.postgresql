@@ -4,11 +4,9 @@ import wtLogo from "@/public/brand/wt-logo.png";
 
 export function PublicHeader({
   demoEnabled,
-  showLogo = false,
   signedIn,
 }: Readonly<{
   demoEnabled: boolean;
-  showLogo?: boolean;
   signedIn: boolean;
 }>) {
   return (
@@ -18,17 +16,13 @@ export function PublicHeader({
       </a>
       <header className="site-header">
         <Link className="brand" href="/">
-          {showLogo ? (
-            <Image
-              className="brand-logo"
-              src={wtLogo}
-              alt="Workout Trackr"
-              priority
-              sizes="(max-width: 420px) 160px, 205px"
-            />
-          ) : (
-            "Workout Trackr"
-          )}
+          <Image
+            className="brand-logo"
+            src={wtLogo}
+            alt="Workout Trackr"
+            priority
+            sizes="(max-width: 420px) 160px, 205px"
+          />
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
           <Link href="/metrics">Metrics</Link>
