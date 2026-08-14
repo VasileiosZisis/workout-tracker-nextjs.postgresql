@@ -29,6 +29,13 @@ The sender domain must remain verified in Postmark. Do not add these variables
 to Vercel Preview because application policy disables Preview authentication.
 After changing a Production variable, redeploy before testing a magic link.
 
+Each Postmark attempt writes a structured `auth.postmark.send` Runtime Log
+event. It records the outcome, HTTP status, Postmark error code and message ID,
+duration, token mode, and a 12-character SHA-256 token fingerprint. It never
+records the token, recipient, sender, or magic-link URL. `tokenMode: "test"`
+means Production is using Postmark's non-delivering `POSTMARK_API_TEST` token.
+Use the fingerprint only to compare deployments; it is not a credential.
+
 ## Deployment Configuration
 
 The Vercel project uses Node.js 24 and the repository `vercel.json`. Vercel runs:

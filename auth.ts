@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { deleteDemoUser } from "@/features/demo/lifecycle";
 import { authAdapter } from "@/lib/auth-adapter";
 import { checkEmailSignInRateLimit } from "@/lib/auth-email-rate-limit";
+import { sendPostmarkVerificationRequest } from "@/lib/auth-postmark";
 import { authSessionCookie } from "@/lib/auth-session";
 import { env } from "@/lib/env";
 
@@ -23,6 +24,15 @@ const providers = [
           apiKey: env.POSTMARK_SERVER_TOKEN!,
           from: env.AUTH_EMAIL_FROM!,
           maxAge: 24 * 60 * 60,
+          sendVerificationRequest({ identifier, provider, theme, url }) {
+            return sendPostmarkVerificationRequest({
+              apiKey: provider.apiKey!,
+              from: provider.from!,
+              to: identifier,
+              url,
+              theme,
+            });
+          },
         }),
       ]
     : []),
