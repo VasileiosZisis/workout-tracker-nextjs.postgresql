@@ -4,14 +4,30 @@
 
 | Environment | Runtime database | Migration database | Authentication |
 | --- | --- | --- | --- |
-| Local | Pooled Neon `development` URL in `DATABASE_URL` | Unpooled `development` URL in `DIRECT_URL` | Development Google client |
-| Preview | Neon integration `DATABASE_URL` for a disposable branch | Integration `DATABASE_URL_UNPOOLED` | Google OAuth disabled |
-| Production | Neon integration `DATABASE_URL` for the primary `production` branch | Integration `DATABASE_URL_UNPOOLED` | Production Google client |
+| Local | Pooled Neon `development` URL in `DATABASE_URL` | Unpooled `development` URL in `DIRECT_URL` | Development Google client and Postmark server token |
+| Preview | Neon integration `DATABASE_URL` for a disposable branch | Integration `DATABASE_URL_UNPOOLED` | Google and email sign-in disabled |
+| Production | Neon integration `DATABASE_URL` for the primary `production` branch | Integration `DATABASE_URL_UNPOOLED` | Production Google client and Postmark server token |
 
 Local, Preview, and Production use separate `AUTH_SECRET` values. Production
-connection strings and OAuth secrets are stored only in Vercel Production.
+connection strings and authentication secrets are stored only in Vercel
+Production. `POSTMARK_SERVER_TOKEN` and `AUTH_EMAIL_FROM` are required in
+Production and intentionally omitted from Preview.
 The temporary demo is independently controlled with `DEMO_ENABLED`. Enabling it
 also requires a unique `CRON_SECRET` in the same environment.
+
+## Postmark Email Authentication
+
+Use a Postmark Server API Token, not an Account API Token. Set these variables
+locally and in the Vercel Production environment:
+
+```text
+POSTMARK_SERVER_TOKEN=<server-api-token>
+AUTH_EMAIL_FROM=Workout Trackr <admin@workouttrackr.com>
+```
+
+The sender domain must remain verified in Postmark. Do not add these variables
+to Vercel Preview because application policy disables Preview authentication.
+After changing a Production variable, redeploy before testing a magic link.
 
 ## Deployment Configuration
 
@@ -79,7 +95,7 @@ Preview authentication is intentionally disabled. Verify:
 - The build used a disposable Neon branch.
 - All committed migrations were applied to that branch.
 - `/` and `/login` render successfully.
-- `/login` explains that authentication is unavailable.
+- `/login` explains that Google and email authentication are unavailable.
 - `/logs` and `/profile` redirect safely to login.
 - Security headers are present.
 - The browser console and Vercel Runtime Logs contain no severe errors.
@@ -94,14 +110,17 @@ After each Production deployment:
 
 1. Confirm the Vercel build applied migrations before the Next.js build.
 2. Sign in with Google and confirm the database session is accepted.
-3. Open logs, profile, and at least one representative exercise.
-4. For a domain-changing release, exercise the affected create/edit/delete flow.
-5. Confirm latest evidence, charts, filters, and pagination still agree.
-6. Sign out and confirm protected routes reject the anonymous request.
-7. Open `/demo`, create a sandbox, exercise one mutation, and exit the demo.
-8. Confirm the demo user and its related data were cascade-deleted.
-9. Inspect the browser console and Vercel Runtime Logs.
-10. Confirm created records appear only on the Neon `production` branch.
+3. Request a Postmark sign-in link, confirm `/verify-request`, follow the link,
+   and confirm the database session is accepted.
+4. Confirm a link cannot be reused and that repeated requests are throttled.
+5. Open logs, profile, and at least one representative exercise.
+6. For a domain-changing release, exercise the affected create/edit/delete flow.
+7. Confirm latest evidence, charts, filters, and pagination still agree.
+8. Sign out and confirm protected routes reject the anonymous request.
+9. Open `/demo`, create a sandbox, exercise one mutation, and exit the demo.
+10. Confirm the demo user and its related data were cascade-deleted.
+11. Inspect the browser console and Vercel Runtime Logs.
+12. Confirm created records appear only on the Neon `production` branch.
 
 ## Database Safety
 
@@ -145,8 +164,8 @@ or Vercel connection.
 
 ### Credential Exposure
 
-Rotate the affected Neon role password, Auth.js secret, or Google client secret.
-Replace the corresponding narrowly scoped Vercel variable and redeploy. A rotated
-`AUTH_SECRET` invalidates existing sessions.
+Rotate the affected Neon role password, Auth.js secret, Google client secret, or
+Postmark Server API Token. Replace the corresponding narrowly scoped Vercel
+variable and redeploy. A rotated `AUTH_SECRET` invalidates existing sessions.
 
 Never delete or reset the primary Production branch as a recovery shortcut.

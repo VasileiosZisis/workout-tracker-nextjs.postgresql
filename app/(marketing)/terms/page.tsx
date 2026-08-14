@@ -34,7 +34,7 @@ export default function TermsPage() {
         <p className="eyebrow">Using the service</p>
         <h1>Terms of Service</h1>
         <p className="legal-updated">
-          Last updated: <time dateTime="2026-08-09">August 9, 2026</time>
+          Last updated: <time dateTime="2026-08-14">August 14, 2026</time>
         </p>
         <p className="legal-intro">
           These Terms are an agreement between you and Vasilis Zisis, the
@@ -57,13 +57,15 @@ export default function TermsPage() {
           <h2 id="terms-eligibility">Eligibility and accounts</h2>
           <p>
             You must be at least 16 years old and legally able to enter into
-            these Terms. Workout Trackr uses Google sign-in, so you must also
-            comply with the terms that apply to your Google Account.
+            these Terms. You may access Workout Trackr through Google sign-in or
+            a passwordless link sent to your email address. If you use Google,
+            you must also comply with the terms that apply to your Google
+            Account.
           </p>
           <p>
             You are responsible for activity under your account and for keeping
-            access to your Google Account and devices secure. Tell us promptly
-            at{" "}
+            access to your Google Account, email inbox, and devices secure. Tell
+            us promptly at{" "}
             <a href="mailto:admin@workouttrackr.com">
               admin@workouttrackr.com
             </a>{" "}
@@ -152,12 +154,12 @@ export default function TermsPage() {
         <section className="legal-section" aria-labelledby="terms-providers">
           <h2 id="terms-providers">Third-party services</h2>
           <p>
-            Workout Trackr depends on services such as Google sign-in, Vercel
-            hosting, and Neon/Databricks database infrastructure. Your direct use
-            of a third-party service may also be governed by that provider&apos;s
-            terms. We are not responsible for changes to or outages of services
-            outside our reasonable control, but this does not limit rights that
-            cannot lawfully be limited.
+            Workout Trackr depends on services such as Google sign-in, Postmark
+            email delivery, Vercel hosting, and Neon/Databricks database
+            infrastructure. Your direct use of a third-party service may also be
+            governed by that provider&apos;s terms. We are not responsible for
+            changes to or outages of services outside our reasonable control,
+            but this does not limit rights that cannot lawfully be limited.
           </p>
         </section>
 

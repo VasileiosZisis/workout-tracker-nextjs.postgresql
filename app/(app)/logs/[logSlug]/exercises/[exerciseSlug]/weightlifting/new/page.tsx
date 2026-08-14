@@ -46,7 +46,7 @@ export default async function NewWeightliftingSessionPage({
     <main className="page">
       <BackLink href={exercisePath}>New session</BackLink>
       <section className="page-header compact-header">
-        <h1>Create weightlifting session</h1>
+        <h1>{exercise.title}</h1>
       </section>
       {previousSession ? (
         <section className="section-block">

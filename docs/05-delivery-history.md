@@ -46,5 +46,6 @@ npm run check
 npm run prisma:validate
 ```
 
-Deployment verification remains environment-specific because Preview OAuth is
-disabled and production database operations require explicit branch checks.
+Deployment verification remains environment-specific because Preview
+authentication is disabled and production database operations require explicit
+branch checks.

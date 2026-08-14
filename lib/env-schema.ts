@@ -12,6 +12,23 @@ const optionalSecret = z.preprocess(
   (value) => (value === "" ? undefined : value),
   z.string().min(32).optional(),
 );
+const emailAddressPattern = /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/;
+const optionalEmailSender = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z
+    .string()
+    .trim()
+    .refine(
+      (value) => {
+        const displayNameMatch = value.match(/^.+\s<([^<>]+)>$/);
+        const address = displayNameMatch?.[1] ?? value;
+
+        return emailAddressPattern.test(address);
+      },
+      "AUTH_EMAIL_FROM must be an email address or a display name followed by an email address in angle brackets.",
+    )
+    .optional(),
+);
 
 const rawEnvSchema = z
   .object({
@@ -24,6 +41,8 @@ const rawEnvSchema = z
     AUTH_SECRET: z.string().min(32),
     AUTH_GOOGLE_ID: optionalText,
     AUTH_GOOGLE_SECRET: optionalText,
+    POSTMARK_SERVER_TOKEN: optionalText,
+    AUTH_EMAIL_FROM: optionalEmailSender,
     DATABASE_URL: z.string().min(1),
     DEMO_ENABLED: z.enum(["true", "false"]).default("false"),
     CRON_SECRET: optionalSecret,
@@ -31,12 +50,23 @@ const rawEnvSchema = z
   .superRefine((value, context) => {
     const hasGoogleId = Boolean(value.AUTH_GOOGLE_ID);
     const hasGoogleSecret = Boolean(value.AUTH_GOOGLE_SECRET);
+    const hasPostmarkToken = Boolean(value.POSTMARK_SERVER_TOKEN);
+    const hasEmailFrom = Boolean(value.AUTH_EMAIL_FROM);
 
     if (hasGoogleId !== hasGoogleSecret) {
       context.addIssue({
         code: "custom",
         message: "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set together.",
         path: [hasGoogleId ? "AUTH_GOOGLE_SECRET" : "AUTH_GOOGLE_ID"],
+      });
+    }
+
+    if (hasPostmarkToken !== hasEmailFrom) {
+      context.addIssue({
+        code: "custom",
+        message:
+          "POSTMARK_SERVER_TOKEN and AUTH_EMAIL_FROM must be set together.",
+        path: [hasPostmarkToken ? "AUTH_EMAIL_FROM" : "POSTMARK_SERVER_TOKEN"],
       });
     }
 
@@ -56,15 +86,25 @@ const rawEnvSchema = z
           path: ["AUTH_GOOGLE_ID"],
         });
       }
+
+      if (!hasPostmarkToken || !hasEmailFrom) {
+        context.addIssue({
+          code: "custom",
+          message:
+            "Postmark email credentials are required for Vercel Production.",
+          path: ["POSTMARK_SERVER_TOKEN"],
+        });
+      }
     }
 
-    const isLocalGoogleOAuth =
-      !value.VERCEL_ENV && hasGoogleId && hasGoogleSecret;
+    const isLocalAuthentication =
+      !value.VERCEL_ENV &&
+      ((hasGoogleId && hasGoogleSecret) || (hasPostmarkToken && hasEmailFrom));
 
-    if (isLocalGoogleOAuth && !value.NEXT_PUBLIC_APP_URL) {
+    if (isLocalAuthentication && !value.NEXT_PUBLIC_APP_URL) {
       context.addIssue({
         code: "custom",
-        message: "NEXT_PUBLIC_APP_URL is required for local Google OAuth.",
+        message: "NEXT_PUBLIC_APP_URL is required for local authentication.",
         path: ["NEXT_PUBLIC_APP_URL"],
       });
     }
@@ -95,6 +135,9 @@ export function parseEnvironment(source: NodeJS.ProcessEnv) {
     GOOGLE_AUTH_ENABLED:
       !isPreview &&
       Boolean(parsed.AUTH_GOOGLE_ID && parsed.AUTH_GOOGLE_SECRET),
+    EMAIL_AUTH_ENABLED:
+      !isPreview &&
+      Boolean(parsed.POSTMARK_SERVER_TOKEN && parsed.AUTH_EMAIL_FROM),
     DEMO_ENABLED: parsed.DEMO_ENABLED === "true",
     IS_PREVIEW: isPreview,
     IS_PRODUCTION: parsed.VERCEL_ENV === "production",

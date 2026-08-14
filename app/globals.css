@@ -910,6 +910,10 @@ h2 {
   padding: 8px 10px;
 }
 
+.field input[type="date"] {
+  color-scheme: dark;
+}
+
 .field input:hover,
 .set-row input:hover {
   border-color: var(--border-strong);
@@ -3245,6 +3249,16 @@ fieldset.field {
   margin-top: 34px;
 }
 
+.login-options {
+  display: grid;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.login-options .login-form {
+  margin-top: 0;
+}
+
 .login-google-button {
   width: 100%;
   min-height: 52px;
@@ -3262,6 +3276,67 @@ fieldset.field {
 
 .login-google-button svg {
   flex: 0 0 auto;
+}
+
+.login-separator {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-separator span {
+  height: 1px;
+  background: var(--border);
+}
+
+.login-email-form {
+  display: grid;
+  gap: 10px;
+}
+
+.login-email-label {
+  color: var(--muted-strong);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.login-email-input {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: rgba(10, 15, 25, 0.72);
+  padding: 0 15px;
+  color: var(--foreground);
+  font: inherit;
+  transition:
+    border-color 160ms var(--ease-standard),
+    box-shadow 160ms var(--ease-standard);
+}
+
+.login-email-input::placeholder {
+  color: var(--muted);
+}
+
+.login-email-input:hover {
+  border-color: var(--muted-strong);
+}
+
+.login-email-input:focus-visible {
+  border-color: var(--accent-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.14);
+}
+
+.login-email-button {
+  width: 100%;
+  min-height: 50px;
 }
 
 .login-demo-button {
@@ -3316,6 +3391,66 @@ fieldset.field {
 .login-unavailable p {
   color: var(--muted-strong);
   font-size: 0.92rem;
+}
+
+.login-error {
+  display: grid;
+  gap: 6px;
+  margin-top: 24px;
+  border-left: 3px solid var(--danger);
+  background: rgba(248, 113, 113, 0.08);
+  padding: 16px 18px;
+}
+
+.login-error strong {
+  color: var(--foreground);
+}
+
+.login-error p {
+  color: var(--muted-strong);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.auth-message-page {
+  display: grid;
+  min-height: min(720px, calc(100vh - 160px));
+  place-items: center;
+  padding-block: clamp(48px, 8vw, 96px);
+}
+
+.auth-message-card {
+  width: min(100%, 620px);
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 85% 10%, rgba(190, 242, 100, 0.1), transparent 32%),
+    var(--surface);
+  padding: clamp(28px, 6vw, 56px);
+  box-shadow: 0 24px 70px var(--shadow);
+}
+
+.auth-message-card h1 {
+  margin-top: 16px;
+  color: var(--foreground);
+  font-size: clamp(2.25rem, 7vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.auth-message-card > p:not(.eyebrow) {
+  margin-top: 20px;
+  color: var(--muted-strong);
+  line-height: 1.7;
+}
+
+.auth-message-card .auth-message-note {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.auth-message-action {
+  width: 100%;
+  margin-top: 28px;
 }
 
 @keyframes login-copy-in {

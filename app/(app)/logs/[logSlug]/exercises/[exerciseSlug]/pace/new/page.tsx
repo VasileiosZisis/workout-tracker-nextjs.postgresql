@@ -49,7 +49,7 @@ export default async function NewPaceSessionPage({
     <main className="page">
       <BackLink href={exercisePath}>New session</BackLink>
       <section className="page-header compact-header">
-        <h1>Create pace session</h1>
+        <h1>{exercise.title}</h1>
       </section>
       {previousSession ? (
         <section className="section-block">

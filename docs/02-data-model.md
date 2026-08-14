@@ -29,7 +29,8 @@ records before creating or moving nested data.
 | `User` | Authenticated identity, role, profile, and root workout ownership |
 | `Account` | Google OAuth account linked through the Auth.js Prisma Adapter |
 | `Session` | Revocable database-backed Auth.js session |
-| `VerificationToken` | Adapter-compatible token storage for future providers |
+| `VerificationToken` | Single-use Postmark magic-link token storage |
+| `AuthRateLimitBucket` | Short-lived hashed counters for email and IP sign-in limits |
 
 Deleting a user cascades through accounts, sessions, logs, exercises, and
 workout sessions.

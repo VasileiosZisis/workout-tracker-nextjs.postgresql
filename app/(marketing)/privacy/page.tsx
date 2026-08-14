@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <p className="eyebrow">Your data</p>
         <h1>Privacy Policy</h1>
         <p className="legal-updated">
-          Last updated: <time dateTime="2026-08-09">August 9, 2026</time>
+          Last updated: <time dateTime="2026-08-14">August 14, 2026</time>
         </p>
         <p className="legal-intro">
           Workout Trackr is operated by Vasilis Zisis in Cyprus. This policy
@@ -53,9 +53,14 @@ export default function PrivacyPage() {
               profile image when available.
             </li>
             <li>
+              <strong>Email sign-in data:</strong> the email address you submit
+              when requesting a passwordless sign-in link.
+            </li>
+            <li>
               <strong>Authentication data:</strong> session identifiers and the
-              OAuth credentials Google provides to keep your account signed in
-              securely. Workout Trackr does not receive your Google password.
+              OAuth credentials Google provides, or a single-use email
+              verification token, to keep your account signed in securely.
+              Workout Trackr does not receive your Google or email password.
             </li>
             <li>
               <strong>Training data:</strong> log and exercise names, workout
@@ -65,7 +70,9 @@ export default function PrivacyPage() {
             <li>
               <strong>Technical data:</strong> hosting and security logs may
               include your IP address, browser or device information, requested
-              pages, timestamps, and diagnostic information.
+              pages, timestamps, and diagnostic information. Short-lived,
+              one-way hashes derived from an email address and IP address are
+              used to limit repeated sign-in requests.
             </li>
             <li>
               <strong>Correspondence:</strong> information you include when you
@@ -93,8 +100,8 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section className="legal-section" aria-labelledby="privacy-google">
-          <h2 id="privacy-google">Google sign-in</h2>
+        <section className="legal-section" aria-labelledby="privacy-sign-in">
+          <h2 id="privacy-sign-in">Sign-in providers</h2>
           <p>
             Workout Trackr uses Google OAuth to create and secure your account.
             Google account data received through sign-in is used only for
@@ -107,6 +114,13 @@ export default function PrivacyPage() {
             <a href="https://policies.google.com/privacy">Privacy Policy</a>
             . You can also review or revoke Workout Trackr&apos;s access through
             your Google Account settings.
+          </p>
+          <p>
+            You may instead request a passwordless sign-in link. Postmark
+            delivers the link to the email address you provide. The link is
+            single-use and expires after 24 hours. If that email already belongs
+            to a Workout Trackr account, the verified link signs you into the
+            existing account.
           </p>
         </section>
 
@@ -137,6 +151,14 @@ export default function PrivacyPage() {
             <li>
               <strong>Google</strong> for sign-in and account authentication:{" "}
               <a href="https://policies.google.com/privacy">privacy policy</a>.
+            </li>
+            <li>
+              <strong>Postmark/ActiveCampaign</strong> for transactional
+              delivery of passwordless sign-in links:{" "}
+              <a href="https://www.activecampaign.com/legal/privacy-policy">
+                privacy policy
+              </a>
+              .
             </li>
             <li>
               <strong>Vercel</strong> for application hosting, delivery, and
@@ -180,6 +202,11 @@ export default function PrivacyPage() {
             <li>
               Authentication sessions are retained until they expire, are
               replaced, or you sign out.
+            </li>
+            <li>
+              Email verification tokens expire after 24 hours. Hashed
+              sign-in-rate-limit buckets expire after 15 minutes and are pruned
+              during subsequent sign-in requests.
             </li>
             <li>
               Technical logs and backup copies may remain for a limited period

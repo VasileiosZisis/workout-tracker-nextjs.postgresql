@@ -8,7 +8,8 @@
 | --- | --- | --- |
 | `/` | Static | Product overview and entry point |
 | `/demo` | Dynamic | Anonymous sandbox entry; creation requires `DEMO_ENABLED` |
-| `/login` | Dynamic | Google sign-in or environment-specific availability notice |
+| `/login` | Dynamic | Google and email sign-in or an environment-specific availability notice |
+| `/verify-request` | Dynamic | Confirmation after a magic-link email is requested |
 | `/api/auth/[...nextauth]` | Route Handler | Auth.js provider, callback, session, and sign-out endpoints |
 | `/robots.txt` | Static metadata route | Environment-aware crawler policy |
 | `/sitemap.xml` | Static metadata route | Public Production homepage only |
@@ -63,7 +64,7 @@ deletePaceSessionAction
 ```
 
 Profile updates use the same authenticated Server Action pattern. Auth.js owns
-OAuth and sign-out mutations.
+Google, magic-link, and sign-out mutations.
 
 Actions return field-level validation errors for recoverable form input. Missing
 or unowned records use not-found behavior rather than revealing whether another

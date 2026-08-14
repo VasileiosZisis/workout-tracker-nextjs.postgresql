@@ -75,6 +75,15 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model AuthRateLimitBucket {
+  id        String   @id
+  kind      String
+  count     Int      @default(1)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 model Log {
   id                    String                 @id @default(cuid())
   userId                String

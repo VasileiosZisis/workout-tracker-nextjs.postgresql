@@ -42,7 +42,8 @@ default, and there is no public feed, leaderboard, or community layer in v1.
 
 ## Implemented Scope
 
-- Google OAuth through Auth.js and the Prisma Adapter.
+- Google OAuth and Postmark email magic links through Auth.js and the Prisma
+  Adapter.
 - Database-backed sessions and protected application routes.
 - Profile display and update flow.
 - Log and exercise CRUD with ownership-scoped slugs.

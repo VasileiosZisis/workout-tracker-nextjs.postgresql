@@ -10,14 +10,45 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
+const loginErrorMessages: Record<string, string> = {
+  EmailRateLimited:
+    "Too many sign-in links were requested. Wait 15 minutes and try again.",
+  EmailSignin:
+    "We could not send the sign-in email. Check the address and try again.",
+  OAuthAccountNotLinked:
+    "This email is already associated with another sign-in method. Use your original sign-in option or continue with email.",
+  Verification:
+    "This sign-in link is invalid, expired, or has already been used. Request a new link below.",
+};
+
+function getLoginErrorMessage(error: string | string[] | undefined) {
+  const errorCode = Array.isArray(error) ? error[0] : error;
+
+  if (!errorCode) {
+    return undefined;
+  }
+
+  return (
+    loginErrorMessages[errorCode] ??
+    "We could not sign you in. Try again or use another sign-in option."
+  );
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{
+    callbackUrl?: string | string[];
+    error?: string | string[];
+  }>;
 }) {
-  const session = await auth();
-  const { callbackUrl } = await searchParams;
+  const [session, { callbackUrl, error }] = await Promise.all([
+    auth(),
+    searchParams,
+  ]);
   const redirectTo = getSafeRedirectTo(callbackUrl);
+  const errorMessage = getLoginErrorMessage(error);
+  const signInAvailable = env.GOOGLE_AUTH_ENABLED || env.EMAIL_AUTH_ENABLED;
 
   if (session?.user) {
     redirect(redirectTo);
@@ -57,48 +88,107 @@ export default async function LoginPage({
               <h2 id="login-access-title">Sign in</h2>
             </div>
 
-            {env.GOOGLE_AUTH_ENABLED ? (
-              <form
-                className="login-form"
-                action={async () => {
-                  "use server";
-                  await signIn("google", { redirectTo });
-                }}
-              >
-                <button className="button login-google-button" type="submit">
-                  <svg
-                    aria-hidden="true"
-                    viewBox="0 0 24 24"
-                    width="20"
-                    height="20"
+            {errorMessage ? (
+              <div className="login-error" role="alert">
+                <strong>Sign-in unsuccessful</strong>
+                <p>{errorMessage}</p>
+              </div>
+            ) : null}
+
+            {signInAvailable ? (
+              <div className="login-options">
+                {env.GOOGLE_AUTH_ENABLED ? (
+                  <form
+                    className="login-form"
+                    action={async () => {
+                      "use server";
+                      await signIn("google", { redirectTo });
+                    }}
                   >
-                    <path
-                      fill="currentColor"
-                      d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.41Z"
+                    <button
+                      className="button login-google-button"
+                      type="submit"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        width="20"
+                        height="20"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.41Z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M12 22c2.7 0 4.98-.9 6.63-2.43l-3.24-2.54c-.9.6-2.05.97-3.39.97-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22Z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.51H3.04A10 10 0 0 0 2 12c0 1.61.39 3.14 1.04 4.49l3.35-2.62Z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M12 6c1.47 0 2.79.51 3.82 1.5l2.88-2.88A9.65 9.65 0 0 0 12 2a10 10 0 0 0-8.96 5.51l3.35 2.62C7.18 7.76 9.39 6 12 6Z"
+                        />
+                      </svg>
+                      Continue with Google
+                    </button>
+                  </form>
+                ) : null}
+
+                {env.GOOGLE_AUTH_ENABLED && env.EMAIL_AUTH_ENABLED ? (
+                  <div className="login-separator" aria-hidden="true">
+                    <span />
+                    or
+                    <span />
+                  </div>
+                ) : null}
+
+                {env.EMAIL_AUTH_ENABLED ? (
+                  <form
+                    className="login-form login-email-form"
+                    action={async (formData) => {
+                      "use server";
+                      const email = formData.get("email");
+
+                      await signIn("postmark", {
+                        email: typeof email === "string" ? email : "",
+                        redirectTo,
+                      });
+                    }}
+                  >
+                    <label className="login-email-label" htmlFor="login-email">
+                      Email address
+                    </label>
+                    <input
+                      autoComplete="email"
+                      className="login-email-input"
+                      id="login-email"
+                      inputMode="email"
+                      maxLength={320}
+                      name="email"
+                      placeholder="you@example.com"
+                      required
+                      spellCheck={false}
+                      type="email"
                     />
-                    <path
-                      fill="currentColor"
-                      d="M12 22c2.7 0 4.98-.9 6.63-2.43l-3.24-2.54c-.9.6-2.05.97-3.39.97-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22Z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M6.39 13.87A6 6 0 0 1 6.08 12c0-.65.11-1.28.31-1.87V7.51H3.04A10 10 0 0 0 2 12c0 1.61.39 3.14 1.04 4.49l3.35-2.62Z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 6c1.47 0 2.79.51 3.82 1.5l2.88-2.88A9.65 9.65 0 0 0 12 2a10 10 0 0 0-8.96 5.51l3.35 2.62C7.18 7.76 9.39 6 12 6Z"
-                    />
-                  </svg>
-                  Continue with Google
-                </button>
-              </form>
+                    <button
+                      className="button-secondary login-email-button"
+                      type="submit"
+                    >
+                      Continue with email
+                    </button>
+                  </form>
+                ) : null}
+              </div>
             ) : (
               <div className="login-unavailable" role="status">
                 <strong>Sign-in is currently unavailable</strong>
                 <p>
                   {env.IS_PREVIEW
-                    ? "Google sign-in is disabled for preview deployments."
-                    : "Google sign-in is not configured for this environment."}
+                    ? "Sign-in is disabled for preview deployments."
+                    : "No sign-in provider is configured for this environment."}
                 </p>
               </div>
             )}

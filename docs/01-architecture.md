@@ -82,16 +82,18 @@ that requires browser state or event handling, including:
 
 ## Authentication And Authorization
 
-Auth.js uses Google OAuth, the Prisma Adapter, and database sessions. The
-Auth.js models share the same `User` record used by the workout domain.
+Auth.js uses Google OAuth, Postmark email magic links, the Prisma Adapter, and
+database sessions. The Auth.js models share the same `User` record used by the
+workout domain. A verified email link reuses an existing user when its
+normalized email address matches.
 
 `proxy.ts` redirects anonymous access to `/logs` and `/profile` through `/login`
 with a relative callback path. The login page sanitizes callback destinations
 again before redirecting. Authentication controls route access; ownership
 filters inside query and action modules control data access.
 
-Preview deployments disable Google OAuth by policy. Production and local OAuth
-use separate clients and secrets.
+Preview deployments disable both sign-in providers by policy. Production and
+local authentication use environment-scoped credentials.
 
 ## Data And Connection Management
 
@@ -121,6 +123,7 @@ strings.
 - Database-level ownership filters on reads and writes.
 - Auth.js CSRF and secure cookie handling.
 - Relative-only post-authentication redirects.
+- Database-backed email and IP throttling for magic-link requests.
 - Startup environment validation.
 - Static Content Security Policy.
 - HSTS, MIME-sniffing, framing, referrer, permissions, and opener-isolation
@@ -129,8 +132,9 @@ strings.
 - Generic production error messages.
 - Environment-scoped secrets and isolated databases.
 
-Application-level rate limiting and external error tracking are deferred for
-v1. The current OAuth-only CRUD surface relies on Vercel platform protections.
+General application rate limiting and external error tracking are deferred for
+v1. Magic-link requests use a dedicated database-backed throttle; the remaining
+CRUD surface relies on Vercel platform protections.
 
 ## Deployment Architecture
 

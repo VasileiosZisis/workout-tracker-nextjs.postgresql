@@ -46,20 +46,21 @@ and hostname confirmation.
 
 **Status:** Accepted
 
-Auth.js uses the Prisma Adapter, Google OAuth, and database sessions. Database
-sessions support server-side revocation and keep authentication records related
-to the same `User` model as workout data.
+Auth.js uses the Prisma Adapter, Google OAuth, Postmark email magic links, and
+database sessions. Database sessions support server-side revocation and keep
+authentication records related to the same `User` model as workout data.
 
-Google is the only v1 provider. Email/password authentication is deferred
-because it would add password hashing, verification, recovery email, bot
-protection, and additional rate-limiting responsibilities.
+Password authentication remains deferred because it would add password hashing,
+recovery, and more credential-hardening responsibilities. Magic links provide
+passwordless registration and recovery through verified email ownership.
 
-## ADR-005: Preview OAuth Disabled
+## ADR-005: Preview Authentication Disabled
 
 **Status:** Accepted
 
-Generic Vercel Preview URLs do not receive Google credentials, and application
-policy disables Google sign-in whenever `VERCEL_ENV=preview`.
+Generic Vercel Preview URLs do not receive authentication credentials, and
+application policy disables Google and email sign-in whenever
+`VERCEL_ENV=preview`.
 
 This prevents production credentials from spreading across dynamic deployments.
 Authenticated Preview testing would require a long-lived staging branch, a stable
@@ -124,9 +125,10 @@ Vercel performs builds, hosts functions, applies static security headers, and
 provides Runtime Logs. The Neon integration supplies environment-specific
 database branches and connection variables.
 
-External error tracking, application-level rate limiting, GitHub Actions, and
-automated browser tests are deferred for v1. Their absence is an explicit scope
-decision rather than an assumption that they are never needed.
+External error tracking, general application-level rate limiting, GitHub
+Actions, and automated browser tests are deferred for v1. Magic-link requests
+are the exception and use database-backed email and IP throttling to protect
+users and transactional-email quota.
 
 ## ADR-012: Mobile-First Performance Lab UI
 
