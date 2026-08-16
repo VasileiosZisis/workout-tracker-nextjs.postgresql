@@ -16,7 +16,7 @@ deployment workflow.
 ## Live Demo
 
 [Try the temporary Workout Trackr demo](https://www.workouttrackr.com/demo)
-without connecting a Google account. Each visitor receives an isolated,
+without using a personal sign-in method. Each visitor receives an isolated,
 writable workspace with sample strength and running history. Demo data is
 permanently deleted after two hours or when the visitor exits the demo.
 
@@ -28,7 +28,7 @@ permanently deleted after two hours or when the visitor exits the demo.
 - Zod validation at server boundaries.
 - Server-calculated metrics instead of trusting derived client input.
 - Relational constraints and cascading deletes for domain integrity.
-- Database-backed Auth.js sessions with Google OAuth.
+- Database-backed Auth.js sessions with Google OAuth and Postmark magic links.
 - Isolated, two-hour demo sandboxes with seeded training history.
 - Isolated Neon branches for local development, Preview deployments, and
   Production.
@@ -62,6 +62,7 @@ flowchart LR
   Actions --> Validation["Zod Validation"]
   Actions --> Domain["Domain Metric Logic"]
   Auth --> Prisma["Prisma Client"]
+  Auth --> Postmark["Postmark Transactional Email"]
   Queries --> Prisma
   Domain --> Prisma
   Prisma --> Neon["Neon PostgreSQL"]
@@ -92,7 +93,7 @@ application-internal JSON API.
 | Application | Next.js 16 App Router, React 19, TypeScript |
 | Database | PostgreSQL hosted on Neon |
 | ORM and migrations | Prisma 7 and Prisma Migrate |
-| Authentication | Auth.js 5, Prisma Adapter, Google OAuth, database sessions |
+| Authentication | Auth.js 5, Prisma Adapter, Google OAuth, Postmark magic links, database sessions |
 | Validation | Zod 4 |
 | Charts | Recharts 3 |
 | Testing | Vitest, Prisma-backed integration tests |
@@ -113,9 +114,11 @@ User
 ```
 
 Auth.js `Account` and `Session` records belong to the same `User` model as the
-training data. Logs use user-scoped slugs, exercises use log-scoped slugs, and
-sessions use stable database identifiers. This avoids cross-user slug conflicts
-and same-date session collisions.
+training data. `VerificationToken` stores single-use email sign-in tokens, while
+`AuthRateLimitBucket` stores short-lived HMAC-derived counters without raw email
+or IP identifiers. Logs use user-scoped slugs, exercises use log-scoped slugs,
+and sessions use stable database identifiers. This avoids cross-user slug
+conflicts and same-date session collisions.
 
 Derived metrics are computed on the server. Session aggregates are persisted as
 PostgreSQL decimal values, while average working load is calculated from the
@@ -136,13 +139,17 @@ stored hard sets:
 - Nested mutations verify ownership of their parent log and exercise.
 - Auth.js stores sessions in PostgreSQL and uses secure HTTP-only cookies.
 - Callback destinations are restricted to relative application paths.
-- Preview deployments disable Google sign-in by default.
+- Preview deployments disable all configured sign-in providers.
+- Email sign-in requests use fixed 15-minute database buckets limited to five
+  requests per normalized email and 25 per available client IP.
+- Rate-limit identifiers are HMAC-SHA-256 hashes; raw email and IP values are
+  not stored in rate-limit records.
 - Server errors are logged without form values, credentials, tokens, or database
   connection strings.
 - Production responses include CSP, HSTS, framing, MIME-sniffing, referrer,
   permissions, and opener-isolation headers.
 - Environment configuration is validated at startup, including minimum secret
-  length and Production-only OAuth requirements.
+  length and Production authentication-provider requirements.
 
 ## Development Setup
 
@@ -152,6 +159,8 @@ stored hard sets:
 - npm
 - A Neon PostgreSQL project with a development branch
 - A Google OAuth web client for local authentication
+- A Postmark server with an active account, verified sender domain, and Server
+  API Token when testing email authentication locally
 
 ### Installation
 
@@ -164,7 +173,9 @@ cp .env.example .env
 
 Configure `.env` with a pooled Neon development connection in `DATABASE_URL`,
 the corresponding unpooled connection in `DIRECT_URL`, a local `AUTH_SECRET`,
-and local Google OAuth credentials.
+and local Google OAuth credentials. To test email sign-in locally, also add
+Postmark email credentials. Use a real Postmark Server API Token, not an Account
+API Token, SMTP token, or `POSTMARK_API_TEST`.
 
 Create or apply the development migrations, then start the application:
 
@@ -184,10 +195,12 @@ Callback: http://localhost:3000/api/auth/callback/google
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_APP_URL` | Stable application origin for local OAuth and Production metadata |
+| `NEXT_PUBLIC_APP_URL` | Stable application origin for local authentication callbacks and Production metadata |
 | `AUTH_SECRET` | Environment-specific Auth.js secret of at least 32 characters |
 | `AUTH_GOOGLE_ID` | Google OAuth client identifier |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `POSTMARK_SERVER_TOKEN` | Postmark Server API Token used to send passwordless sign-in links |
+| `AUTH_EMAIL_FROM` | Verified sender and display name for magic-link emails, such as `Admin <admin@workouttrackr.com>` |
 | `DEMO_ENABLED` | Enables anonymous temporary demo creation and the public-header demo link when set to `true`; homepage demo calls to action remain visible in every environment |
 | `CRON_SECRET` | Secret used to authenticate scheduled demo cleanup |
 | `DATABASE_URL` | Pooled PostgreSQL connection used by the application |
@@ -209,7 +222,8 @@ npm run prisma:validate
 `npm run check` runs ESLint, TypeScript, the Vitest suite, Prisma Client
 generation, and an optimized Next.js production build. Tests cover pure metric
 logic, validation schemas, slug and pagination helpers, environment policy,
-safe redirects, ownership-scoped database queries, and Server Action behavior.
+safe redirects, email rate limiting, Postmark diagnostics, ownership-scoped
+database queries, and Server Action behavior.
 
 Useful individual commands:
 
@@ -228,9 +242,9 @@ The repository uses a three-environment database model:
 
 | Environment | Database | Authentication |
 | --- | --- | --- |
-| Local | Long-lived Neon `development` branch | Local Google OAuth client |
-| Preview | Disposable Neon branch created per deployment | Google OAuth disabled by default |
-| Production | Primary Neon `production` branch | Production Google OAuth client |
+| Local | Long-lived Neon `development` branch | Local Google OAuth client and optional Postmark Server API Token |
+| Preview | Disposable Neon branch created per deployment | All sign-in providers disabled |
+| Production | Primary Neon `production` branch | Production Google OAuth client and active Postmark Server API Token |
 
 Temporary demo availability is controlled independently in each environment
 with `DEMO_ENABLED`. The public-header demo link follows this setting, while
@@ -248,13 +262,14 @@ reverse a migration that has already been applied.
 
 ## Current Constraints
 
-- Google OAuth is the only persistent-account sign-in method; anonymous demo
-  workspaces expire after two hours.
+- Persistent accounts support Google OAuth and passwordless Postmark magic
+  links; passwords and passkeys are not implemented. Anonymous demo workspaces
+  expire after two hours.
 - Weight and distance are stored and displayed in kilograms and kilometers.
-- Preview authentication requires a future stable staging branch and dedicated
-  OAuth client.
-- Application-level rate limiting, external error tracking, and automated
-  browser tests are not part of the current v1 scope.
+- Preview authentication remains intentionally disabled; enabling it requires
+  dedicated provider credentials and controlled email delivery.
+- External error tracking and automated browser tests are not part of the
+  current v1 scope.
 - The rewrite intentionally starts with an empty PostgreSQL database; legacy
   MongoDB data migration is out of scope.
 

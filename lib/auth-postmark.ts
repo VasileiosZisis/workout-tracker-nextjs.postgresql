@@ -42,9 +42,9 @@ function emailHtml({
   host: string;
   theme: PostmarkTheme;
 }) {
-  const escapedHost = host.replace(/\./g, "&#8203;.");
   const brandColor = theme.brandColor || "#346df1";
   const buttonText = theme.buttonText || "#fff";
+  const logoUrl = `https://${host}/brand/wt-logo.png`;
 
   return `
 <body style="background: #f9f9f9;">
@@ -52,8 +52,21 @@ function emailHtml({
     style="background: #fff; max-width: 600px; margin: auto; border-radius: 10px;">
     <tr>
       <td align="center"
-        style="padding: 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: #444;">
-        Sign in to <strong>${escapedHost}</strong>
+        style="padding: 10px 0px 8px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: #444;">
+        Sign in to
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 0px 20px 10px;">
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center">
+          <tr>
+            <td align="center" bgcolor="#111827"
+              style="padding: 12px 16px; border-radius: 8px;">
+              <img src="${logoUrl}" alt="Workout Trackr" width="280"
+                style="display: block; width: 100%; max-width: 280px; height: auto; margin: 0 auto; border: 0;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
     <tr>

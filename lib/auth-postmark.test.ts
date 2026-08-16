@@ -19,20 +19,36 @@ function createLogger() {
 describe("Postmark verification request diagnostics", () => {
   it("logs the accepted response ID and a safe token fingerprint", async () => {
     const logger = createLogger();
-    const fetchImpl = vi.fn(async () =>
-      Response.json({
-        ErrorCode: 0,
-        Message: "OK",
-        MessageID: "message-id-123",
-        To: params.to,
-      }),
-    ) as unknown as typeof fetch;
+    const fetchMock = vi.fn(
+      async (
+        _input: Parameters<typeof fetch>[0],
+        _init?: Parameters<typeof fetch>[1],
+      ) =>
+        Response.json({
+          ErrorCode: 0,
+          Message: "OK",
+          MessageID: "message-id-123",
+          To: params.to,
+        }),
+    );
 
     await sendPostmarkVerificationRequest(params, {
-      fetchImpl,
+      fetchImpl: fetchMock as unknown as typeof fetch,
       logger,
       now: () => 100,
     });
+
+    const requestBody = JSON.parse(
+      String(fetchMock.mock.calls[0]![1]?.body),
+    );
+    expect(requestBody.HtmlBody).toContain("Sign in to");
+    expect(requestBody.HtmlBody).toContain(
+      'src="https://www.workouttrackr.com/brand/wt-logo.png"',
+    );
+    expect(requestBody.HtmlBody).toContain('alt="Workout Trackr"');
+    expect(requestBody.HtmlBody).not.toContain(
+      "Sign in to <strong>www&#8203;.workouttrackr&#8203;.com</strong>",
+    );
 
     expect(logger.error).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledOnce();
