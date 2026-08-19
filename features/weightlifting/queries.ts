@@ -1,6 +1,7 @@
 import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import { normalizePagination } from "@/features/logs/pagination";
+import { cache } from "react";
 
 export async function getWeightliftingSessionsPage({
   userId,
@@ -53,6 +54,30 @@ export async function getWeightliftingSessionsPage({
   };
 }
 
+const findWeightliftingSessionById = cache(
+  async (userId: string, sessionId: string) => {
+    return prisma.weightliftingSession.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+        exercise: {
+          sessionKind: SessionKind.WEIGHTLIFTING,
+        },
+      },
+      include: {
+        exercise: {
+          include: {
+            log: true,
+          },
+        },
+        sets: {
+          orderBy: { position: "asc" },
+        },
+      },
+    });
+  },
+);
+
 export async function getWeightliftingSessionById({
   userId,
   sessionId,
@@ -60,25 +85,7 @@ export async function getWeightliftingSessionById({
   userId: string;
   sessionId: string;
 }) {
-  return prisma.weightliftingSession.findFirst({
-    where: {
-      id: sessionId,
-      userId,
-      exercise: {
-        sessionKind: SessionKind.WEIGHTLIFTING,
-      },
-    },
-    include: {
-      exercise: {
-        include: {
-          log: true,
-        },
-      },
-      sets: {
-        orderBy: { position: "asc" },
-      },
-    },
-  });
+  return findWeightliftingSessionById(userId, sessionId);
 }
 
 export async function getLatestWeightliftingSession({

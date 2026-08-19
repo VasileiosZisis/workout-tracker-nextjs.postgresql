@@ -67,26 +67,27 @@ export async function updateLogAction(
     };
   }
 
-  const existingLog = await prisma.log.findFirst({
-    where: {
-      id: logId,
-      userId: user.id,
-    },
-  });
+  const nextSlug = slugifyTitle(parsed.data.title);
+  const [existingLog, conflictingLog] = await Promise.all([
+    prisma.log.findFirst({
+      where: {
+        id: logId,
+        userId: user.id,
+      },
+    }),
+    prisma.log.findUnique({
+      where: {
+        userId_slug: {
+          userId: user.id,
+          slug: nextSlug,
+        },
+      },
+    }),
+  ]);
 
   if (!existingLog) {
     notFound();
   }
-
-  const nextSlug = slugifyTitle(parsed.data.title);
-  const conflictingLog = await prisma.log.findUnique({
-    where: {
-      userId_slug: {
-        userId: user.id,
-        slug: nextSlug,
-      },
-    },
-  });
 
   const slug =
     conflictingLog && conflictingLog.id !== existingLog.id

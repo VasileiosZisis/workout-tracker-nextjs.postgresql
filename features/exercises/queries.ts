@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { normalizePagination } from "@/features/logs/pagination";
+import { cache } from "react";
 
 export async function getExercisesPage({
   userId,
@@ -36,6 +37,24 @@ export async function getExercisesPage({
   };
 }
 
+const findExerciseBySlug = cache(
+  async (userId: string, logSlug: string, exerciseSlug: string) => {
+    return prisma.exercise.findFirst({
+      where: {
+        userId,
+        slug: exerciseSlug,
+        log: {
+          userId,
+          slug: logSlug,
+        },
+      },
+      include: {
+        log: true,
+      },
+    });
+  },
+);
+
 export async function getExerciseBySlug({
   userId,
   logSlug,
@@ -45,19 +64,7 @@ export async function getExerciseBySlug({
   logSlug: string;
   exerciseSlug: string;
 }) {
-  return prisma.exercise.findFirst({
-    where: {
-      userId,
-      slug: exerciseSlug,
-      log: {
-        userId,
-        slug: logSlug,
-      },
-    },
-    include: {
-      log: true,
-    },
-  });
+  return findExerciseBySlug(userId, logSlug, exerciseSlug);
 }
 
 export async function getExistingExerciseSlugs({

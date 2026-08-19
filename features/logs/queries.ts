@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { normalizePagination } from "@/features/logs/pagination";
+import { cache } from "react";
 
 export async function getLogsPage({
   userId,
@@ -32,13 +33,7 @@ export async function getLogsPage({
   };
 }
 
-export async function getLogBySlug({
-  userId,
-  slug,
-}: {
-  userId: string;
-  slug: string;
-}) {
+const findLogBySlug = cache(async (userId: string, slug: string) => {
   return prisma.log.findUnique({
     where: {
       userId_slug: {
@@ -47,6 +42,16 @@ export async function getLogBySlug({
       },
     },
   });
+});
+
+export async function getLogBySlug({
+  userId,
+  slug,
+}: {
+  userId: string;
+  slug: string;
+}) {
+  return findLogBySlug(userId, slug);
 }
 
 export async function getExistingLogSlugs(userId: string) {

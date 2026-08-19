@@ -1,6 +1,7 @@
 import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import { normalizePagination } from "@/features/logs/pagination";
+import { cache } from "react";
 
 export async function getPaceSessionsPage({
   userId,
@@ -40,6 +41,27 @@ export async function getPaceSessionsPage({
   };
 }
 
+const findPaceSessionById = cache(
+  async (userId: string, sessionId: string) => {
+    return prisma.paceSession.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+        exercise: {
+          sessionKind: SessionKind.PACE,
+        },
+      },
+      include: {
+        exercise: {
+          include: {
+            log: true,
+          },
+        },
+      },
+    });
+  },
+);
+
 export async function getPaceSessionById({
   userId,
   sessionId,
@@ -47,22 +69,7 @@ export async function getPaceSessionById({
   userId: string;
   sessionId: string;
 }) {
-  return prisma.paceSession.findFirst({
-    where: {
-      id: sessionId,
-      userId,
-      exercise: {
-        sessionKind: SessionKind.PACE,
-      },
-    },
-    include: {
-      exercise: {
-        include: {
-          log: true,
-        },
-      },
-    },
-  });
+  return findPaceSessionById(userId, sessionId);
 }
 
 export async function getLatestPaceSession({

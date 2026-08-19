@@ -33,25 +33,27 @@ export async function createExerciseAction(
     };
   }
 
-  const log = await prisma.log.findFirst({
-    where: {
-      id: logId,
-      userId: user.id,
-    },
-  });
+  const baseSlug = slugifyExerciseTitle(parsed.data.title);
+  const [log, existingSlugs] = await Promise.all([
+    prisma.log.findFirst({
+      where: {
+        id: logId,
+        userId: user.id,
+      },
+    }),
+    prisma.exercise.findMany({
+      where: {
+        userId: user.id,
+        logId,
+      },
+      select: { slug: true },
+    }),
+  ]);
 
   if (!log) {
     notFound();
   }
 
-  const baseSlug = slugifyExerciseTitle(parsed.data.title);
-  const existingSlugs = await prisma.exercise.findMany({
-    where: {
-      userId: user.id,
-      logId: log.id,
-    },
-    select: { slug: true },
-  });
   const slug = createUniqueExerciseSlug(
     baseSlug,
     existingSlugs.map((exercise) => exercise.slug),
