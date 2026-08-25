@@ -30,6 +30,18 @@ type PaceSessionForChart = {
   speed: DecimalLike;
 };
 
+type IntervalSessionForChart = {
+  id: string;
+  performedAt: Date;
+  rounds: number;
+  workSeconds: number;
+  recoverySeconds: number;
+  includeFinalRecovery: boolean;
+  totalWorkSeconds: number;
+  totalRecoverySeconds: number;
+  intervalBlockSeconds: number;
+};
+
 function toNumber(value: DecimalLike | number) {
   const number = Number(value);
 
@@ -80,8 +92,32 @@ export function mapPaceProgressData(sessions: PaceSessionForChart[]) {
   }));
 }
 
+export function mapIntervalProgressData(
+  sessions: IntervalSessionForChart[],
+) {
+  return sessions.map((session) => ({
+    id: session.id,
+    date: toDateLabel(session.performedAt),
+    rounds: session.rounds,
+    workSeconds: session.workSeconds,
+    recoverySeconds: session.recoverySeconds,
+    includeFinalRecovery: session.includeFinalRecovery,
+    totalWorkSeconds: session.totalWorkSeconds,
+    totalRecoverySeconds: session.totalRecoverySeconds,
+    intervalBlockSeconds: session.intervalBlockSeconds,
+    numericWorkRestRatio:
+      session.recoverySeconds > 0
+        ? session.workSeconds / session.recoverySeconds
+        : 0,
+  }));
+}
+
 export type WeightliftingProgressPoint = ReturnType<
   typeof mapWeightliftingProgressData
 >[number];
 
 export type PaceProgressPoint = ReturnType<typeof mapPaceProgressData>[number];
+
+export type IntervalProgressPoint = ReturnType<
+  typeof mapIntervalProgressData
+>[number];

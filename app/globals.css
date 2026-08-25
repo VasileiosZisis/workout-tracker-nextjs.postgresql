@@ -941,6 +941,10 @@ h2 {
   gap: 12px;
 }
 
+.duration-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .inline-fields label {
   display: grid;
   gap: 6px;
@@ -991,10 +995,15 @@ fieldset.field {
     transform 160ms var(--ease-standard);
 }
 
-.radio-option:hover {
+.radio-option:hover:not(:has(input:disabled)) {
   border-color: rgba(56, 189, 248, 0.38);
   background: #111827;
   color: var(--accent-strong);
+}
+
+.radio-option:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .radio-option:has(input:focus-visible) {
@@ -1403,6 +1412,43 @@ fieldset.field {
   color: var(--accent-violet);
 }
 
+.chart-interval-tooltip {
+  width: min(560px, calc(100vw - 32px));
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.chart-interval-tooltip-date {
+  color: var(--accent);
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.chart-interval-tooltip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+.chart-interval-tooltip-grid span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  padding-block: 8px;
+}
+
+.chart-interval-tooltip-grid strong {
+  color: var(--foreground);
+  font-size: 0.84rem;
+  text-align: right;
+}
+
 .chart-series-toggle {
   display: inline-flex;
   align-items: center;
@@ -1461,6 +1507,11 @@ fieldset.field {
   padding: 3px;
 }
 
+.chart-metric-options-interval {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .chart-metric-options label {
   position: relative;
   cursor: pointer;
@@ -1506,9 +1557,36 @@ fieldset.field {
   box-shadow: 0 4px 14px rgba(167, 139, 250, 0.2);
 }
 
+.chart-metric-options input[value="totalWorkSeconds"]:checked + span {
+  background: var(--accent-lime);
+  box-shadow: 0 4px 14px rgba(163, 230, 53, 0.2);
+}
+
+.chart-metric-options input[value="rounds"]:checked + span {
+  background: var(--accent-amber);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+}
+
+.chart-metric-options input[value="intervalBlockSeconds"]:checked + span {
+  background: var(--accent-violet);
+  box-shadow: 0 4px 14px rgba(167, 139, 250, 0.2);
+}
+
+.chart-metric-options input[value="numericWorkRestRatio"]:checked + span {
+  background: var(--accent);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+}
+
 .chart-metric-options label:has(input:focus-visible) span {
   outline: 3px solid rgba(56, 189, 248, 0.42);
   outline-offset: 3px;
+}
+
+.chart-context-copy {
+  max-width: 640px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .chart-frame-performance {
@@ -1810,6 +1888,10 @@ fieldset.field {
     min-width: 0;
   }
 
+  .chart-interval-tooltip-grid {
+    grid-template-columns: 1fr;
+  }
+
   .chart-frame {
     min-height: 300px;
     padding: 14px 4px 8px;
@@ -1891,6 +1973,10 @@ fieldset.field {
 
 .metrics-category-blue {
   --metrics-accent: var(--accent-strong);
+}
+
+.metrics-category-lime {
+  --metrics-accent: var(--accent-lime);
 }
 
 .metrics-category-header {
@@ -2307,7 +2393,8 @@ fieldset.field {
 }
 
 .home-hero-visual img,
-.home-product-shot img {
+.home-product-shot img,
+.home-interval-shot img {
   display: block;
   width: 100%;
   height: auto;
@@ -2454,17 +2541,31 @@ fieldset.field {
   max-width: 9ch;
 }
 
-.home-proof-copy ul {
+.home-metric-groups {
+  display: grid;
+  gap: 30px;
+  margin: 48px 0 0;
+}
+
+.home-metric-group h3 {
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.home-metric-group ul {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 22px;
-  margin: 48px 0 0;
+  margin: 12px 0 0;
   padding: 0;
   border-top: 1px solid var(--border-strong);
   list-style: none;
 }
 
-.home-proof-copy li {
+.home-metric-group li {
   position: relative;
   display: flex;
   align-items: center;
@@ -2476,7 +2577,11 @@ fieldset.field {
   font-weight: 700;
 }
 
-.home-proof-copy li::before {
+.home-metric-group[aria-labelledby="home-metrics-weightlifting"] li {
+  border-bottom: 0;
+}
+
+.home-metric-group li::before {
   position: absolute;
   top: 50%;
   left: 0;
@@ -2502,11 +2607,11 @@ fieldset.field {
 
 .home-privacy {
   display: grid;
-  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1fr);
-  gap: clamp(48px, 8vw, 112px);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  justify-items: center;
   padding-bottom: clamp(40px, 5vw, 56px);
-  border-bottom: 1px solid var(--border-strong);
+  text-align: center;
 }
 
 .home-privacy p {
@@ -2515,6 +2620,16 @@ fieldset.field {
   color: var(--muted-strong);
   font-size: 1.15rem;
   line-height: 1.75;
+}
+
+.home-interval-shot {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: #070a12;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
 }
 
 .home-final-cta {
@@ -2965,7 +3080,7 @@ fieldset.field {
     min-width: 0;
   }
 
-  .home-proof-copy ul {
+  .home-metric-groups {
     margin-top: 40px;
   }
 
@@ -3020,7 +3135,7 @@ fieldset.field {
     padding-inline: 12px;
   }
 
-  .home-proof-copy ul {
+  .home-metric-group ul {
     grid-template-columns: 1fr;
   }
 }

@@ -6,7 +6,10 @@ import { requireUser } from "@/lib/auth";
 import { updateExerciseAction } from "@/features/exercises/actions";
 import { DeleteExerciseForm } from "@/features/exercises/components/delete-exercise-form";
 import { ExerciseForm } from "@/features/exercises/components/exercise-form";
-import { getExerciseBySlug } from "@/features/exercises/queries";
+import {
+  getExerciseBySlug,
+  getExerciseForEditBySlug,
+} from "@/features/exercises/queries";
 
 export async function generateMetadata({
   params,
@@ -33,7 +36,7 @@ export default async function EditExercisePage({
 }) {
   const user = await requireUser();
   const { logSlug, exerciseSlug } = await params;
-  const exercise = await getExerciseBySlug({
+  const exercise = await getExerciseForEditBySlug({
     userId: user.id,
     logSlug,
     exerciseSlug,
@@ -42,6 +45,11 @@ export default async function EditExercisePage({
   if (!exercise) {
     notFound();
   }
+
+  const sessionKindLocked =
+    exercise._count.intervalSessions > 0 ||
+    exercise._count.paceSessions > 0 ||
+    exercise._count.weightliftingSessions > 0;
 
   return (
     <main className="page">
@@ -57,6 +65,7 @@ export default async function EditExercisePage({
           defaultSessionKind={exercise.sessionKind}
           defaultTitle={exercise.title}
           exerciseId={exercise.id}
+          sessionKindLocked={sessionKindLocked}
           submitLabel="Save exercise"
         />
         <div className="form-footer">

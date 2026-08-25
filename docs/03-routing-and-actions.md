@@ -35,6 +35,9 @@ Homepage demo calls to action remain visible across environments, while
 | `.../pace/new` | Create a pace session |
 | `.../pace/[sessionId]` | View a pace session |
 | `.../pace/[sessionId]/edit` | Edit or delete a pace session |
+| `.../interval/new` | Create an interval session |
+| `.../interval/[sessionId]` | View an interval session |
+| `.../interval/[sessionId]/edit` | Edit or delete an interval session |
 | `/profile` | View and update the authenticated profile |
 
 The authenticated route group exports `noindex` metadata and resolves the user
@@ -61,6 +64,10 @@ deleteWeightliftingSessionAction
 createPaceSessionAction
 updatePaceSessionAction
 deletePaceSessionAction
+
+createIntervalSessionAction
+updateIntervalSessionAction
+deleteIntervalSessionAction
 ```
 
 Profile updates use the same authenticated Server Action pattern. Auth.js owns
@@ -68,7 +75,9 @@ Google, magic-link, and sign-out mutations.
 
 Actions return field-level validation errors for recoverable form input. Missing
 or unowned records use not-found behavior rather than revealing whether another
-user owns the identifier.
+user owns the identifier. Interval mutations additionally require an owned
+`INTERVAL` exercise and recalculate every persisted workload total from the
+submitted source fields.
 
 ## Query Modules
 
@@ -80,9 +89,21 @@ objects. Examples include:
 - Session lookup through an explicit user and session identifier.
 - Latest-session evidence independent of the active history page.
 - Chart data constrained by exercise ownership and date range.
+- Interval session reads constrained by user, exercise, and the parent
+  `INTERVAL` kind.
 
 Pages call these functions directly from the server. Route Handlers are not used
 as an internal transport layer.
+
+The interval feature exposes owned exercise lookup, paginated history, session
+detail, and latest-session queries through `getIntervalExerciseBySlug`,
+`getIntervalSessionsPage`, `getIntervalSessionById`, and
+`getLatestIntervalSession`. `getIntervalProgressData` applies the same owner,
+exercise, and kind constraints together with the shared chart date range.
+
+Weightlifting, pace, and interval create pages show the newest existing record
+as **Previous session**. Saved detail pages show only the selected session and
+do not make comparison or improvement claims.
 
 ## Pagination And Chart Filters
 
@@ -104,7 +125,9 @@ Exercise evidence pages additionally accept:
 Pagination and page-size navigation preserve chart filters. Chart range changes
 preserve the current URL state. Latest evidence is queried independently so it
 always describes the newest session, even while the user views an older history
-page.
+page. Interval progress supports total work, rounds, interval block duration,
+and numeric work:rest ratio while its accessible table retains the reduced
+human-readable ratio.
 
 ## Cache And Navigation Behavior
 

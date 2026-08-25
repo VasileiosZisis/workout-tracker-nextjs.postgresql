@@ -2,9 +2,9 @@
 
 Workout Trackr is a commercial, production-oriented full-stack performance
 tracking application built with Next.js, PostgreSQL, and Prisma. It records
-structured weightlifting and pace-based training data, calculates derived
-metrics on the server, and presents session history as evidence that can guide
-future training decisions.
+structured weightlifting, pace-based, and uniform interval/HIIT training data,
+calculates derived metrics on the server, and presents session history as
+evidence that can guide future training decisions.
 
 The project is also an engineering case study in modernizing a MERN application
 into a server-first Next.js architecture with relational data modeling,
@@ -17,8 +17,9 @@ deployment workflow.
 
 [Try the temporary Workout Trackr demo](https://www.workouttrackr.com/demo)
 without using a personal sign-in method. Each visitor receives an isolated,
-writable workspace with sample strength and running history. Demo data is
-permanently deleted after two hours or when the visitor exits the demo.
+writable workspace with sample strength, pace, and interval/HIIT history. The
+Running log includes Track Sprints with six uniform interval sessions. Demo
+data is permanently deleted after two hours or when the visitor exits the demo.
 
 ## Engineering Focus
 
@@ -44,10 +45,15 @@ Authenticated users can:
 - Record weightlifting sessions with ordered sets, repetitions, weight, and
   hard-set classification.
 - Record pace sessions with duration and distance.
+- Record interval/HIIT sessions with rounds, work and recovery durations, and an
+  optional final recovery.
 - Review paginated session history and previous-session evidence.
 - Analyze working volume, total volume, junk volume, load per rep, pace, speed,
-  and distance.
+  distance, interval work, recovery, block duration, and work:rest ratio.
 - Filter progress charts by predefined or custom date ranges.
+- Review interval workload charts by total work, rounds, block duration, or
+  numeric work:rest ratio without treating protocol changes as a universal
+  performance score.
 - Update their profile and securely end database sessions.
 
 ## Architecture
@@ -107,10 +113,11 @@ The core hierarchy is:
 ```text
 User
 └── Log
-    └── Exercise (WEIGHTLIFTING or PACE)
+    └── Exercise (WEIGHTLIFTING, PACE, or INTERVAL)
         ├── WeightliftingSession
         │   └── WeightliftingSet
-        └── PaceSession
+        ├── PaceSession
+        └── IntervalSession
 ```
 
 Auth.js `Account` and `Session` records belong to the same `User` model as the
@@ -120,9 +127,10 @@ or IP identifiers. Logs use user-scoped slugs, exercises use log-scoped slugs,
 and sessions use stable database identifiers. This avoids cross-user slug
 conflicts and same-date session collisions.
 
-Derived metrics are computed on the server. Session aggregates are persisted as
-PostgreSQL decimal values, while average working load is calculated from the
-stored hard sets:
+Derived metrics are computed on the server. Weightlifting and pace aggregates
+are persisted as PostgreSQL decimal values. Interval rounds and durations use
+integer values, with durations stored as seconds. Average working load is
+calculated from the stored hard sets:
 
 - Set volume: `repetitions * kilograms`
 - Working volume: sum of hard-set volume
@@ -132,6 +140,16 @@ stored hard sets:
 - Junk volume: sum of non-hard-set volume
 - Pace: elapsed minutes divided by distance
 - Speed: distance divided by elapsed time
+- Interval recovery count: `rounds` when final recovery is included, otherwise
+  `rounds - 1`
+- Interval total work: `rounds * workSeconds`
+- Interval total recovery: `recoveryCount * recoverySeconds`
+- Interval block duration: `totalWorkSeconds + totalRecoverySeconds`
+
+Interval workload totals are recalculated by Server Actions and persisted.
+Client-submitted derived values are ignored. The reduced display ratio and the
+numeric chart ratio are derived from work and recovery per round and are not
+stored. An exercise's session kind is locked after its first session is added.
 
 ## Security Model
 
@@ -223,7 +241,8 @@ npm run prisma:validate
 generation, and an optimized Next.js production build. Tests cover pure metric
 logic, validation schemas, slug and pagination helpers, environment policy,
 safe redirects, email rate limiting, Postmark diagnostics, ownership-scoped
-database queries, and Server Action behavior.
+database queries, session-kind integrity, interval CRUD and formulas, progress
+range mapping, demo data, and Server Action behavior.
 
 Useful individual commands:
 
@@ -266,6 +285,9 @@ reverse a migration that has already been applied.
   links; passwords and passkeys are not implemented. Anonymous demo workspaces
   expire after two hours.
 - Weight and distance are stored and displayed in kilograms and kilometers.
+- Interval v1 supports one uniform repeated work/recovery block. Warm-up,
+  cooldown, notes, multiple blocks, and distance, calories, watts, or speed
+  measurements are not tracked as part of an interval session.
 - Preview authentication remains intentionally disabled; enabling it requires
   dedicated provider credentials and controlled email delivery.
 - External error tracking and automated browser tests are not part of the

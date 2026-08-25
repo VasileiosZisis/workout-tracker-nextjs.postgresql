@@ -11,4 +11,5 @@ export type ExerciseActionState = {
 export const sessionKindLabels: Record<SessionKind, string> = {
   WEIGHTLIFTING: "Weightlifting",
   PACE: "Pace",
+  INTERVAL: "Intervals / HIIT",
 };

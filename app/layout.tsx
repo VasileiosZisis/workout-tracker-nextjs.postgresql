@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import "./globals.css";
 
-const homepageTitle = "Track Weightlifting & Pace Progress | Workout Trackr";
+const homepageTitle =
+  "Track Weightlifting, Running & HIIT Progress | Workout Trackr";
 const homepageDescription =
-  "Track weightlifting and pace-based workouts, calculate useful metrics, and see how your performance changes over time.";
+  "Track weightlifting, pace-based, and interval/HIIT workouts, calculate useful training metrics, and review changes over time.";
 const socialImage = {
   alt: "Workout Trackr homepage alongside a Bench Press progress dashboard",
   height: 630,

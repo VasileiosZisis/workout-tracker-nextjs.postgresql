@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 const pageDescription =
-  "See the weightlifting and pace metrics you can record and calculate with Workout Trackr.";
-const pageTitle = "Weightlifting & Pace Metrics";
+  "See the weightlifting, pace, and interval metrics you can record and calculate with Workout Trackr.";
+const pageTitle = "Weightlifting, Pace & HIIT Metrics";
 const socialImage = {
   alt: "Workout Trackr homepage alongside a Bench Press progress dashboard",
   height: 630,
@@ -39,7 +39,7 @@ type MetricCatalog = {
   id: string;
   recorded: MetricDefinition[];
   title: string;
-  tone: "blue" | "violet";
+  tone: "blue" | "lime" | "violet";
 };
 
 const metricCatalog: MetricCatalog[] = [
@@ -136,6 +136,65 @@ const metricCatalog: MetricCatalog[] = [
       },
     ],
   },
+  {
+    id: "interval",
+    title: "Intervals / HIIT",
+    description:
+      "Record a uniform work-and-recovery protocol and review programmed workload without treating it as a universal performance score.",
+    tone: "lime",
+    recorded: [
+      {
+        name: "Rounds",
+        description: "The number of repeated work intervals in the session.",
+        unit: "rounds",
+      },
+      {
+        name: "Work per round",
+        description: "The programmed work duration for every round.",
+        unit: "min · sec",
+      },
+      {
+        name: "Recovery per round",
+        description: "The programmed recovery duration between rounds.",
+        unit: "min · sec",
+      },
+      {
+        name: "Final recovery",
+        description:
+          "Choose whether the session includes recovery after the final work round.",
+        unit: "included · excluded",
+      },
+    ],
+    calculated: [
+      {
+        name: "Total work",
+        description: "The combined programmed work across every round.",
+        formula: "rounds × work per round",
+        unit: "min · sec",
+      },
+      {
+        name: "Total recovery",
+        description:
+          "The combined programmed recovery. Excluding final recovery uses one fewer recovery period than the round count.",
+        formula: "recovery periods × recovery per round",
+        unit: "min · sec",
+      },
+      {
+        name: "Block duration",
+        description:
+          "The complete programmed interval block, excluding untracked warm-up and cooldown time.",
+        formula: "total work + total recovery",
+        unit: "min · sec",
+      },
+      {
+        name: "Work:rest ratio",
+        description:
+          "The reduced relationship between work and recovery in one round. A higher value describes the protocol, not better performance.",
+        formula: "work per round : recovery per round",
+        unit: "ratio",
+      },
+    ],
+  },
 ];
 
 function MetricList({ metrics }: { metrics: MetricDefinition[] }) {
@@ -217,7 +276,10 @@ export default function MetricsPage() {
           </li>
           <li>
             <strong>Progress charts</strong>
-            <span>Follow volume, distance, pace, and speed across sessions.</span>
+            <span>
+              Follow volume, distance, pace, speed, and interval workload
+              across sessions.
+            </span>
           </li>
           <li>
             <strong>Date ranges</strong>

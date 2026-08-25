@@ -1,6 +1,7 @@
 import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import {
+  mapIntervalProgressData,
   mapPaceProgressData,
   mapWeightliftingProgressData,
 } from "./mapping";
@@ -118,4 +119,65 @@ export async function getPaceProgressData({
   });
 
   return mapPaceProgressData(sessions);
+}
+
+export async function getIntervalProgressData({
+  chartRange,
+  userId,
+  exerciseId,
+}: {
+  chartRange: ChartRangeState;
+  userId: string;
+  exerciseId: string;
+}) {
+  const where = {
+    userId,
+    exerciseId,
+    exercise: {
+      sessionKind: SessionKind.INTERVAL,
+    },
+  };
+  const latestSession = await prisma.intervalSession.findFirst({
+    where,
+    orderBy: [
+      { performedAt: "desc" },
+      { createdAt: "desc" },
+      { id: "desc" },
+    ],
+    select: { performedAt: true },
+  });
+  const dateRange = getChartDateRange({
+    latestPerformedAt: latestSession?.performedAt ?? null,
+    range: chartRange,
+  });
+
+  const sessions = await prisma.intervalSession.findMany({
+    where: {
+      ...where,
+      performedAt: dateRange
+        ? {
+            gte: dateRange.from,
+            lt: dateRange.toExclusive,
+          }
+        : undefined,
+    },
+    select: {
+      id: true,
+      performedAt: true,
+      rounds: true,
+      workSeconds: true,
+      recoverySeconds: true,
+      includeFinalRecovery: true,
+      totalWorkSeconds: true,
+      totalRecoverySeconds: true,
+      intervalBlockSeconds: true,
+    },
+    orderBy: [
+      { performedAt: "asc" },
+      { createdAt: "asc" },
+      { id: "asc" },
+    ],
+  });
+
+  return mapIntervalProgressData(sessions);
 }

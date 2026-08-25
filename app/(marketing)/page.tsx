@@ -8,17 +8,17 @@ const principles = [
   {
     title: "Capture the details that matter",
     label: "Record",
-    copy: "Log weight, repetitions, hard sets, duration, and distance with forms designed for quick day-to-day use.",
+    copy: "Log weight, repetitions, hard sets, duration, distance, rounds, work duration, and recovery duration with forms designed for quick day-to-day use.",
   },
   {
     title: "Let the numbers do the work",
     label: "Measure",
-    copy: "Working volume, total volume, pace, and speed are calculated automatically from your session data.",
+    copy: "Working volume, total volume, pace, speed, interval workload, and work:rest ratios are calculated automatically from your session data.",
   },
   {
     title: "See change over time",
     label: "Review",
-    copy: "Use session history and progress charts to identify trends, compare recent performance, and decide what to improve next.",
+    copy: "Use session history and progress charts to identify trends, review training and protocol changes, and decide what to adjust next.",
   },
 ];
 
@@ -29,26 +29,41 @@ const workflow = [
   },
   {
     title: "Add your activities",
-    copy: "Track weightlifting movements or pace-based activities.",
+    copy: "Track weightlifting movements, pace-based activities, or interval / HIIT protocols.",
   },
   {
     title: "Record each session",
-    copy: "Keep the measurements consistent and reference your previous performance.",
+    copy: "Keep the measurements consistent and reference your previous session.",
   },
   {
     title: "Review the trend",
-    copy: "See how volume, pace, speed, and distance change over time.",
+    copy: "See how volume, pace, speed, distance, and programmed interval workload change over time.",
   },
 ];
 
-const metrics = [
-  "Working volume",
-  "Hard sets",
-  "Total volume",
-  "Load per rep",
-  "Pace",
-  "Speed",
-  "Distance",
+const metricGroups = [
+  {
+    id: "weightlifting",
+    title: "Weightlifting",
+    metrics: ["Working volume", "Hard sets", "Total volume", "Load per rep"],
+  },
+  {
+    id: "pace",
+    title: "Pace",
+    metrics: ["Pace", "Speed", "Distance"],
+  },
+  {
+    id: "interval",
+    title: "Intervals / HIIT",
+    metrics: [
+      "Rounds",
+      "Work per round",
+      "Recovery per round",
+      "Total work",
+      "Block duration",
+      "Work:rest ratio",
+    ],
+  },
 ];
 
 const websiteJsonLd = {
@@ -162,12 +177,23 @@ export default function HomePage() {
         </figure>
 
         <div className="home-proof-copy" data-reveal="right">
-          <h2 id="home-metrics-title">Built around measurable performance</h2>
-          <ul aria-label="Tracked performance metrics">
-            {metrics.map((metric) => (
-              <li key={metric}>{metric}</li>
+          <h2 id="home-metrics-title">Built around measurable training</h2>
+          <div className="home-metric-groups">
+            {metricGroups.map((group) => (
+              <section
+                aria-labelledby={`home-metrics-${group.id}`}
+                className="home-metric-group"
+                key={group.id}
+              >
+                <h3 id={`home-metrics-${group.id}`}>{group.title}</h3>
+                <ul>
+                  {group.metrics.map((metric) => (
+                    <li key={metric}>{metric}</li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
@@ -180,6 +206,16 @@ export default function HomePage() {
               Workout Trackr is a personal workspace, not a social feed.
             </p>
           </div>
+
+          <figure className="home-interval-shot" data-reveal="rise">
+            <Image
+              alt="Track Sprints interval progress showing latest total work, rounds, work-to-rest ratio, and total work over time."
+              height={859}
+              sizes="(max-width: 900px) calc(100vw - 40px), 960px"
+              src="/home/track-sprints-progress.png"
+              width={960}
+            />
+          </figure>
 
           <div className="home-final-cta">
             <h2>Build a record you can learn from</h2>

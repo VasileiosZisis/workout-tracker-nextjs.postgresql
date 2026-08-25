@@ -7,12 +7,23 @@ import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { getExerciseBySlug } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
+import {
+  formatDuration as formatIntervalDuration,
+  formatSessionDate as formatIntervalSessionDate,
+  formatWorkRestRatio,
+} from "@/features/interval/format";
+import {
+  getIntervalSessionsPage,
+  getLatestIntervalSession,
+} from "@/features/interval/queries";
 import { parsePagination } from "@/features/logs/pagination";
 import {
+  IntervalProgressChart,
   PaceProgressChart,
   WeightliftingProgressChart,
 } from "@/features/progress/components/progress-charts";
 import {
+  getIntervalProgressData,
   getPaceProgressData,
   getWeightliftingProgressData,
 } from "@/features/progress/queries";
@@ -142,12 +153,35 @@ export default async function ExerciseDetailPage({
           }),
         ])
       : null;
+  const intervalData =
+    exercise.sessionKind === SessionKind.INTERVAL
+      ? await Promise.all([
+          getIntervalSessionsPage({
+            userId: user.id,
+            exerciseId: exercise.id,
+            page: paginationInput.page,
+            limit: paginationInput.limit,
+          }),
+          getIntervalProgressData({
+            chartRange,
+            userId: user.id,
+            exerciseId: exercise.id,
+          }),
+          getLatestIntervalSession({
+            userId: user.id,
+            exerciseId: exercise.id,
+          }),
+        ])
+      : null;
   const weightliftingSessions = weightliftingData?.[0] ?? null;
   const weightliftingProgressData = weightliftingData?.[1] ?? null;
   const latestWeightliftingSession = weightliftingData?.[2] ?? null;
   const paceSessions = paceData?.[0] ?? null;
   const paceProgressData = paceData?.[1] ?? null;
   const latestPaceSession = paceData?.[2] ?? null;
+  const intervalSessions = intervalData?.[0] ?? null;
+  const intervalProgressData = intervalData?.[1] ?? null;
+  const latestIntervalSession = intervalData?.[2] ?? null;
   const preservedChartParams = {
     chartFrom: chartRange.chartFrom || undefined,
     chartRange: chartRange.chartRange,
@@ -180,6 +214,14 @@ export default async function ExerciseDetailPage({
             <Link
               className="button"
               href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/pace/new`}
+            >
+              Add session
+            </Link>
+          ) : null}
+          {exercise.sessionKind === SessionKind.INTERVAL ? (
+            <Link
+              className="button"
+              href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/interval/new`}
             >
               Add session
             </Link>
@@ -398,6 +440,118 @@ export default async function ExerciseDetailPage({
               preservedParams={preservedChartParams}
               totalItems={paceSessions.pagination.totalItems}
               totalPages={paceSessions.pagination.totalPages}
+            />
+          </>
+        )
+      ) : exercise.sessionKind === SessionKind.INTERVAL &&
+        intervalSessions &&
+        intervalProgressData ? (
+        intervalSessions.sessions.length === 0 ? (
+          <>
+            <IntervalProgressChart
+              data={intervalProgressData}
+              range={chartRange}
+            />
+            <section className="empty-state section-block">
+              <div>
+                <h2>No sessions yet</h2>
+                <p>Add a session to start tracking interval workload.</p>
+              </div>
+              <Link
+                className="button"
+                href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/interval/new`}
+              >
+                Add session
+              </Link>
+            </section>
+          </>
+        ) : (
+          <>
+            <section
+              className="section-block evidence-strip"
+              aria-label="Latest evidence"
+            >
+              <div className="metric-card metric-card-lime">
+                <span>Latest total work</span>
+                <strong>
+                  {latestIntervalSession
+                    ? formatIntervalDuration(
+                        latestIntervalSession.totalWorkSeconds,
+                      )
+                    : "0:00"}
+                </strong>
+              </div>
+              <div className="metric-card metric-card-amber">
+                <span>Rounds</span>
+                <strong>{latestIntervalSession?.rounds ?? 0}</strong>
+              </div>
+              <div className="metric-card metric-card-blue">
+                <span>Work:rest ratio</span>
+                <strong>
+                  {latestIntervalSession
+                    ? formatWorkRestRatio(
+                        latestIntervalSession.workSeconds,
+                        latestIntervalSession.recoverySeconds,
+                      )
+                    : "—"}
+                </strong>
+              </div>
+            </section>
+            <IntervalProgressChart
+              data={intervalProgressData}
+              range={chartRange}
+            />
+            <section className="section-block">
+              <div className="section-heading">
+                <h2>Session history</h2>
+              </div>
+              <PaginationNav
+                ariaLabel="Session pagination"
+                baseHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
+                limit={intervalSessions.pagination.limit}
+                page={intervalSessions.pagination.page}
+                placement="top"
+                preservedParams={preservedChartParams}
+                totalItems={intervalSessions.pagination.totalItems}
+                totalPages={intervalSessions.pagination.totalPages}
+              />
+              <div className="list evidence-list" aria-label="Sessions">
+                {intervalSessions.sessions.map((session) => (
+                  <Link
+                    className="list-item session-card"
+                    href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}/interval/${session.id}`}
+                    key={session.id}
+                  >
+                    <div>
+                      <h2>
+                        {formatIntervalSessionDate(session.performedAt)}
+                      </h2>
+                      <div className="session-metrics">
+                        <span className="metric-pill metric-pill-blue">
+                          {session.rounds} rounds
+                        </span>
+                        <span className="metric-pill metric-pill-lime">
+                          Work {formatIntervalDuration(session.workSeconds)}
+                        </span>
+                        <span className="metric-pill metric-pill-amber">
+                          Recovery{" "}
+                          {formatIntervalDuration(session.recoverySeconds)}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+            <PaginationNav
+              ariaLabel="Session pagination"
+              baseHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
+              limit={intervalSessions.pagination.limit}
+              page={intervalSessions.pagination.page}
+              placement="bottom"
+              preservedParams={preservedChartParams}
+              totalItems={intervalSessions.pagination.totalItems}
+              totalPages={intervalSessions.pagination.totalPages}
             />
           </>
         )

@@ -13,11 +13,17 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import {
+  formatDuration as formatIntervalDuration,
+  formatWorkRestRatio,
+} from "@/features/interval/format";
 import type {
+  IntervalProgressPoint,
   PaceProgressPoint,
   WeightliftingProgressPoint,
 } from "../mapping";
 import type { ChartRangeState } from "../date-range";
+import type { IntervalChartMetric } from "../interval-progress";
 import {
   formatPaceSeconds,
   getPaddedDomain,
@@ -42,6 +48,38 @@ const weightliftingVolumeSeriesOrder: Record<string, number> = {
   totalVolume: 2,
   averageWorkingLoad: 3,
 };
+
+const intervalMetricOptions: Array<{
+  color: string;
+  label: string;
+  minimumPadding: number;
+  value: IntervalChartMetric;
+}> = [
+  {
+    color: chartColors.lime,
+    label: "Total work",
+    minimumPadding: 10,
+    value: "totalWorkSeconds",
+  },
+  {
+    color: chartColors.amber,
+    label: "Rounds",
+    minimumPadding: 1,
+    value: "rounds",
+  },
+  {
+    color: chartColors.violet,
+    label: "Block duration",
+    minimumPadding: 10,
+    value: "intervalBlockSeconds",
+  },
+  {
+    color: chartColors.blue,
+    label: "Work:rest ratio",
+    minimumPadding: 0.05,
+    value: "numericWorkRestRatio",
+  },
+];
 
 function numberFormatter(value: number) {
   return new Intl.NumberFormat("en", {
@@ -180,6 +218,67 @@ function PaceSessionTooltip({
         <span>
           <strong className="chart-pace-tooltip-speed">
             {numberFormatter(point.speed)} km/h
+          </strong>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+type IntervalSessionTooltipProps = {
+  active?: boolean;
+  label?: string | number;
+  payload?: ReadonlyArray<{
+    payload?: IntervalProgressPoint;
+  }>;
+};
+
+function IntervalSessionTooltip({
+  active,
+  label,
+  payload,
+}: IntervalSessionTooltipProps) {
+  const point = payload?.[0]?.payload;
+
+  if (!active || !point) {
+    return null;
+  }
+
+  return (
+    <div className="chart-interval-tooltip">
+      <div className="chart-interval-tooltip-date">{label ?? point.date}</div>
+      <div className="chart-interval-tooltip-grid">
+        <span>
+          Rounds <strong>{point.rounds}</strong>
+        </span>
+        <span>
+          Work per round{" "}
+          <strong>{formatIntervalDuration(point.workSeconds)}</strong>
+        </span>
+        <span>
+          Recovery per round{" "}
+          <strong>{formatIntervalDuration(point.recoverySeconds)}</strong>
+        </span>
+        <span>
+          Final recovery{" "}
+          <strong>{point.includeFinalRecovery ? "Included" : "Excluded"}</strong>
+        </span>
+        <span>
+          Total work{" "}
+          <strong>{formatIntervalDuration(point.totalWorkSeconds)}</strong>
+        </span>
+        <span>
+          Total recovery{" "}
+          <strong>{formatIntervalDuration(point.totalRecoverySeconds)}</strong>
+        </span>
+        <span>
+          Block duration{" "}
+          <strong>{formatIntervalDuration(point.intervalBlockSeconds)}</strong>
+        </span>
+        <span>
+          Work:rest ratio{" "}
+          <strong>
+            {formatWorkRestRatio(point.workSeconds, point.recoverySeconds)}
           </strong>
         </span>
       </div>
@@ -647,6 +746,195 @@ export function PaceProgressChart({
                   <td>{numberFormatter(point.distance)} km</td>
                   <td>{formatPaceSeconds(point.paceSecondsPerKm)} min/km</td>
                   <td>{numberFormatter(point.speed)} km/h</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  );
+}
+
+export function IntervalProgressChart({
+  data,
+  range,
+}: {
+  data: IntervalProgressPoint[];
+  range: ChartRangeState;
+}) {
+  const [selectedMetric, setSelectedMetric] =
+    useState<IntervalChartMetric>("totalWorkSeconds");
+
+  if (data.length === 0) {
+    return (
+      <section
+        className="section-block chart-section"
+        aria-labelledby="progress-heading"
+      >
+        <div className="section-heading">
+          <div>
+            <h2 id="progress-heading">Interval workload over time</h2>
+            <ChartRangeControl range={range} />
+          </div>
+        </div>
+        <div className="empty-state">
+          <div>
+            <h2>No interval data yet</h2>
+            <p>Charts appear after the first recorded session.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const metric =
+    intervalMetricOptions.find((option) => option.value === selectedMetric) ??
+    intervalMetricOptions[0];
+  const isDuration =
+    selectedMetric === "totalWorkSeconds" ||
+    selectedMetric === "intervalBlockSeconds";
+  const isRounds = selectedMetric === "rounds";
+  const metricDomain = getPaddedDomain(
+    data.map((point) => point[selectedMetric]),
+    metric.minimumPadding,
+  );
+
+  function formatAxisValue(value: number) {
+    if (isDuration) {
+      return formatIntervalDuration(value);
+    }
+
+    if (isRounds) {
+      return String(Math.round(value));
+    }
+
+    return numberFormatter(value);
+  }
+
+  return (
+    <section
+      className="section-block chart-section"
+      aria-labelledby="progress-heading"
+    >
+      <div className="section-heading">
+        <div>
+          <h2 id="progress-heading">Interval workload over time</h2>
+          <ChartRangeControl range={range} />
+          <div
+            aria-label="Interval workload metric"
+            className="chart-metric-selector"
+            role="radiogroup"
+          >
+            <div className="chart-metric-options chart-metric-options-interval">
+              {intervalMetricOptions.map((option) => (
+                <label key={option.value}>
+                  <input
+                    checked={selectedMetric === option.value}
+                    name="interval-chart-metric"
+                    onChange={() => setSelectedMetric(option.value)}
+                    type="radio"
+                    value={option.value}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {selectedMetric === "numericWorkRestRatio" ? (
+            <p className="chart-context-copy">
+              Higher values mean more programmed work relative to recovery, not
+              better performance.
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <div
+        className="chart-frame chart-frame-performance"
+        aria-label={`${metric.label} chart`}
+      >
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart
+            accessibilityLayer
+            data={data}
+            margin={{ top: 12, right: 18, bottom: 8, left: 0 }}
+          >
+            <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+            <XAxis
+              axisLine={false}
+              dataKey="date"
+              minTickGap={24}
+              stroke={chartColors.muted}
+              tick={axisTick}
+              tickLine={false}
+              tickMargin={10}
+            />
+            <YAxis
+              allowDecimals={!isRounds}
+              axisLine={false}
+              domain={metricDomain}
+              stroke={chartColors.muted}
+              tick={axisTick}
+              tickFormatter={(value) => formatAxisValue(Number(value))}
+              tickLine={false}
+              tickMargin={8}
+              width={isDuration ? 62 : 52}
+            />
+            <Tooltip
+              allowEscapeViewBox={{ x: false, y: true }}
+              content={<IntervalSessionTooltip />}
+              wrapperStyle={{ zIndex: 10 }}
+            />
+            <Line
+              activeDot={activeChartDot(metric.color)}
+              dataKey={selectedMetric}
+              dot={chartDot(metric.color)}
+              key={selectedMetric}
+              name={metric.label}
+              stroke={metric.color}
+              strokeWidth={3}
+              type="monotone"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <details className="chart-data-disclosure">
+        <summary>Chart Data</summary>
+        <div className="chart-table-wrap">
+          <table className="data-table chart-table">
+            <caption>Chart Data</caption>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Rounds</th>
+                <th>Work per round</th>
+                <th>Recovery per round</th>
+                <th>Final recovery</th>
+                <th>Total work</th>
+                <th>Total recovery</th>
+                <th>Block duration</th>
+                <th>Work:rest ratio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...data].reverse().map((point) => (
+                <tr key={point.id}>
+                  <td>{point.date}</td>
+                  <td>{point.rounds}</td>
+                  <td>{formatIntervalDuration(point.workSeconds)}</td>
+                  <td>{formatIntervalDuration(point.recoverySeconds)}</td>
+                  <td>
+                    {point.includeFinalRecovery ? "Included" : "Excluded"}
+                  </td>
+                  <td>{formatIntervalDuration(point.totalWorkSeconds)}</td>
+                  <td>{formatIntervalDuration(point.totalRecoverySeconds)}</td>
+                  <td>{formatIntervalDuration(point.intervalBlockSeconds)}</td>
+                  <td>
+                    {formatWorkRestRatio(
+                      point.workSeconds,
+                      point.recoverySeconds,
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

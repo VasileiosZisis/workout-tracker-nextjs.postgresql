@@ -1,4 +1,5 @@
 import {
+  mapIntervalProgressData,
   mapPaceProgressData,
   mapWeightliftingProgressData,
 } from "./mapping";
@@ -92,6 +93,39 @@ describe("mapPaceProgressData", () => {
         pace: 5.125,
         paceSecondsPerKm: 308,
         speed: 11.707,
+      },
+    ]);
+  });
+});
+
+describe("mapIntervalProgressData", () => {
+  it("maps every interval field into a chart-safe workload point", () => {
+    const data = mapIntervalProgressData([
+      {
+        id: "session-1",
+        performedAt: new Date("2026-05-17T00:00:00.000Z"),
+        rounds: 10,
+        workSeconds: 30,
+        recoverySeconds: 60,
+        includeFinalRecovery: true,
+        totalWorkSeconds: 300,
+        totalRecoverySeconds: 600,
+        intervalBlockSeconds: 900,
+      },
+    ]);
+
+    expect(data).toEqual([
+      {
+        id: "session-1",
+        date: "2026-05-17",
+        rounds: 10,
+        workSeconds: 30,
+        recoverySeconds: 60,
+        includeFinalRecovery: true,
+        totalWorkSeconds: 300,
+        totalRecoverySeconds: 600,
+        intervalBlockSeconds: 900,
+        numericWorkRestRatio: 0.5,
       },
     ]);
   });

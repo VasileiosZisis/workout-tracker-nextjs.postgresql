@@ -1,6 +1,7 @@
 import { SessionKind } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db";
 import {
+  getIntervalProgressData,
   getPaceProgressData,
   getWeightliftingProgressData,
 } from "./queries";
@@ -15,6 +16,8 @@ const userAWeightliftingExerciseId = `${testRunId}-wl-exercise-a`;
 const userBWeightliftingExerciseId = `${testRunId}-wl-exercise-b`;
 const userAPaceExerciseId = `${testRunId}-pace-exercise-a`;
 const userBPaceExerciseId = `${testRunId}-pace-exercise-b`;
+const userAIntervalExerciseId = `${testRunId}-interval-exercise-a`;
+const userBIntervalExerciseId = `${testRunId}-interval-exercise-b`;
 
 function chartRange(
   searchParams: Parameters<typeof parseChartRangeSearchParams>[0] = {},
@@ -67,6 +70,34 @@ async function createPaceProgressSession({
       paceMinutes: 5,
       paceSeconds: 0,
       speed: "12.000",
+    },
+  });
+}
+
+async function createIntervalProgressSession({
+  createdAt,
+  id,
+  performedAt,
+}: {
+  createdAt?: string;
+  id: string;
+  performedAt: string;
+}) {
+  await prisma.intervalSession.create({
+    data: {
+      id: `${testRunId}-${id}`,
+      userId: userAId,
+      logId: userALogId,
+      exerciseId: userAIntervalExerciseId,
+      performedAt: new Date(`${performedAt}T00:00:00.000Z`),
+      rounds: 6,
+      workSeconds: 20,
+      recoverySeconds: 60,
+      includeFinalRecovery: false,
+      totalWorkSeconds: 120,
+      totalRecoverySeconds: 300,
+      intervalBlockSeconds: 420,
+      createdAt: createdAt ? new Date(createdAt) : undefined,
     },
   });
 }
@@ -138,6 +169,22 @@ describe("progress queries", () => {
           title: "Hidden Run",
           slug: "tempo-run",
           sessionKind: SessionKind.PACE,
+        },
+        {
+          id: userAIntervalExerciseId,
+          userId: userAId,
+          logId: userALogId,
+          title: "Visible Sprints",
+          slug: "track-sprints",
+          sessionKind: SessionKind.INTERVAL,
+        },
+        {
+          id: userBIntervalExerciseId,
+          userId: userBId,
+          logId: userBLogId,
+          title: "Hidden Sprints",
+          slug: "track-sprints",
+          sessionKind: SessionKind.INTERVAL,
         },
       ],
     });
@@ -224,6 +271,39 @@ describe("progress queries", () => {
         },
       ],
     });
+
+    await prisma.intervalSession.createMany({
+      data: [
+        {
+          id: `${testRunId}-interval-session-a`,
+          userId: userAId,
+          logId: userALogId,
+          exerciseId: userAIntervalExerciseId,
+          performedAt: new Date("2026-05-17T00:00:00.000Z"),
+          rounds: 10,
+          workSeconds: 30,
+          recoverySeconds: 60,
+          includeFinalRecovery: true,
+          totalWorkSeconds: 300,
+          totalRecoverySeconds: 600,
+          intervalBlockSeconds: 900,
+        },
+        {
+          id: `${testRunId}-interval-session-b`,
+          userId: userBId,
+          logId: userBLogId,
+          exerciseId: userBIntervalExerciseId,
+          performedAt: new Date("2026-05-18T00:00:00.000Z"),
+          rounds: 12,
+          workSeconds: 30,
+          recoverySeconds: 45,
+          includeFinalRecovery: false,
+          totalWorkSeconds: 360,
+          totalRecoverySeconds: 495,
+          intervalBlockSeconds: 855,
+        },
+      ],
+    });
   });
 
   afterEach(async () => {
@@ -295,6 +375,64 @@ describe("progress queries", () => {
         speed: 12,
       },
     ]);
+  });
+
+  it("returns only owned interval progress points", async () => {
+    const data = await getIntervalProgressData({
+      chartRange: chartRange(),
+      userId: userAId,
+      exerciseId: userAIntervalExerciseId,
+    });
+
+    expect(data).toEqual([
+      {
+        id: `${testRunId}-interval-session-a`,
+        date: "2026-05-17",
+        rounds: 10,
+        workSeconds: 30,
+        recoverySeconds: 60,
+        includeFinalRecovery: true,
+        totalWorkSeconds: 300,
+        totalRecoverySeconds: 600,
+        intervalBlockSeconds: 900,
+        numericWorkRestRatio: 0.5,
+      },
+    ]);
+
+    expect(
+      await getIntervalProgressData({
+        chartRange: chartRange(),
+        userId: userAId,
+        exerciseId: userBIntervalExerciseId,
+      }),
+    ).toEqual([]);
+  });
+
+  it("rejects interval progress attached to a non-interval exercise", async () => {
+    await prisma.intervalSession.create({
+      data: {
+        id: `${testRunId}-wrong-kind-interval-session`,
+        userId: userAId,
+        logId: userALogId,
+        exerciseId: userAWeightliftingExerciseId,
+        performedAt: new Date("2026-05-17T00:00:00.000Z"),
+        rounds: 6,
+        workSeconds: 20,
+        recoverySeconds: 60,
+        includeFinalRecovery: false,
+        totalWorkSeconds: 120,
+        totalRecoverySeconds: 300,
+        intervalBlockSeconds: 420,
+      },
+    });
+
+    expect(
+      await getIntervalProgressData({
+        chartRange: chartRange(),
+        userId: userAId,
+        exerciseId: userAWeightliftingExerciseId,
+      }),
+    ).toEqual([]);
   });
 
   it("defaults weightlifting progress to the last 6 months", async () => {
@@ -478,6 +616,121 @@ describe("progress queries", () => {
 
     expect(data.map((point) => point.id)).toEqual([
       `${testRunId}-pace-session-a`,
+    ]);
+  });
+
+  it("defaults interval progress to the last 6 months", async () => {
+    await createIntervalProgressSession({
+      id: "interval-older-than-six-months",
+      performedAt: "2025-11-16",
+    });
+
+    const data = await getIntervalProgressData({
+      chartRange: chartRange(),
+      userId: userAId,
+      exerciseId: userAIntervalExerciseId,
+    });
+
+    expect(data.map((point) => point.id)).toEqual([
+      `${testRunId}-interval-session-a`,
+    ]);
+  });
+
+  it("filters interval progress by preset and custom chart ranges", async () => {
+    await Promise.all([
+      createIntervalProgressSession({
+        id: "interval-before-four-weeks",
+        performedAt: "2026-04-18",
+      }),
+      createIntervalProgressSession({
+        id: "interval-four-weeks-start",
+        performedAt: "2026-04-19",
+      }),
+      createIntervalProgressSession({
+        id: "interval-custom-start",
+        performedAt: "2026-04-01",
+      }),
+      createIntervalProgressSession({
+        id: "interval-custom-end",
+        performedAt: "2026-04-15",
+      }),
+    ]);
+
+    const preset = await getIntervalProgressData({
+      chartRange: chartRange({ chartRange: "4w" }),
+      userId: userAId,
+      exerciseId: userAIntervalExerciseId,
+    });
+    const custom = await getIntervalProgressData({
+      chartRange: chartRange({
+        chartFrom: "2026-04-01",
+        chartRange: "custom",
+        chartTo: "2026-04-15",
+      }),
+      userId: userAId,
+      exerciseId: userAIntervalExerciseId,
+    });
+
+    expect(preset.map((point) => point.date)).toEqual([
+      "2026-04-19",
+      "2026-05-17",
+    ]);
+    expect(custom.map((point) => point.date)).toEqual([
+      "2026-04-01",
+      "2026-04-15",
+    ]);
+  });
+
+  it("falls back to the default interval range for invalid custom filters", async () => {
+    await createIntervalProgressSession({
+      id: "invalid-interval-custom-excluded",
+      performedAt: "2025-11-16",
+    });
+
+    const data = await getIntervalProgressData({
+      chartRange: chartRange({
+        chartFrom: "2025-01-01",
+        chartRange: "custom",
+      }),
+      userId: userAId,
+      exerciseId: userAIntervalExerciseId,
+    });
+
+    expect(data.map((point) => point.id)).toEqual([
+      `${testRunId}-interval-session-a`,
+    ]);
+  });
+
+  it("orders interval progress deterministically across timestamp ties", async () => {
+    await Promise.all([
+      createIntervalProgressSession({
+        createdAt: "2026-05-16T09:00:00.000Z",
+        id: "ordered-a",
+        performedAt: "2026-05-16",
+      }),
+      createIntervalProgressSession({
+        createdAt: "2026-05-16T10:00:00.000Z",
+        id: "ordered-b",
+        performedAt: "2026-05-16",
+      }),
+      createIntervalProgressSession({
+        createdAt: "2026-05-16T10:00:00.000Z",
+        id: "ordered-c",
+        performedAt: "2026-05-16",
+      }),
+    ]);
+
+    const data = await getIntervalProgressData({
+      chartRange: chartRange(),
+      userId: userAId,
+      exerciseId: userAIntervalExerciseId,
+    });
+
+    expect(data.map((point) => point.id)).toEqual([
+      `${testRunId}-ordered-a`,
+      `${testRunId}-ordered-b`,
+      `${testRunId}-ordered-c`,
+      `${testRunId}-interval-session-a`,
     ]);
   });
 });

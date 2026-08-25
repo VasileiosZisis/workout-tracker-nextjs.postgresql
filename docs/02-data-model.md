@@ -14,7 +14,8 @@ User
     └── Exercise
         ├── WeightliftingSession
         │   └── WeightliftingSet
-        └── PaceSession
+        ├── PaceSession
+        └── IntervalSession
 ```
 
 Workout sessions also store direct `userId` and `logId` references. These
@@ -44,9 +45,12 @@ workout sessions.
 | `WeightliftingSession` | Dated strength evidence and volume totals | Indexed by owner, exercise, and date |
 | `WeightliftingSet` | Ordered repetitions, load, classification, and volume | Unique `(sessionId, position)` |
 | `PaceSession` | Dated duration, distance, pace, and speed evidence | Indexed by owner, exercise, and date |
+| `IntervalSession` | Dated uniform rounds, work/recovery timing, and workload totals | Indexed by owner, exercise, and date; indexed by log and exercise |
 
-`Exercise.sessionKind` is either `WEIGHTLIFTING` or `PACE`. Query and action
-modules include this discriminator when resolving session-specific records.
+`Exercise.sessionKind` is `WEIGHTLIFTING`, `PACE`, or `INTERVAL`. Query and
+action modules include this discriminator when resolving session-specific
+records. The session kind can change only while the exercise has no sessions in
+any child session table.
 
 ## Identifier Strategy
 
@@ -70,6 +74,14 @@ binary floating-point storage:
 
 Domain functions calculate in JavaScript numbers, round at the defined metric
 precision, and persist through Prisma decimal fields.
+
+Interval measurements use integer columns rather than decimals:
+
+- Rounds are stored as a whole number.
+- Work and recovery durations are stored as total seconds per round.
+- Final recovery is stored as an explicit boolean and defaults to excluded.
+- Total work, total recovery, and interval block duration are stored as whole
+  seconds.
 
 ## Derived Metrics
 
@@ -95,12 +107,27 @@ speedKmPerHour = distance / (totalMinutes / 60)
 Pace and speed are zero when their divisor is zero and are rounded to three
 decimal places. Display helpers expose pace as minutes and seconds per kilometer.
 
+Intervals:
+
+```text
+recoveryCount = includeFinalRecovery ? rounds : rounds - 1
+totalWorkSeconds = rounds * workSeconds
+totalRecoverySeconds = recoveryCount * recoverySeconds
+intervalBlockSeconds = totalWorkSeconds + totalRecoverySeconds
+numericWorkRestRatio = workSeconds / recoverySeconds
+```
+
+The three workload totals are calculated on the server and persisted. The
+numeric chart ratio and greatest-common-divisor display ratio are derived from
+the per-round durations and are not stored. Interval block duration excludes
+warm-up, cooldown, and any time outside the uniform repeated block.
+
 ## Ownership And Lifecycle
 
 Prisma relations use cascading deletes for owned child records:
 
 - Deleting a log removes its exercises and sessions.
-- Deleting an exercise removes its weightlifting or pace sessions.
+- Deleting an exercise removes its weightlifting, pace, or interval sessions.
 - Deleting a weightlifting session removes its sets.
 - Deleting a user removes both authentication and workout data.
 
@@ -111,7 +138,8 @@ relational deletion through post-delete hooks.
 
 - Derived metrics are stored as well as calculable. This makes progress queries
   and chart mapping simple, at the cost of requiring all writes to use trusted
-  domain functions.
+  domain functions. Interval work:rest ratios are the exception: they remain
+  derived because the stored per-round durations are sufficient.
 - Direct ownership identifiers on nested records improve authorization queries
   but rely on Server Actions to keep parent identifiers consistent.
 - Decimal repetitions support partial-repetition data but are more permissive

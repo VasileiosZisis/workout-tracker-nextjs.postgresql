@@ -21,6 +21,7 @@ historical checklist differs from later implementation.
 | 6 | [Progress](milestones/06-charts-progress.md) | Date-range queries, Recharts views, and accessible data tables |
 | 7 | [UI redesign](milestones/07-redesign-ui-polish.md) | Mobile-first Performance Lab interface and interaction polish |
 | 8 | [Production readiness](milestones/08-production-readiness.md) | Vercel/Neon deployment, security policy, observability, and runbook |
+| 9 | [Interval sessions](milestones/09-interval-sessions.md) | Uniform interval CRUD, workload evidence, charts, demo data, and session-kind integrity |
 
 ## Delivery Method
 

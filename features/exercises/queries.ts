@@ -67,6 +67,43 @@ export async function getExerciseBySlug({
   return findExerciseBySlug(userId, logSlug, exerciseSlug);
 }
 
+const findExerciseForEditBySlug = cache(
+  async (userId: string, logSlug: string, exerciseSlug: string) => {
+    return prisma.exercise.findFirst({
+      where: {
+        userId,
+        slug: exerciseSlug,
+        log: {
+          userId,
+          slug: logSlug,
+        },
+      },
+      include: {
+        log: true,
+        _count: {
+          select: {
+            intervalSessions: true,
+            paceSessions: true,
+            weightliftingSessions: true,
+          },
+        },
+      },
+    });
+  },
+);
+
+export async function getExerciseForEditBySlug({
+  userId,
+  logSlug,
+  exerciseSlug,
+}: {
+  userId: string;
+  logSlug: string;
+  exerciseSlug: string;
+}) {
+  return findExerciseForEditBySlug(userId, logSlug, exerciseSlug);
+}
+
 export async function getExistingExerciseSlugs({
   userId,
   logId,

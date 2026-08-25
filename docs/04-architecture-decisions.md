@@ -81,12 +81,16 @@ access when a helper is called from a new route.
 
 **Status:** Accepted
 
-Volume, pace, and speed are calculated in tested domain functions and persisted
-for efficient history and progress queries. Client-submitted derived values are
-ignored.
+Volume, pace, speed, and interval workload totals are calculated in tested
+domain functions and persisted for efficient history and progress queries.
+Interval totals are recalculated from validated rounds, work/recovery durations,
+and the final-recovery selection. Client-submitted derived values are ignored.
 
 Persisting derived values improves read simplicity but requires all mutation
-paths to use the same trusted calculations.
+paths to use the same trusted calculations. Work:rest ratios remain derived
+from stored per-round durations rather than persisted. Interval workload and
+ratio changes describe programmed protocol changes, not a universal performance
+score or proof of improvement.
 
 ## ADR-008: Scoped Slugs And Session IDs
 
@@ -103,7 +107,8 @@ conflicts or same-date session collisions.
 **Status:** Accepted
 
 Weight is stored in kilograms, distance in kilometers, pace in minutes per
-kilometer, and speed in kilometers per hour. Unit conversion is deferred until
+kilometer, speed in kilometers per hour, and interval durations in whole
+seconds. Work:rest ratios are dimensionless. Unit conversion is deferred until
 the product requires user-level preferences.
 
 ## ADR-010: Server-First Rendering

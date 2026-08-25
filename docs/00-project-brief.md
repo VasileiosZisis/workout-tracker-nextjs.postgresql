@@ -4,8 +4,8 @@
 
 Workout Trackr is a commercial performance-tracking application for recording
 structured training data and evaluating progress over time. The current product
-supports weightlifting and pace-based activities and is designed to expand into
-broader personal performance metrics.
+supports weightlifting, pace-based activities, and uniform interval sessions,
+and is designed to expand into broader personal performance metrics.
 
 This repository is a ground-up modernization of an earlier MERN implementation.
 It preserves the useful domain behavior while replacing the client-heavy React,
@@ -19,8 +19,8 @@ The application should help a user:
 - Capture repeatable workout measurements with minimal ambiguity.
 - Review recent performance before recording the next session.
 - Compare historical measurements through paginated evidence and charts.
-- Use working volume, hard sets, pace, speed, and distance to make informed
-  training decisions.
+- Use working volume, hard sets, pace, speed, distance, interval work, rounds,
+  and work:rest ratios to make informed training decisions.
 
 The product is evidence-oriented rather than social. User data is private by
 default, and there is no public feed, leaderboard, or community layer in v1.
@@ -49,8 +49,12 @@ default, and there is no public feed, leaderboard, or community layer in v1.
 - Log and exercise CRUD with ownership-scoped slugs.
 - Weightlifting session CRUD with ordered sets and volume calculations.
 - Pace session CRUD with pace and speed calculations.
+- Interval session CRUD with uniform work/recovery rounds and server-calculated
+  workload totals.
 - Previous-session evidence, paginated history, and progress charts.
 - Mobile-first dark interface with accessible chart fallback tables.
+- Temporary two-hour demo sandboxes with representative strength, pace, and
+  interval histories.
 - Vercel deployment, Neon branch-per-Preview integration, security headers,
   environment validation, and structured request-error logging.
 

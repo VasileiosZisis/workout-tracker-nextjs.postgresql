@@ -98,11 +98,36 @@ export async function updateExerciseAction(
     },
     include: {
       log: true,
+      _count: {
+        select: {
+          intervalSessions: true,
+          paceSessions: true,
+          weightliftingSessions: true,
+        },
+      },
     },
   });
 
   if (!existingExercise) {
     notFound();
+  }
+
+  const sessionKindLocked =
+    existingExercise._count.intervalSessions > 0 ||
+    existingExercise._count.paceSessions > 0 ||
+    existingExercise._count.weightliftingSessions > 0;
+
+  if (
+    sessionKindLocked &&
+    parsed.data.sessionKind !== existingExercise.sessionKind
+  ) {
+    return {
+      fieldErrors: {
+        sessionKind: [
+          "Session type cannot be changed after sessions have been added.",
+        ],
+      },
+    };
   }
 
   const nextSlug = slugifyExerciseTitle(parsed.data.title);

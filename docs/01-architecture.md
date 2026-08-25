@@ -32,10 +32,11 @@ lib/              auth, database, environment, metadata, and shared policy
 prisma/           schema and migrations
 ```
 
-Feature modules own domain behavior. For example, `features/weightlifting`
-contains its Server Actions, Prisma queries, Zod schemas, calculations,
-formatters, tests, and interactive form components. Cross-cutting policy stays
-in `lib/` rather than being copied across features.
+Feature modules own domain behavior. For example, `features/weightlifting`,
+`features/pace`, and `features/interval` contain their Server Actions, Prisma
+queries, Zod schemas, calculations, formatters, tests, and interactive form
+components. Cross-cutting policy stays in `lib/` rather than being copied
+across features.
 
 ## Read Path
 
@@ -66,7 +67,9 @@ same boundary:
 6. Revalidate affected routes and redirect or return typed field errors.
 
 Weightlifting session and set writes are transactional. Derived volume, pace,
-and speed values are never accepted as authoritative client input.
+speed, and interval workload totals are never accepted as authoritative client
+input. Interval actions persist totals calculated from validated rounds,
+work/recovery durations, and the final-recovery selection.
 
 ## Server And Client Components
 
@@ -74,7 +77,7 @@ Server Components are the default. Client Components are limited to behavior
 that requires browser state or event handling, including:
 
 - Dynamic weightlifting set fields.
-- Recharts visualizations and series toggles.
+- Recharts visualizations, series toggles, and interval metric selectors.
 - Chart range controls.
 - Pagination page-size navigation.
 - Delete confirmation and pending form controls.
@@ -106,6 +109,18 @@ local authentication use environment-scoped credentials.
 
 The environment parser validates required values at startup and applies
 environment-specific OAuth rules.
+
+## Temporary Demo Data
+
+The demo service creates each anonymous sandbox in one serializable transaction.
+It seeds two logs and four exercises with representative weightlifting, pace,
+and interval histories. The Running log includes **Track Sprints** with six
+progressive uniform interval sessions whose persisted totals use the same
+trusted interval metric calculation as normal Server Actions.
+
+Demo users carry an expiration timestamp. Demo creation and the scheduled
+cleanup route delete expired users, relying on database cascades to remove their
+logs, exercises, sessions, and authentication records.
 
 ## Errors And Observability
 

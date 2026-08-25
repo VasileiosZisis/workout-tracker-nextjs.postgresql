@@ -14,6 +14,7 @@ type ExerciseFormProps = {
   defaultTitle?: string;
   exerciseId?: string;
   logId?: string;
+  sessionKindLocked?: boolean;
   submitLabel: string;
 };
 
@@ -25,6 +26,7 @@ export function ExerciseForm({
   defaultTitle = "",
   exerciseId,
   logId,
+  sessionKindLocked = false,
   submitLabel,
 }: ExerciseFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -34,6 +36,9 @@ export function ExerciseForm({
       {logId ? <input name="logId" type="hidden" value={logId} /> : null}
       {exerciseId ? (
         <input name="exerciseId" type="hidden" value={exerciseId} />
+      ) : null}
+      {sessionKindLocked ? (
+        <input name="sessionKind" type="hidden" value={defaultSessionKind} />
       ) : null}
       <div className="field">
         <label htmlFor="title">Title</label>
@@ -60,11 +65,17 @@ export function ExerciseForm({
                 name="sessionKind"
                 value={sessionKind}
                 defaultChecked={sessionKind === defaultSessionKind}
+                disabled={sessionKindLocked}
               />
               {sessionKindLabels[sessionKind]}
             </label>
           ))}
         </div>
+        {sessionKindLocked ? (
+          <p className="field-help">
+            Session type is locked after the first session is added.
+          </p>
+        ) : null}
         {state.fieldErrors?.sessionKind ? (
           <p className="form-error">{state.fieldErrors.sessionKind[0]}</p>
         ) : null}

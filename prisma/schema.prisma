@@ -15,6 +15,7 @@ enum Role {
 enum SessionKind {
   WEIGHTLIFTING
   PACE
+  INTERVAL
 }
 
 model User {
@@ -31,6 +32,7 @@ model User {
   exercises             Exercise[]
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
+  intervalSessions      IntervalSession[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -93,6 +95,7 @@ model Log {
   exercises             Exercise[]
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
+  intervalSessions      IntervalSession[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -111,6 +114,7 @@ model Exercise {
   sessionKind           SessionKind
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
+  intervalSessions      IntervalSession[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -170,6 +174,29 @@ model PaceSession {
   speed       Decimal  @default(0) @db.Decimal(10, 3)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([userId, exerciseId, performedAt])
+  @@index([logId, exerciseId])
+}
+
+model IntervalSession {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logId                String
+  log                   Log      @relation(fields: [logId], references: [id], onDelete: Cascade)
+  exerciseId           String
+  exercise             Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  performedAt          DateTime
+  rounds               Int
+  workSeconds          Int
+  recoverySeconds      Int
+  includeFinalRecovery Boolean  @default(false)
+  totalWorkSeconds     Int
+  totalRecoverySeconds Int
+  intervalBlockSeconds Int
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@index([userId, exerciseId, performedAt])
   @@index([logId, exerciseId])

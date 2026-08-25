@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { SessionKind } from "@/generated/prisma/enums";
+import { calculateIntervalMetrics } from "@/features/interval/metrics";
 import { calculatePaceMetrics } from "@/features/pace/metrics";
 import { calculateWeightliftingMetrics } from "@/features/weightlifting/metrics";
 import { prisma } from "@/lib/db";
@@ -50,6 +51,51 @@ const tempoRunHistory = [
   { daysAgo: 28, minutes: 25, seconds: 45 },
   { daysAgo: 14, minutes: 25, seconds: 18 },
   { daysAgo: 1, minutes: 24, seconds: 52 },
+];
+
+const trackSprintsHistory = [
+  {
+    daysAgo: 70,
+    rounds: 6,
+    workSeconds: 20,
+    recoverySeconds: 60,
+    includeFinalRecovery: false,
+  },
+  {
+    daysAgo: 56,
+    rounds: 8,
+    workSeconds: 20,
+    recoverySeconds: 60,
+    includeFinalRecovery: false,
+  },
+  {
+    daysAgo: 42,
+    rounds: 8,
+    workSeconds: 30,
+    recoverySeconds: 60,
+    includeFinalRecovery: false,
+  },
+  {
+    daysAgo: 28,
+    rounds: 10,
+    workSeconds: 30,
+    recoverySeconds: 60,
+    includeFinalRecovery: true,
+  },
+  {
+    daysAgo: 14,
+    rounds: 10,
+    workSeconds: 30,
+    recoverySeconds: 45,
+    includeFinalRecovery: false,
+  },
+  {
+    daysAgo: 1,
+    rounds: 12,
+    workSeconds: 30,
+    recoverySeconds: 45,
+    includeFinalRecovery: false,
+  },
 ];
 
 function setsAtWeight(kilograms: number) {
@@ -200,6 +246,15 @@ export async function createDemoSandbox({
           sessionKind: SessionKind.PACE,
         },
       });
+      const trackSprints = await tx.exercise.create({
+        data: {
+          userId: createdUser.id,
+          logId: runningLog.id,
+          title: "Track Sprints",
+          slug: "track-sprints",
+          sessionKind: SessionKind.INTERVAL,
+        },
+      });
 
       await createWeightliftingHistory({
         tx,
@@ -240,6 +295,33 @@ export async function createDemoSandbox({
             paceMinutes: metrics.paceMinutes,
             paceSeconds: metrics.paceSeconds,
             speed: decimalString(metrics.speed, 3),
+          };
+        }),
+      });
+
+      await tx.intervalSession.createMany({
+        data: trackSprintsHistory.map((entry) => {
+          const metrics = calculateIntervalMetrics({
+            rounds: entry.rounds,
+            workMinutes: 0,
+            workSecondsPart: entry.workSeconds,
+            recoveryMinutes: 0,
+            recoverySecondsPart: entry.recoverySeconds,
+            includeFinalRecovery: entry.includeFinalRecovery,
+          });
+
+          return {
+            userId: createdUser.id,
+            logId: runningLog.id,
+            exerciseId: trackSprints.id,
+            performedAt: performedAt(now, entry.daysAgo),
+            rounds: metrics.rounds,
+            workSeconds: metrics.workSeconds,
+            recoverySeconds: metrics.recoverySeconds,
+            includeFinalRecovery: metrics.includeFinalRecovery,
+            totalWorkSeconds: metrics.totalWorkSeconds,
+            totalRecoverySeconds: metrics.totalRecoverySeconds,
+            intervalBlockSeconds: metrics.intervalBlockSeconds,
           };
         }),
       });

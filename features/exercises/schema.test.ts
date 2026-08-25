@@ -20,6 +20,15 @@ describe("exerciseFormSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("accepts valid interval exercises", () => {
+    const parsed = exerciseFormSchema.safeParse({
+      title: "Track Sprints",
+      sessionKind: SessionKind.INTERVAL,
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+
   it("trims accepted titles", () => {
     const parsed = exerciseFormSchema.parse({
       title: "  Squat  ",
