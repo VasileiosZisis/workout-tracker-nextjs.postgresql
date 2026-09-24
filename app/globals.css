@@ -32,9 +32,7 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 50% -20%, rgba(56, 189, 248, 0.16), transparent 36rem),
-    linear-gradient(180deg, #07090f 0%, #0a0f19 48%, #07090f 100%);
+  background: #090d15;
   color: var(--foreground);
   font-family:
     Inter,

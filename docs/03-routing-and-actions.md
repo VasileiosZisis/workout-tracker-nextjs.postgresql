@@ -6,7 +6,7 @@
 
 | Route | Rendering | Responsibility |
 | --- | --- | --- |
-| `/` | Static | Product overview and entry point |
+| `/` | Static | Product overview for signed-out and demo visitors; regular authenticated users redirect to `/logs` |
 | `/demo` | Dynamic | Anonymous sandbox entry; creation requires `DEMO_ENABLED` |
 | `/login` | Dynamic | Google and email sign-in or an environment-specific availability notice |
 | `/verify-request` | Dynamic | Confirmation after a magic-link email is requested |

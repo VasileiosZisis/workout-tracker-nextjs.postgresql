@@ -9,6 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // Database-backed tests share one database and include serializable transactions.
+    fileParallelism: false,
     globals: true,
     include: ["**/*.{test,spec}.ts"],
     exclude: ["node_modules/**", ".next/**", "generated/**"],

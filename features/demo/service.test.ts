@@ -7,8 +7,19 @@ import {
 } from "./service";
 
 const createdUserIds: string[] = [];
+const sandboxNow = new Date("2026-07-19T12:00:00.000Z");
+const sandboxExpiration = new Date("2026-07-19T14:00:00.000Z");
 
 describe("temporary demo service", () => {
+  beforeAll(async () => {
+    await prisma.user.deleteMany({
+      where: {
+        demoExpiresAt: sandboxExpiration,
+        name: "Demo Athlete",
+      },
+    });
+  });
+
   afterEach(async () => {
     await prisma.user.deleteMany({
       where: {
@@ -24,10 +35,10 @@ describe("temporary demo service", () => {
   });
 
   it("creates an isolated two-hour sandbox with representative history", async () => {
-    const now = new Date("2026-07-19T12:00:00.000Z");
-    const first = await createDemoSandbox({ now });
-    const second = await createDemoSandbox({ now });
-    createdUserIds.push(first.user.id, second.user.id);
+    const first = await createDemoSandbox({ now: sandboxNow });
+    createdUserIds.push(first.user.id);
+    const second = await createDemoSandbox({ now: sandboxNow });
+    createdUserIds.push(second.user.id);
 
     const sandbox = await prisma.user.findUniqueOrThrow({
       where: { id: first.user.id },
@@ -44,9 +55,7 @@ describe("temporary demo service", () => {
     });
 
     expect(first.user.id).not.toBe(second.user.id);
-    expect(sandbox.demoExpiresAt).toEqual(
-      new Date("2026-07-19T14:00:00.000Z"),
-    );
+    expect(sandbox.demoExpiresAt).toEqual(sandboxExpiration);
     expect(sandbox.logs).toHaveLength(2);
     expect(sandbox.exercises).toHaveLength(4);
     expect(sandbox.weightliftingSessions).toHaveLength(10);
@@ -164,12 +173,14 @@ describe("temporary demo service", () => {
   }, 15_000);
 
   it("enforces capacity and removes only expired demo users", async () => {
-    const now = new Date("2026-07-19T12:00:00.000Z");
-    const active = await createDemoSandbox({ now, maxActiveUsers: 1 });
+    const active = await createDemoSandbox({
+      now: sandboxNow,
+      maxActiveUsers: 1,
+    });
     createdUserIds.push(active.user.id);
 
     await expect(
-      createDemoSandbox({ now, maxActiveUsers: 1 }),
+      createDemoSandbox({ now: sandboxNow, maxActiveUsers: 1 }),
     ).rejects.toBeInstanceOf(DemoCapacityError);
 
     const expired = await createDemoSandbox({
@@ -185,7 +196,7 @@ describe("temporary demo service", () => {
     });
     createdUserIds.push(normalUser.id);
 
-    const deleted = await deleteExpiredDemoUsers(now);
+    const deleted = await deleteExpiredDemoUsers(sandboxNow);
 
     expect(deleted.count).toBe(1);
     expect(await prisma.user.findUnique({ where: { id: active.user.id } })).not.toBeNull();
