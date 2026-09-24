@@ -1,6 +1,7 @@
 import type { Session } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
+import wtFavicon from "@/app/icon3.png";
 import { AuthButton } from "@/components/auth-button";
 import { AppNav } from "@/components/app-nav";
 import { PublicFooter } from "@/components/public-footer";
@@ -60,9 +61,17 @@ export function AppShell({
         <header className="app-topbar">
           <div>
             <Link className="app-brand" href="/logs">
-              Workout Trackr
+              <picture className="responsive-brand-image">
+                <source media="(max-width: 420px)" srcSet={wtFavicon.src} />
+                <Image
+                  className="brand-logo"
+                  src={wtLogo}
+                  alt="Workout Trackr"
+                  priority
+                  sizes="(max-width: 420px) 40px, 160px"
+                />
+              </picture>
             </Link>
-            <p>Evidence first training</p>
           </div>
           <AuthButton />
         </header>

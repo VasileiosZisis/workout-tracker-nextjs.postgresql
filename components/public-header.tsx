@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import wtFavicon from "@/app/icon3.png";
 import wtLogo from "@/public/brand/wt-logo.png";
 
 export function PublicHeader({
@@ -16,13 +17,16 @@ export function PublicHeader({
       </a>
       <header className="site-header">
         <Link className="brand" href="/">
-          <Image
-            className="brand-logo"
-            src={wtLogo}
-            alt="Workout Trackr"
-            priority
-            sizes="(max-width: 420px) 160px, 205px"
-          />
+          <picture className="responsive-brand-image">
+            <source media="(max-width: 420px)" srcSet={wtFavicon.src} />
+            <Image
+              className="brand-logo"
+              src={wtLogo}
+              alt="Workout Trackr"
+              priority
+              sizes="(max-width: 420px) 40px, 205px"
+            />
+          </picture>
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
           <Link href="/metrics">Metrics</Link>

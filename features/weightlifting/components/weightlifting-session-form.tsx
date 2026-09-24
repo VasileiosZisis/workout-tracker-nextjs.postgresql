@@ -83,7 +83,7 @@ export function WeightliftingSessionForm({
         <div className="set-editor-header">
           <div>
             <h2>Sets</h2>
-            <p className="field-help">Mark hard sets to separate working volume.</p>
+            <p className="field-help">Mark hard sets to separate working volume</p>
           </div>
           {!moveAddSetToActions ? (
             <button className="button-secondary" type="button" onClick={addSet}>

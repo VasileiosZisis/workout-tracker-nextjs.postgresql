@@ -122,6 +122,10 @@ input {
   height: auto;
 }
 
+.responsive-brand-image {
+  display: block;
+}
+
 .site-nav {
   display: flex;
   align-items: center;
@@ -204,12 +208,6 @@ input {
 
 .app-brand:hover {
   color: var(--accent-strong);
-}
-
-.app-topbar p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 0.85rem;
 }
 
 .app-nav {
@@ -876,6 +874,7 @@ h2 {
 
 .field {
   display: grid;
+  min-width: 0;
   gap: 8px;
 }
 
@@ -886,6 +885,8 @@ h2 {
 
 .field input[type="text"] {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -899,6 +900,8 @@ h2 {
 .field input[type="number"],
 .set-row input[type="number"] {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -945,6 +948,7 @@ h2 {
 
 .inline-fields label {
   display: grid;
+  min-width: 0;
   gap: 6px;
   font-weight: 700;
 }
@@ -1075,6 +1079,7 @@ fieldset.field {
 
 .set-row label {
   display: grid;
+  min-width: 0;
   gap: 6px;
   font-weight: 700;
 }
@@ -1712,10 +1717,26 @@ fieldset.field {
 }
 
 @media (max-width: 720px) {
+  .site-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .section-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 865px) {
   .app-shell {
     display: block;
     min-height: 100vh;
     padding-bottom: 84px;
+  }
+
+  .app-main-content {
+    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .app-sidebar {
@@ -1779,15 +1800,6 @@ fieldset.field {
   .demo-banner {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .site-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .section-grid {
-    grid-template-columns: 1fr;
   }
 
   .loading-page {
@@ -2733,6 +2745,7 @@ fieldset.field {
 }
 
 .site-footer {
+  container: site-footer / inline-size;
   border-top: 1px solid var(--border);
   padding: 0 clamp(16px, 4vw, 48px);
   color: var(--muted);
@@ -2807,13 +2820,29 @@ fieldset.field {
   color: var(--accent-strong);
 }
 
+@container site-footer (max-width: 820px) {
+  .site-footer-meta {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 12px;
+    padding: 20px 0 24px;
+    text-align: center;
+  }
+
+  .site-footer-email,
+  .site-footer-copyright,
+  .site-footer-credit {
+    justify-self: center;
+    text-align: center;
+  }
+}
+
 @media (max-width: 720px) {
   .site-footer {
     padding-inline: 24px;
   }
 
-  .site-footer-primary,
-  .site-footer-meta {
+  .site-footer-primary {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     text-align: center;
@@ -2823,10 +2852,7 @@ fieldset.field {
     gap: 18px;
   }
 
-  .site-footer-brand,
-  .site-footer-email,
-  .site-footer-copyright,
-  .site-footer-credit {
+  .site-footer-brand {
     justify-self: center;
     text-align: center;
   }
@@ -2837,11 +2863,6 @@ fieldset.field {
 
   .site-footer nav {
     justify-content: center;
-  }
-
-  .site-footer-meta {
-    gap: 12px;
-    padding: 20px 0 24px;
   }
 }
 
@@ -3115,8 +3136,10 @@ fieldset.field {
     gap: 10px;
   }
 
-  .brand {
-    font-size: 0.82rem;
+  .responsive-brand-image .brand-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
   }
 
   .site-nav {
