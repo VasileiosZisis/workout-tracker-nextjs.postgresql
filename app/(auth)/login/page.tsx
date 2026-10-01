@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/submit-button";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -105,9 +106,9 @@ export default async function LoginPage({
                       await signIn("google", { redirectTo });
                     }}
                   >
-                    <button
+                    <SubmitButton
                       className="button login-google-button"
-                      type="submit"
+                      pendingLabel="Signing in…"
                     >
                       <svg
                         aria-hidden="true"
@@ -133,7 +134,7 @@ export default async function LoginPage({
                         />
                       </svg>
                       Continue with Google
-                    </button>
+                    </SubmitButton>
                   </form>
                 ) : null}
 
@@ -173,12 +174,12 @@ export default async function LoginPage({
                       spellCheck={false}
                       type="email"
                     />
-                    <button
+                    <SubmitButton
                       className="button-secondary login-email-button"
-                      type="submit"
+                      pendingLabel="Sending link…"
                     >
                       Continue with email
-                    </button>
+                    </SubmitButton>
                   </form>
                 ) : null}
               </div>

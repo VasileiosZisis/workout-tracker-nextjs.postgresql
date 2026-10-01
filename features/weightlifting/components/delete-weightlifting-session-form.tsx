@@ -1,5 +1,7 @@
 "use client";
 
+import { FormCancelButton } from "@/components/form-cancel-button";
+import { SubmitButton } from "@/components/submit-button";
 import { useState } from "react";
 import { deleteWeightliftingSessionAction } from "../actions";
 
@@ -27,12 +29,15 @@ export function DeleteWeightliftingSessionForm({
       <input name="sessionId" type="hidden" value={sessionId} />
       <p>This removes only this weightlifting session and its sets.</p>
       <div className="confirmation-actions">
-        <button className="button-secondary" type="button" onClick={() => setConfirming(false)}>
+        <FormCancelButton
+          className="button-secondary"
+          onClick={() => setConfirming(false)}
+        >
           Cancel
-        </button>
-        <button className="danger-button" type="submit">
+        </FormCancelButton>
+        <SubmitButton className="danger-button" pendingLabel="Deleting…">
           Confirm delete
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

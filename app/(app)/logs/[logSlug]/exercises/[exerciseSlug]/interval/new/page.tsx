@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/submit-button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -64,15 +65,17 @@ export default async function NewIntervalSessionPage({
           formId={createSessionFormId}
           showSubmitButton={false}
           submitLabel="Create session"
+          footer={
+            <div className="form-footer form-actions">
+              <Link className="button-secondary" href={exercisePath}>
+                Cancel
+              </Link>
+              <SubmitButton className="button" pendingLabel="Creating…">
+                Create session
+              </SubmitButton>
+            </div>
+          }
         />
-        <div className="form-footer form-actions">
-          <Link className="button-secondary" href={exercisePath}>
-            Cancel
-          </Link>
-          <button className="button" form={createSessionFormId} type="submit">
-            Create session
-          </button>
-        </div>
       </section>
     </main>
   );

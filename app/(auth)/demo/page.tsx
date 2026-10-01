@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/submit-button";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -83,9 +84,12 @@ export default async function DemoPage({
 
             {demoAvailable ? (
               <form className="login-form" action={startDemoAction}>
-                <button className="button login-google-button" type="submit">
+                <SubmitButton
+                  className="button login-google-button"
+                  pendingLabel="Starting demo…"
+                >
                   Start temporary demo
-                </button>
+                </SubmitButton>
               </form>
             ) : null}
 

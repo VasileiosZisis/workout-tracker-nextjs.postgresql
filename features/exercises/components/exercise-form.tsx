@@ -1,5 +1,6 @@
 "use client";
 
+import { SubmitButton } from "@/components/submit-button";
 import { SessionKind } from "@/generated/prisma/enums";
 import type { ExerciseActionState } from "../types";
 import { sessionKindLabels } from "../types";
@@ -32,7 +33,11 @@ export function ExerciseForm({
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form className="form-stack form-panel" action={formAction}>
+    <form
+      aria-busy={pending}
+      className="form-stack form-panel"
+      action={formAction}
+    >
       {logId ? <input name="logId" type="hidden" value={logId} /> : null}
       {exerciseId ? (
         <input name="exerciseId" type="hidden" value={exerciseId} />
@@ -82,9 +87,12 @@ export function ExerciseForm({
       </fieldset>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
       <div className="form-actions">
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : submitLabel}
-        </button>
+        <SubmitButton
+          className="button"
+          pendingLabel={exerciseId ? "Saving…" : "Creating…"}
+        >
+          {submitLabel}
+        </SubmitButton>
       </div>
     </form>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { SubmitButton } from "@/components/submit-button";
 import type { LogActionState } from "../types";
 import { useActionState } from "react";
 
@@ -24,7 +25,11 @@ export function LogForm({
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form className="form-stack form-panel" action={formAction}>
+    <form
+      aria-busy={pending}
+      className="form-stack form-panel"
+      action={formAction}
+    >
       {logId ? <input name="logId" type="hidden" value={logId} /> : null}
       <div className="field">
         <label htmlFor="title">Title</label>
@@ -43,9 +48,12 @@ export function LogForm({
       </div>
       {state.formError ? <p className="form-error">{state.formError}</p> : null}
       <div className="form-actions">
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : submitLabel}
-        </button>
+        <SubmitButton
+          className="button"
+          pendingLabel={logId ? "Saving…" : "Creating…"}
+        >
+          {submitLabel}
+        </SubmitButton>
       </div>
     </form>
   );

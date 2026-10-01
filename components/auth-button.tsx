@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/submit-button";
 import { auth, signOut } from "@/auth";
 import Link from "next/link";
 
@@ -15,9 +16,12 @@ export async function AuthButton() {
         await signOut({ redirectTo: "/" });
       }}
     >
-      <button className="nav-button" type="submit">
+      <SubmitButton
+        className="nav-button"
+        pendingLabel={session.user.isDemo ? "Exiting demo…" : "Signing out…"}
+      >
         {session.user.isDemo ? "Exit demo" : "Sign out"}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

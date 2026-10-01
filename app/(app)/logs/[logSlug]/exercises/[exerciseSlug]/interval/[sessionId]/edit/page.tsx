@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/submit-button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -94,15 +95,17 @@ export default async function EditIntervalSessionPage({
           sessionId={session.id}
           showSubmitButton={false}
           submitLabel="Save session"
+          footer={
+            <div className="form-footer form-actions">
+              <Link className="button-secondary" href={sessionPath}>
+                Cancel
+              </Link>
+              <SubmitButton className="button" pendingLabel="Saving…">
+                Save session
+              </SubmitButton>
+            </div>
+          }
         />
-        <div className="form-footer form-actions">
-          <Link className="button-secondary" href={sessionPath}>
-            Cancel
-          </Link>
-          <button className="button" form={editSessionFormId} type="submit">
-            Save session
-          </button>
-        </div>
       </section>
       <section className="section-block narrow danger-zone">
         <h2>Delete session</h2>

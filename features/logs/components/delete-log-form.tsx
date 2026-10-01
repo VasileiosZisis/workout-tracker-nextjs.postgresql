@@ -1,5 +1,6 @@
 "use client";
 
+import { SubmitButton } from "@/components/submit-button";
 import { useState } from "react";
 import { deleteLogAction } from "../actions";
 
@@ -23,9 +24,13 @@ export function DeleteLogForm({ logId, title }: { logId: string; title: string }
       <p id="delete-log-help">
         This removes the log, its exercises, and all recorded sessions.
       </p>
-      <button className="danger-button" type="submit" disabled={!canDelete}>
+      <SubmitButton
+        className="danger-button"
+        pendingLabel="Deleting…"
+        disabled={!canDelete}
+      >
         Confirm delete
-      </button>
+      </SubmitButton>
     </form>
   );
 }

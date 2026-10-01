@@ -1,5 +1,6 @@
 "use client";
 
+import { SubmitButton } from "@/components/submit-button";
 import { useState } from "react";
 import { deleteExerciseAction } from "../actions";
 
@@ -29,9 +30,13 @@ export function DeleteExerciseForm({
       <p id="delete-exercise-help">
         This removes the exercise and every session recorded for it.
       </p>
-      <button className="danger-button" type="submit" disabled={!canDelete}>
+      <SubmitButton
+        className="danger-button"
+        pendingLabel="Deleting…"
+        disabled={!canDelete}
+      >
         Confirm delete
-      </button>
+      </SubmitButton>
     </form>
   );
 }
