@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 const pageDescription =
   "See the weightlifting, pace, and interval metrics you can record and calculate with Workout Trackr.";
@@ -218,7 +219,7 @@ export default function MetricsPage() {
   return (
     <main className="page metrics-page">
       <header className="page-header">
-        <h1>Metrics</h1>
+        <h1>{pageTitle}</h1>
       </header>
 
       <section
@@ -286,6 +287,21 @@ export default function MetricsPage() {
             <span>Use preset periods or a custom range to focus the chart.</span>
           </li>
         </ul>
+      </section>
+
+      <section
+        className="metrics-cta section-block"
+        aria-labelledby="metrics-cta-title"
+      >
+        <h2 id="metrics-cta-title">Start tracking your progress</h2>
+        <div className="metrics-actions">
+          <Link className="button" href="/login">
+            Start Tracking
+          </Link>
+          <Link className="button-secondary" href="/demo">
+            Try demo
+          </Link>
+        </div>
       </section>
     </main>
   );

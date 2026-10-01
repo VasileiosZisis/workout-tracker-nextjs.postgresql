@@ -1,8 +1,8 @@
 name = "security_isolation"
 description = "Security auditor for Workout Trackr ownership boundaries, authentication, demo isolation, redirects, rate limiting, and sensitive-data handling."
 
-model = "gpt-5.6-sol"
-model_reasoning_effort = "high"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "very-high"
 sandbox_mode = "read-only"
 
 developer_instructions = """

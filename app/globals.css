@@ -2108,6 +2108,22 @@ fieldset.field {
   color: var(--foreground);
 }
 
+.metrics-cta {
+  text-align: center;
+}
+
+.metrics-cta h2 {
+  margin-bottom: 16px;
+  font-size: 1.35rem;
+}
+
+.metrics-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
 @media (max-width: 720px) {
   .metrics-columns {
     grid-template-columns: 1fr;

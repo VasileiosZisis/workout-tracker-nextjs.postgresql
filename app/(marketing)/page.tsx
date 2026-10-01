@@ -88,6 +88,10 @@ export default function HomePage() {
         <div className="home-hero-inner">
           <div className="home-hero-copy">
             <h1 id="home-title">Record the work. Read the progress.</h1>
+            <p>
+              Track weightlifting, running, and interval workouts and see your
+              progress over time
+            </p>
             <div className="home-actions">
               <Link className="button" href="/demo">
                 Try demo
