@@ -1,114 +1,152 @@
 # Workout Trackr
 
-Workout Trackr is a commercial, production-oriented full-stack performance
-tracking application built with Next.js, PostgreSQL, and Prisma. It records
-structured weightlifting, pace-based, and uniform interval/HIIT training data,
-calculates derived metrics on the server, and presents session history as
-evidence that can guide future training decisions.
+Workout Trackr is a full-stack web app for recording strength, pace-based, and
+interval training, then reviewing session history and progress. Users organize
+exercises into logs, record structured measurements, and compare volume, load,
+pace, speed, distance, and interval workload over time.
 
-The project is also an engineering case study in modernizing a MERN application
-into a server-first Next.js architecture with relational data modeling,
-database-backed authentication, explicit validation, and an environment-aware
-deployment workflow.
+This repository modernizes an earlier MERN application into a Next.js App Router
+and PostgreSQL system. It demonstrates work across interactive UI, relational
+data modeling, authentication, authorization, domain calculations, integration
+testing, and deployment operations. The architectural decisions and their
+tradeoffs are linked below so reviewers can evaluate the implementation directly.
 
-![Workout Trackr exercise progress view](public/home/bench-progress.png)
+**[Live app](https://www.workouttrackr.com) ·
+[Try the demo](https://www.workouttrackr.com/demo) ·
+[Architecture decisions](docs/04-architecture-decisions.md)**
 
-## Live Demo
+![Weightlifting history and progress in Workout Trackr](public/home/bench-progress-v2.png)
 
-[Try the temporary Workout Trackr demo](https://www.workouttrackr.com/demo)
-without using a personal sign-in method. Each visitor receives an isolated,
-writable workspace with sample strength, pace, and interval/HIIT history. The
-Running log includes Track Sprints with six uniform interval sessions. Demo
-data is permanently deleted after two hours or when the visitor exits the demo.
+## Explore the demo
 
-## Engineering Focus
+The demo provides an isolated, writable workspace without Google or email
+sign-in. Each visitor receives sample strength, pace, and interval history.
 
-- Server Components for authenticated, read-heavy application screens.
-- Server Actions for application-owned mutations.
-- Database-level ownership filters on every user-owned query and mutation.
-- Zod validation at server boundaries.
-- Server-calculated metrics instead of trusting derived client input.
-- Relational constraints and cascading deletes for domain integrity.
-- Database-backed Auth.js sessions with Google OAuth and Postmark magic links.
-- Isolated, two-hour demo sandboxes with seeded training history.
-- Isolated Neon branches for local development, Preview deployments, and
-  Production.
-- Forward-only Prisma migrations deployed automatically during Vercel builds.
-- Focused unit and database integration tests for domain and authorization
-  behavior.
+A short walkthrough:
 
-## Product Scope
+1. Open **Strength Training → Bench Press** to inspect sets, volume, and average
+   working load. Change the chart range and inspect a historical session.
+2. Open **Running → 5K Tempo Run** to compare pace, speed, and distance.
+3. Open **Running → Track Sprints** to inspect interval protocols, total work,
+   recovery, and block duration.
+4. Create or edit a session to see validation and recalculated metrics, then
+   exit the demo when finished.
 
-Authenticated users can:
+Demo access expires after two hours. Signing out deletes the workspace; expired
+workspaces are removed through session checks, new-demo creation, and scheduled
+cleanup. Deletion is not guaranteed to occur at the exact expiry time. Demo
+availability is controlled by `DEMO_ENABLED` and an active-workspace capacity
+limit.
 
-- Organize training into logs and exercises.
-- Record weightlifting sessions with ordered sets, repetitions, weight, and
-  hard-set classification.
-- Record pace sessions with duration and distance.
-- Record interval/HIIT sessions with rounds, work and recovery durations, and an
-  optional final recovery.
-- Review paginated session history and previous-session evidence.
-- Analyze working volume, total volume, junk volume, load per rep, pace, speed,
-  distance, interval work, recovery, block duration, and work:rest ratio.
-- Filter progress charts by predefined or custom date ranges.
-- Review interval workload charts by total work, rounds, block duration, or
-  numeric work:rest ratio without treating protocol changes as a universal
-  performance score.
-- Update their profile and securely end database sessions.
+## What the app does
 
-## Architecture
+### Organize and record training
 
-```mermaid
-flowchart LR
-  Browser["Browser"] --> App["Next.js App Router"]
-  App --> RSC["React Server Components"]
-  App --> Actions["Server Actions"]
-  App --> Auth["Auth.js Route Handlers"]
-  RSC --> Queries["Feature Query Modules"]
-  Actions --> Validation["Zod Validation"]
-  Actions --> Domain["Domain Metric Logic"]
-  Auth --> Prisma["Prisma Client"]
-  Auth --> Postmark["Postmark Transactional Email"]
-  Queries --> Prisma
-  Domain --> Prisma
-  Prisma --> Neon["Neon PostgreSQL"]
-  GitHub["GitHub"] --> Vercel["Vercel Builds"]
-  Vercel --> NeonBranches["Neon Production / Preview Branches"]
-```
+- Sign in with Google OAuth or a passwordless email link delivered by Postmark.
+- Create, rename, and delete logs and exercises. Each exercise has one session
+  kind: weightlifting, pace, or interval/HIIT.
+- Create, edit, and delete dated sessions. Separate sessions can share a date.
+- Record ordered weightlifting sets with repetitions, kilograms, and a
+  user-selected hard-set flag.
+- Record pace activities with hours, minutes, seconds, and distance in kilometers.
+- Record uniform interval blocks with rounds, work duration, recovery duration,
+  and optional recovery after the final round.
 
-The application is organized by responsibility:
+Deleting a log or exercise also deletes its dependent training records. An
+exercise's session kind cannot be changed while it has recorded sessions.
 
-- `app/` defines public, authentication, authenticated, and API routes.
-- `features/` owns domain schemas, calculations, queries, actions, and focused
-  UI.
-- `components/` contains reusable application and navigation components.
-- `lib/` contains cross-cutting auth, environment, database, redirect, and
-  metadata utilities.
-- `prisma/` contains the relational schema and forward migrations.
+### Review history and progress
 
-Server Components call query modules directly. Mutations flow through Server
-Actions, where the user is authenticated, input is parsed, ownership is checked,
-derived values are recalculated, and related writes are committed in a
-transaction where necessary. CRUD behavior is not duplicated behind an
-application-internal JSON API.
+- Review the latest session alongside paginated session history and detailed
+  session pages.
+- Inspect total, working, and non-hard-set volume, plus average working load.
+  The interface labels non-hard-set volume as “junk volume”; this is a record
+  classification, not an automatic assessment of training quality.
+- Compare pace in min/km, speed in km/h, and distance over time.
+- Switch interval charts between total work, rounds, block duration, and the
+  numeric work:rest ratio.
+- Filter charts by 4, 8, or 12 weeks, six months, one year, YTD, or a custom
+  date range. Preset ranges are anchored to the exercise's latest session.
+- Inspect chart details and accessible data tables in a mobile-first dark UI.
+
+Interval charts describe workload and protocol changes. A higher work:rest ratio
+or longer block does not automatically mean better performance.
+
+The profile page displays the signed-in identity. Profile editing is not
+implemented; signing out ends the current database-backed session.
 
 ## Technology
 
 | Area | Implementation |
 | --- | --- |
 | Application | Next.js 16 App Router, React 19, TypeScript |
+| UI and charts | Custom CSS, interactive Client Components, Recharts 3 |
 | Database | PostgreSQL hosted on Neon |
-| ORM and migrations | Prisma 7 and Prisma Migrate |
-| Authentication | Auth.js 5, Prisma Adapter, Google OAuth, Postmark magic links, database sessions |
-| Validation | Zod 4 |
-| Charts | Recharts 3 |
-| Testing | Vitest, Prisma-backed integration tests |
-| Deployment | Vercel with Neon branch-per-Preview integration |
+| ORM and migrations | Prisma 7, PostgreSQL adapter, committed Prisma migrations |
+| Authentication | Auth.js 5 beta, Prisma Adapter, Google OAuth, Postmark, database sessions |
+| Validation | Zod 4 schemas at mutation boundaries |
+| Tests | Vitest unit tests and Prisma-backed database integration tests |
+| Deployment | Vercel, Neon branches, authenticated demo-cleanup cron |
 | Runtime | Node.js 24 |
 
-## Data Model
+Exact dependency versions and available commands are in [package.json](package.json).
 
-The core hierarchy is:
+## Architecture
+
+```mermaid
+flowchart LR
+  Browser[Browser] --> App[Next.js App Router]
+  App --> RSC[Server Components]
+  App --> Actions[Server Actions]
+  App --> Routes[Auth and cron Route Handlers]
+  RSC --> Queries[Feature query modules]
+  Actions --> Validation[Authentication, ownership, Zod validation]
+  Validation --> Metrics[Domain calculations]
+  Metrics --> Prisma[Prisma]
+  Queries --> Prisma
+  Routes --> Prisma
+  Routes --> Postmark[Postmark email]
+  Prisma --> DB[Neon PostgreSQL]
+```
+
+Server Components read data directly through feature query modules. Server
+Actions authenticate the caller, validate submitted input, resolve owned records,
+calculate derived metrics, and persist changes. Weightlifting edits replace sets
+and update session totals within one transaction. Client Components handle
+interactive forms, charts, navigation, and confirmation controls.
+
+Application CRUD is implemented through Server Actions. Route Handlers serve
+Auth.js and scheduled cleanup; there is no separate public workout REST API.
+
+### Decisions and code worth reviewing
+
+| Decision | Reason and tradeoff | Implementation |
+| --- | --- | --- |
+| Server-first reads and mutations | Keeps database access and domain rules on the server; couples the app to Next.js conventions. | [Exercise page](app/(app)/logs/[logSlug]/exercises/[exerciseSlug]/page.tsx), [weightlifting actions](features/weightlifting/actions.ts) |
+| PostgreSQL ownership and lifecycle relationships | Scoped uniqueness and cascades model naming and deletion rules; authorization and consistency across redundant parent IDs still need application checks. | [Prisma schema](prisma/schema.prisma), [exercise actions](features/exercises/actions.ts) |
+| Persist server-calculated totals | Simplifies history reads; every create/edit path must recalculate totals consistently. Average working load and interval ratios remain derived on read. | [Weightlifting metrics](features/weightlifting/metrics.ts), [interval actions](features/interval/actions.ts), [chart mapping](features/progress/mapping.ts) |
+| Database-backed authentication | Supports server-side session revocation and demo expiry; authentication depends on database availability. | [Auth configuration](auth.ts), [demo-aware adapter](lib/auth-adapter.ts) |
+| Writable, temporary demo accounts | Lets visitors evaluate real mutations without personal sign-in; requires expiry enforcement, capacity limits, and cleanup. | [Demo service](features/demo/service.ts), [cleanup route](app/api/cron/demo-cleanup/route.ts) |
+| Database branches per environment | Separates local and deployment databases; deployment rollback does not reverse database migrations. | [Prisma configuration](prisma.config.ts), [Vercel configuration](vercel.json), [runbook](docs/06-production-runbook.md) |
+
+For a concrete mutation flow, start with `updateWeightliftingSessionAction`:
+validate the form → find the authenticated user's session → recalculate volume →
+update the session and replace its sets in a transaction → revalidate affected
+pages. [Action tests](features/weightlifting/actions.test.ts) cover that boundary,
+while [query tests](features/weightlifting/queries.test.ts) exercise database reads.
+
+### Repository layout
+
+| Directory | Responsibility |
+| --- | --- |
+| `app/` | Marketing, authentication, protected application routes, and Route Handlers |
+| `features/` | Feature-specific schemas, metric functions, queries, actions, UI, and tests |
+| `components/` | Shared UI and navigation |
+| `lib/` | Authentication, database access, environment policy, redirects, and metadata |
+| `prisma/` | Relational schema and migration history |
+| `docs/` | Architecture, decisions, delivery history, and production operations |
+
+## Data model and calculation rules
 
 ```text
 User
@@ -120,182 +158,177 @@ User
         └── IntervalSession
 ```
 
-Auth.js `Account` and `Session` records belong to the same `User` model as the
-training data. `VerificationToken` stores single-use email sign-in tokens, while
-`AuthRateLimitBucket` stores short-lived HMAC-derived counters without raw email
-or IP identifiers. Logs use user-scoped slugs, exercises use log-scoped slugs,
-and sessions use stable database identifiers. This avoids cross-user slug
-conflicts and same-date session collisions.
+Training records carry ownership and parent identifiers. Logs have user-scoped
+slugs; exercises have log-scoped slugs; sessions use stable database IDs. Auth.js
+accounts and sessions relate to the same `User` model. Foreign keys and cascading
+deletes define the record lifecycle.
 
-Derived metrics are computed on the server. Weightlifting and pace aggregates
-are persisted as PostgreSQL decimal values. Interval rounds and durations use
-integer values, with durations stored as seconds. Average working load is
-calculated from the stored hard sets:
+Weightlifting measurements and volume totals use PostgreSQL decimals. Pace
+records store decimal distance, pace, and speed alongside integer time fields.
+Interval durations and workload totals are stored as integer seconds. Domain
+functions calculate values on the server; submitted derived totals are ignored.
 
-- Set volume: `repetitions * kilograms`
-- Working volume: sum of hard-set volume
-- Average working load per rep: hard-set volume divided by hard-set repetitions
-  (for one hard set, this equals its recorded weight; sessions without hard
-  sets have no value)
-- Junk volume: sum of non-hard-set volume
-- Pace: elapsed minutes divided by distance
-- Speed: distance divided by elapsed time
-- Interval recovery count: `rounds` when final recovery is included, otherwise
-  `rounds - 1`
-- Interval total work: `rounds * workSeconds`
-- Interval total recovery: `recoveryCount * recoverySeconds`
-- Interval block duration: `totalWorkSeconds + totalRecoverySeconds`
+| Measurement | Rule |
+| --- | --- |
+| Set volume | `repetitions × kilograms` |
+| Working volume | Sum of volume for sets marked hard |
+| Total / junk volume | All set volume / non-hard-set volume |
+| Average working load | Sum of `repetitions × kilograms` for hard sets divided by hard-set repetitions; absent when there are no hard sets |
+| Pace / speed | Elapsed minutes ÷ kilometers / kilometers ÷ elapsed hours |
+| Interval total work | `rounds × workSeconds` |
+| Interval total recovery | `(rounds - 1) × recoverySeconds`, or `rounds × recoverySeconds` with final recovery |
+| Interval block duration | Total work + total recovery |
+| Work:rest ratio | Per-round work duration ÷ per-round recovery duration |
 
-Interval workload totals are recalculated by Server Actions and persisted.
-Client-submitted derived values are ignored. The reduced display ratio and the
-numeric chart ratio are derived from work and recovery per round and are not
-stored. An exercise's session kind is locked after its first session is added.
+For example, hard sets of `5 × 80 kg` and `10 × 60 kg` produce **1,000 kg of
+working volume** and **66.67 kg average working load**, rather than an unweighted
+mean of the two set weights. Six rounds of 30 seconds work and 60 seconds
+recovery produce **180 seconds work**, **300 seconds recovery**, and a **480-second
+block** without final recovery; including it makes the block **540 seconds**.
 
-## Security Model
+Pace entries may contain time only or distance only. The calculation stores zero
+for unavailable pace/speed values. Interval entries require at least two rounds
+and positive work and recovery durations.
 
-- Every user-owned Prisma query includes the authenticated user identifier.
-- Nested mutations verify ownership of their parent log and exercise.
-- Auth.js stores sessions in PostgreSQL and uses secure HTTP-only cookies.
-- Callback destinations are restricted to relative application paths.
-- Preview deployments disable all configured sign-in providers.
-- Email sign-in requests use fixed 15-minute database buckets limited to five
-  requests per normalized email and 25 per available client IP.
-- Rate-limit identifiers are HMAC-SHA-256 hashes; raw email and IP values are
-  not stored in rate-limit records.
-- Server errors are logged without form values, credentials, tokens, or database
-  connection strings.
-- Production responses include CSP, HSTS, framing, MIME-sniffing, referrer,
-  permissions, and opener-isolation headers.
-- Environment configuration is validated at startup, including minimum secret
-  length and Production authentication-provider requirements.
+## Routes
 
-## Development Setup
+| Route | Purpose |
+| --- | --- |
+| `/` | Product overview and demo entry points |
+| `/login`, `/verify-request` | Google/email sign-in and email-link confirmation |
+| `/demo` | Temporary workspace entry and availability states |
+| `/logs` | Protected, paginated log collection |
+| `/logs/[logSlug]` | Exercises within an owned log |
+| `/logs/[logSlug]/exercises/[exerciseSlug]` | Latest session, history, and progress charts |
+| `.../weightlifting/[sessionId]`, `.../pace/[sessionId]`, `.../interval/[sessionId]` | Session details; corresponding `/new` and `/[sessionId]/edit` routes handle entry and editing |
+| `/profile` | Signed-in identity display |
+| `/metrics` | Public explanation of training metrics |
+| `/api/auth/[...nextauth]` | Auth.js endpoints |
+| `/api/cron/demo-cleanup` | Bearer-secret-protected expired-demo cleanup |
 
-### Prerequisites
+## Security and isolation
 
-- Node.js 24
-- npm
-- A Neon PostgreSQL project with a development branch
-- A Google OAuth web client for local authentication
-- A Postmark server with an active account, verified sender domain, and Server
-  API Token when testing email authentication locally
+- Protected pages require a session. Training queries scope reads to the user;
+  mutations resolve owned records or parents before writing by ID.
+- Session cookies are HTTP-only, SameSite Lax, and secure on HTTPS origins.
+- Application sign-in callback inputs are restricted to internal relative paths.
+- Vercel Preview policy disables Google and email sign-in even if provider
+  credentials are present. Temporary demos are configured independently.
+- Magic-link requests use fixed 15-minute database buckets: five requests per
+  normalized email and 25 per available client IP. Bucket identifiers are
+  HMAC-SHA-256-derived rather than stored as raw email/IP values.
+- Environment validation checks secret lengths, paired provider credentials,
+  Production requirements, and the cleanup secret when demos are enabled.
+- Response headers configure CSP, framing restrictions, MIME-sniffing protection,
+  referrer and permissions policy, opener isolation, and HSTS outside development.
 
-### Installation
+See [ownership query tests](features/logs/queries.test.ts),
+[redirect tests](lib/auth-redirect.test.ts),
+[rate-limit tests](lib/auth-email-rate-limit.test.ts), and
+[demo adapter tests](lib/auth-adapter.test.ts) for examples of regression coverage.
 
-```bash
+## Local development
+
+Prerequisites: Node.js 24, npm, and a Neon development database. Configure Google
+OAuth or Postmark for persistent sign-in, or enable the temporary demo for local
+exploration without provider credentials.
+
+```powershell
 git clone https://github.com/VasileiosZisis/workout-tracker-nextjs.postgresql.git
 cd workout-tracker-nextjs.postgresql
-npm install
-cp .env.example .env
+npm ci
+Copy-Item .env.example .env
 ```
 
-Configure `.env` with a pooled Neon development connection in `DATABASE_URL`,
-the corresponding unpooled connection in `DIRECT_URL`, a local `AUTH_SECRET`,
-and local Google OAuth credentials. To test email sign-in locally, also add
-Postmark email credentials. Use a real Postmark Server API Token, not an Account
-API Token, SMTP token, or `POSTMARK_API_TEST`.
+Edit `.env` using the variables below. Apply the committed migrations and
+explicitly generate the Prisma Client before starting the app:
 
-Create or apply the development migrations, then start the application:
-
-```bash
-npm run prisma:migrate
+```powershell
+npm run prisma:deploy
+npm run prisma:generate
 npm run dev
 ```
 
-The local Google OAuth client should use:
+Open `http://localhost:3000`. For local Google OAuth, configure that origin and
+`http://localhost:3000/api/auth/callback/google` as the redirect URI. For email
+sign-in, use a verified Postmark sender and a real **Server API Token**.
 
-```text
-Origin:   http://localhost:3000
-Callback: http://localhost:3000/api/auth/callback/google
-```
+When changing the database schema, use `npm run prisma:migrate` to create a
+migration and `npm run prisma:generate` to refresh the client.
 
-## Environment Variables
+### Environment variables
 
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_APP_URL` | Stable application origin for local authentication callbacks and Production metadata |
-| `AUTH_SECRET` | Environment-specific Auth.js secret of at least 32 characters |
-| `AUTH_GOOGLE_ID` | Google OAuth client identifier |
-| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
-| `POSTMARK_SERVER_TOKEN` | Postmark Server API Token used to send passwordless sign-in links |
-| `AUTH_EMAIL_FROM` | Verified sender and display name for magic-link emails, such as `Admin <admin@workouttrackr.com>` |
-| `DEMO_ENABLED` | Enables anonymous temporary demo creation and the public-header demo link when set to `true`; homepage demo calls to action remain visible in every environment |
-| `CRON_SECRET` | Secret used to authenticate scheduled demo cleanup |
-| `DATABASE_URL` | Pooled PostgreSQL connection used by the application |
-| `DIRECT_URL` | Local unpooled connection used by Prisma migrations |
-| `DATABASE_URL_UNPOOLED` | Vercel unpooled migration connection supplied by Neon |
+| `NEXT_PUBLIC_APP_URL` | Local callback origin and Production metadata origin |
+| `AUTH_SECRET` | Environment-specific Auth.js secret, at least 32 characters |
+| `DATABASE_URL` | Pooled PostgreSQL runtime connection |
+| `DIRECT_URL` | Unpooled connection for local Prisma commands |
+| `DATABASE_URL_UNPOOLED` | Unpooled connection supplied by Neon for Prisma commands on Vercel |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Google OAuth credentials; configure together |
+| `POSTMARK_SERVER_TOKEN`, `AUTH_EMAIL_FROM` | Postmark Server API Token and verified sender; configure together |
+| `DEMO_ENABLED` | Set to `true` to permit temporary workspace creation; defaults to `false` |
+| `CRON_SECRET` | At least 32 characters; required when the demo is enabled |
 
-Secrets and Production database URLs are never committed. Local, Preview, and
-Production environments use separate credentials.
+[.env.example](.env.example) documents the configuration template. Vercel
+Production requires both Google and Postmark credentials. Use separate credentials
+and databases for local, Preview, and Production environments.
 
-## Quality Checks
+## Verification
 
-The complete local verification pipeline is:
-
-```bash
-npm run check
-npm run prisma:validate
-```
-
-`npm run check` runs ESLint, TypeScript, the Vitest suite, Prisma Client
-generation, and an optimized Next.js production build. Tests cover pure metric
-logic, validation schemas, slug and pagination helpers, environment policy,
-safe redirects, email rate limiting, Postmark diagnostics, ownership-scoped
-database queries, session-kind integrity, interval CRUD and formulas, progress
-range mapping, demo data, and Server Action behavior.
-
-Useful individual commands:
+The suite includes pure calculation/schema tests and database integration tests
+for queries, actions, ownership, session kinds, and demo lifecycle behavior.
+Database tests use the configured `DATABASE_URL`, create and delete records, and
+run serially. Use a disposable development/test database with migrations applied
+and Prisma Client generated. No separate test database is selected automatically.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript without emitting files |
-| `npm test` | Run the complete Vitest suite once |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript without emitting files |
+| `npm test` | Complete Vitest suite, including database integration tests |
 | `npm run build` | Generate Prisma Client and build Next.js |
-| `npm run prisma:validate` | Validate the Prisma schema and configuration |
-| `npm run prisma:studio` | Inspect the configured development database |
+| `npm run prisma:validate` | Validate Prisma schema/configuration |
+| `npm run check` | Lint → typecheck → tests → production build |
 
-## Deployment Workflow
+These scripts provide the local verification workflow. GitHub Actions CI and
+automated browser tests are not configured.
 
-The repository uses a three-environment database model:
+## Deployment and operations
 
-| Environment | Database | Authentication |
+| Environment | Database | Persistent sign-in |
 | --- | --- | --- |
-| Local | Long-lived Neon `development` branch | Local Google OAuth client and optional Postmark Server API Token |
-| Preview | Disposable Neon branch created per deployment | All sign-in providers disabled |
-| Production | Primary Neon `production` branch | Production Google OAuth client and active Postmark Server API Token |
+| Local | Long-lived Neon development branch | Configured local providers |
+| Preview | Disposable Neon branch per Vercel Preview deployment | Disabled by application policy |
+| Production | Primary Neon production branch | Google OAuth and Postmark |
 
-Temporary demo availability is controlled independently in each environment
-with `DEMO_ENABLED`. The public-header demo link follows this setting, while
-homepage demo calls to action remain visible regardless of it. When enabled,
-`CRON_SECRET` must also be configured.
+The documented deployment workflow uses Vercel Git deployments and the Neon
+integration for environment-specific branches. [vercel.json](vercel.json) selects
+`npm run build:vercel`, which applies migrations, generates Prisma Client, and
+builds Next.js in that order. Runtime queries use pooled connections; migration
+commands use unpooled connections.
 
-Feature branches create Vercel Preview deployments and isolated Neon branches.
-Merging into the configured production Git branch creates a fresh Production
-deployment. The Vercel build runs `prisma migrate deploy` against the
-environment's unpooled connection before generating Prisma Client and building
-Next.js.
+Vercel invokes demo cleanup daily at **03:00 UTC**. The route requires
+`Authorization: Bearer <CRON_SECRET>`. Other lifecycle paths also remove expired
+demos. `DEMO_ENABLED` controls creation and the public-header demo link; homepage
+demo calls to action remain visible even when creation is disabled.
 
-Database migrations are forward-only. Rolling back a Vercel deployment does not
-reverse a migration that has already been applied.
+Migrations are forward-only: rolling back a Vercel deployment does not reverse an
+applied database migration. The [production runbook](docs/06-production-runbook.md)
+covers environment configuration, verification, and operational procedures.
 
-## Current Constraints
+## Current boundaries
 
-- Persistent accounts support Google OAuth and passwordless Postmark magic
-  links; passwords and passkeys are not implemented. Anonymous demo workspaces
-  expire after two hours.
-- Weight and distance are stored and displayed in kilograms and kilometers.
-- Interval v1 supports one uniform repeated work/recovery block. Warm-up,
-  cooldown, notes, multiple blocks, and distance, calories, watts, or speed
-  measurements are not tracked as part of an interval session.
-- Preview authentication remains intentionally disabled; enabling it requires
-  dedicated provider credentials and controlled email delivery.
-- External error tracking and automated browser tests are not part of the
-  current v1 scope.
-- The rewrite intentionally starts with an empty PostgreSQL database; legacy
-  MongoDB data migration is out of scope.
+- Metric units only: kilograms, kilometers, min/km, km/h, and seconds.
+- Interval sessions support one uniform work/recovery block. They do not track
+  multiple blocks, warm-up/cooldown, notes, calories, watts, speed, or distance.
+- No password/passkey authentication, profile editing, or administrative dashboard.
+- No social feed, shared training workspace, public workout API, or native mobile app.
+- External error tracking and general application-wide rate limiting are not
+  implemented; magic-link requests have dedicated throttling.
+- The rewrite starts with PostgreSQL data; legacy MongoDB migration is out of scope.
 
-## Documentation
+## Further documentation
 
 - [Project brief](docs/00-project-brief.md)
 - [Architecture](docs/01-architecture.md)
@@ -307,6 +340,6 @@ reverse a migration that has already been applied.
 
 ## License
 
-This public repository is available for portfolio review and technical
-evaluation. The software is proprietary and `UNLICENSED`; no permission is
-granted to copy, modify, distribute, or use it commercially.
+This public repository is available for portfolio review and technical evaluation.
+The software is proprietary and `UNLICENSED`; no permission is granted to copy,
+modify, distribute, or use it commercially.
