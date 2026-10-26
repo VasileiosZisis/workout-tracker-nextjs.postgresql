@@ -45,7 +45,7 @@ default, and there is no public feed, leaderboard, or community layer in v1.
 - Google OAuth and Postmark email magic links through Auth.js and the Prisma
   Adapter.
 - Database-backed sessions and protected application routes.
-- Profile display and update flow.
+- Profile identity display; profile editing is not implemented.
 - Log and exercise CRUD with ownership-scoped slugs.
 - Weightlifting session CRUD with ordered sets and volume calculations.
 - Pace session CRUD with pace and speed calculations.

@@ -38,7 +38,7 @@ Homepage demo calls to action remain visible across environments, while
 | `.../interval/new` | Create an interval session |
 | `.../interval/[sessionId]` | View an interval session |
 | `.../interval/[sessionId]/edit` | Edit or delete an interval session |
-| `/profile` | View and update the authenticated profile |
+| `/profile` | Display the authenticated user's email, falling back to their name or a generic label |
 
 The authenticated route group exports `noindex` metadata and resolves the user
 before rendering the app shell. `proxy.ts` provides the early anonymous redirect,
@@ -70,8 +70,9 @@ updateIntervalSessionAction
 deleteIntervalSessionAction
 ```
 
-Profile updates use the same authenticated Server Action pattern. Auth.js owns
-Google, magic-link, and sign-out mutations.
+The profile page only displays the authenticated user's identity; profile editing
+and a profile-update Server Action are not implemented. Auth.js owns Google,
+magic-link, and sign-out mutations.
 
 Actions return field-level validation errors for recoverable form input. Missing
 or unowned records use not-found behavior rather than revealing whether another
