@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { createPaceSessionAction } from "@/features/pace/actions";
 import { PaceSessionForm } from "@/features/pace/components/pace-session-form";
 import { PaceSessionSummary } from "@/features/pace/components/pace-session-summary";
+import { formatSessionDate } from "@/features/pace/format";
 import {
   getLatestPaceSession,
   getPaceExerciseBySlug,
@@ -53,9 +54,13 @@ export default async function NewPaceSessionPage({
         <h1>{exercise.title}</h1>
       </section>
       {previousSession ? (
-        <section className="section-block">
-          <h2>Previous session</h2>
-          <PaceSessionSummary session={previousSession} />
+        <section className="section-block session-reference">
+          <h2 className="session-reference-date">
+            <time dateTime={formatSessionDate(previousSession.performedAt)}>
+              {formatSessionDate(previousSession.performedAt)}
+            </time>
+          </h2>
+          <PaceSessionSummary session={previousSession} variant="compact" />
         </section>
       ) : null}
       <section className="section-block narrow">

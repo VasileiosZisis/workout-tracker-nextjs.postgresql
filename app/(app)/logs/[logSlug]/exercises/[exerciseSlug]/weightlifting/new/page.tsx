@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { createWeightliftingSessionAction } from "@/features/weightlifting/actions";
 import { SessionSummary } from "@/features/weightlifting/components/session-summary";
 import { WeightliftingSessionForm } from "@/features/weightlifting/components/weightlifting-session-form";
+import { formatSessionDate } from "@/features/weightlifting/format";
 import { getLatestWeightliftingSession, getWeightliftingExerciseBySlug } from "@/features/weightlifting/queries";
 
 export const metadata: Metadata = {
@@ -50,9 +51,13 @@ export default async function NewWeightliftingSessionPage({
         <h1>{exercise.title}</h1>
       </section>
       {previousSession ? (
-        <section className="section-block">
-          <h2>Previous session</h2>
-          <SessionSummary session={previousSession} />
+        <section className="section-block session-reference">
+          <h2 className="session-reference-date">
+            <time dateTime={formatSessionDate(previousSession.performedAt)}>
+              {formatSessionDate(previousSession.performedAt)}
+            </time>
+          </h2>
+          <SessionSummary session={previousSession} variant="compact" />
         </section>
       ) : null}
       <section className="section-block narrow">

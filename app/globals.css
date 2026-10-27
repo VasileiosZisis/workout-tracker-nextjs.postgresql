@@ -1129,6 +1129,148 @@ fieldset.field {
 .session-summary {
   display: grid;
   gap: 20px;
+  min-width: 0;
+}
+
+.session-reference,
+.metric-list-region {
+  container: metric-list / inline-size;
+  min-width: 0;
+}
+
+.metric-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 24px;
+  margin: 0;
+  padding-block: 20px;
+}
+
+.metric-list-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-list-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  border-inline-start: 1px solid var(--border);
+  padding-inline: 24px;
+}
+
+.metric-list-four .metric-list-item:nth-child(4n + 1),
+.metric-list-three .metric-list-item:nth-child(3n + 1) {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+.metric-list-item dt {
+  color: var(--muted-strong);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.session-reference-date,
+.metric-list-item dd {
+  font-size: 2rem;
+}
+
+.metric-list-item dd {
+  margin: auto 0 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.metric-list-item-lime dd {
+  color: var(--accent-lime);
+}
+
+.metric-list-item-amber dd {
+  color: var(--accent-amber);
+}
+
+.metric-list-item-blue dd {
+  color: var(--accent-strong);
+}
+
+.metric-list-item-violet dd {
+  color: var(--accent-violet);
+}
+
+.metric-list-item .metric-list-unit {
+  color: var(--muted-strong);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.metric-list-region-compact .metric-list {
+  padding-block: 8px 20px;
+}
+
+.session-sets-scroll {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.session-sets-scroll .data-table {
+  display: table;
+  overflow: visible;
+}
+
+@container metric-list (max-width: 760px) {
+  .metric-list-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-list-four .metric-list-item:nth-child(odd) {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+}
+
+@container metric-list (max-width: 560px) {
+  .metric-list-three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-list-three .metric-list-item:nth-child(odd) {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+
+  .metric-list-three .metric-list-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .metric-list-item {
+    padding-inline: 16px;
+  }
+
+  .session-reference-date,
+  .metric-list-item dd {
+    font-size: 1.75rem;
+  }
+}
+
+@container metric-list (max-width: 320px) {
+  .metric-list {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 16px;
+  }
+
+  .metric-list .metric-list-item {
+    border-inline-start: 0;
+    padding-inline: 0;
+  }
 }
 
 .section-heading {

@@ -6,6 +6,7 @@ import { BackLink } from "@/components/back-link";
 import { createIntervalSessionAction } from "@/features/interval/actions";
 import { IntervalSessionForm } from "@/features/interval/components/interval-session-form";
 import { IntervalSessionSummary } from "@/features/interval/components/interval-session-summary";
+import { formatSessionDate } from "@/features/interval/format";
 import {
   getIntervalExerciseBySlug,
   getLatestIntervalSession,
@@ -52,9 +53,13 @@ export default async function NewIntervalSessionPage({
         <h1>{exercise.title}</h1>
       </section>
       {previousSession ? (
-        <section className="section-block">
-          <h2>Previous session</h2>
-          <IntervalSessionSummary session={previousSession} />
+        <section className="section-block session-reference">
+          <h2 className="session-reference-date">
+            <time dateTime={formatSessionDate(previousSession.performedAt)}>
+              {formatSessionDate(previousSession.performedAt)}
+            </time>
+          </h2>
+          <IntervalSessionSummary session={previousSession} variant="compact" />
         </section>
       ) : null}
       <section className="section-block narrow">

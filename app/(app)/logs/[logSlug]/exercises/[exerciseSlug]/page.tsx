@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SessionKind } from "@/generated/prisma/enums";
 import { BackLink } from "@/components/back-link";
+import { MetricList } from "@/components/metric-list";
 import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { getExerciseBySlug } from "@/features/exercises/queries";
@@ -252,32 +253,36 @@ export default async function ExerciseDetailPage({
           </>
         ) : (
           <>
-            <section className="section-block evidence-strip" aria-label="Latest evidence">
-              <div className="metric-card metric-card-lime">
-                <span>Latest working volume</span>
-                <strong>
-                  {latestWeightliftingSession
-                    ? `${formatWeightliftingDecimal(
-                        latestWeightliftingSession.workingVolume,
-                      )} kg`
-                    : "0 kg"}
-                </strong>
-              </div>
-              <div className="metric-card metric-card-amber">
-                <span>Hard sets</span>
-                <strong>
-                  {latestWeightliftingSession?.sets.filter((set) => set.isHard)
-                    .length ?? 0}
-                </strong>
-              </div>
-              <div className="metric-card metric-card-blue">
-                <span>Average working load per rep</span>
-                <strong>
-                  {latestWeightliftingSession
-                    ? formatAverageWorkingLoad(latestWeightliftingSession.sets)
-                    : "—"}
-                </strong>
-              </div>
+            <section className="section-block" aria-label="Latest evidence">
+              <MetricList
+                items={[
+                  {
+                    label: "Working volume",
+                    value: latestWeightliftingSession
+                      ? formatWeightliftingDecimal(
+                          latestWeightliftingSession.workingVolume,
+                        )
+                      : "0",
+                    unit: "kg",
+                    tone: "lime",
+                  },
+                  {
+                    label: "Hard sets",
+                    value:
+                      latestWeightliftingSession?.sets.filter((set) => set.isHard)
+                        .length ?? 0,
+                    tone: "amber",
+                  },
+                  {
+                    label: "Average working load per rep",
+                    value: latestWeightliftingSession
+                      ? formatAverageWorkingLoad(latestWeightliftingSession.sets)
+                      : "—",
+                    unit: "kg",
+                    tone: "blue",
+                  },
+                ]}
+              />
             </section>
             <WeightliftingProgressChart
               data={weightliftingProgressData}
@@ -356,34 +361,39 @@ export default async function ExerciseDetailPage({
           </>
         ) : (
           <>
-            <section className="section-block evidence-strip" aria-label="Latest evidence">
-              <div className="metric-card metric-card-blue">
-                <span>Latest pace</span>
-                <strong>
-                  {latestPaceSession && Number(latestPaceSession.pace) !== 0
-                    ? formatPace({
-                        paceMinutes: latestPaceSession.paceMinutes,
-                        paceSeconds: latestPaceSession.paceSeconds,
-                      })
-                    : "0 min/km"}
-                </strong>
-              </div>
-              <div className="metric-card metric-card-lime">
-                <span>Distance</span>
-                <strong>
-                  {latestPaceSession
-                    ? `${formatPaceDecimal(latestPaceSession.distance)} km`
-                    : "0 km"}
-                </strong>
-              </div>
-              <div className="metric-card metric-card-violet">
-                <span>Speed</span>
-                <strong>
-                  {latestPaceSession
-                    ? `${formatPaceDecimal(latestPaceSession.speed)} km/h`
-                    : "0 km/h"}
-                </strong>
-              </div>
+            <section className="section-block" aria-label="Latest evidence">
+              <MetricList
+                items={[
+                  {
+                    label: "Latest pace",
+                    value:
+                      latestPaceSession && Number(latestPaceSession.pace) !== 0
+                        ? formatPace({
+                            paceMinutes: latestPaceSession.paceMinutes,
+                            paceSeconds: latestPaceSession.paceSeconds,
+                          })
+                        : "0 min/km",
+                    unit: "min/km",
+                    tone: "blue",
+                  },
+                  {
+                    label: "Distance",
+                    value: latestPaceSession
+                      ? formatPaceDecimal(latestPaceSession.distance)
+                      : "0",
+                    unit: "km",
+                    tone: "lime",
+                  },
+                  {
+                    label: "Speed",
+                    value: latestPaceSession
+                      ? formatPaceDecimal(latestPaceSession.speed)
+                      : "0",
+                    unit: "km/h",
+                    tone: "violet",
+                  },
+                ]}
+              />
             </section>
             <PaceProgressChart data={paceProgressData} range={chartRange} />
             <section className="section-block">
@@ -467,35 +477,35 @@ export default async function ExerciseDetailPage({
           </>
         ) : (
           <>
-            <section
-              className="section-block evidence-strip"
-              aria-label="Latest evidence"
-            >
-              <div className="metric-card metric-card-lime">
-                <span>Latest total work</span>
-                <strong>
-                  {latestIntervalSession
-                    ? formatIntervalDuration(
-                        latestIntervalSession.totalWorkSeconds,
-                      )
-                    : "0:00"}
-                </strong>
-              </div>
-              <div className="metric-card metric-card-amber">
-                <span>Rounds</span>
-                <strong>{latestIntervalSession?.rounds ?? 0}</strong>
-              </div>
-              <div className="metric-card metric-card-blue">
-                <span>Work:rest ratio</span>
-                <strong>
-                  {latestIntervalSession
-                    ? formatWorkRestRatio(
-                        latestIntervalSession.workSeconds,
-                        latestIntervalSession.recoverySeconds,
-                      )
-                    : "—"}
-                </strong>
-              </div>
+            <section className="section-block" aria-label="Latest evidence">
+              <MetricList
+                items={[
+                  {
+                    label: "Latest total work",
+                    value: latestIntervalSession
+                      ? formatIntervalDuration(
+                          latestIntervalSession.totalWorkSeconds,
+                        )
+                      : "0:00",
+                    tone: "lime",
+                  },
+                  {
+                    label: "Rounds",
+                    value: latestIntervalSession?.rounds ?? 0,
+                    tone: "amber",
+                  },
+                  {
+                    label: "Work:rest ratio",
+                    value: latestIntervalSession
+                      ? formatWorkRestRatio(
+                          latestIntervalSession.workSeconds,
+                          latestIntervalSession.recoverySeconds,
+                        )
+                      : "—",
+                    tone: "blue",
+                  },
+                ]}
+              />
             </section>
             <IntervalProgressChart
               data={intervalProgressData}
