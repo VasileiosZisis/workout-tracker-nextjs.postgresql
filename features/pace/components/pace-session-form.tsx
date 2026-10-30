@@ -1,6 +1,7 @@
 "use client";
 
 import { SubmitButton } from "@/components/submit-button";
+import { PerformedDateInput } from "@/components/performed-date-input";
 import { useActionState, type ReactNode } from "react";
 import type { PaceActionState } from "../types";
 
@@ -12,7 +13,7 @@ type PaceSessionFormProps = {
   defaultDistance?: string;
   defaultHours?: number;
   defaultMinutes?: number;
-  defaultPerformedDate: string;
+  defaultPerformedDate?: string;
   defaultSeconds?: number;
   exerciseId?: string;
   formId?: string;
@@ -47,13 +48,7 @@ export function PaceSessionForm({
         {sessionId ? <input name="sessionId" type="hidden" value={sessionId} /> : null}
         <div className="field">
           <label htmlFor="performedDate">Date</label>
-          <input
-            id="performedDate"
-            name="performedDate"
-            type="date"
-            defaultValue={defaultPerformedDate}
-            required
-          />
+          <PerformedDateInput defaultValue={defaultPerformedDate} />
           {state.fieldErrors?.performedDate ? (
             <p className="form-error">{state.fieldErrors.performedDate[0]}</p>
           ) : null}

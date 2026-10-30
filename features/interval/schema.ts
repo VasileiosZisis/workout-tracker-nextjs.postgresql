@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { performedDateSchema } from "@/lib/performed-date-schema";
 
 const wholeNumber = z.coerce.number().int("Use a whole number.");
 
@@ -12,9 +13,7 @@ const durationSecondsPart = wholeNumber
 
 export const intervalSessionSchema = z
   .object({
-    performedDate: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date."),
+    performedDate: performedDateSchema,
     rounds: wholeNumber
       .min(2, "Rounds must be at least 2.")
       .max(999, "Rounds must be 999 or fewer."),

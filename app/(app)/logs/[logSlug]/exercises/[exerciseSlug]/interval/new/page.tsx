@@ -19,10 +19,6 @@ export const metadata: Metadata = {
 
 const createSessionFormId = "create-interval-session-form";
 
-function todayDateInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default async function NewIntervalSessionPage({
   params,
 }: {
@@ -65,7 +61,6 @@ export default async function NewIntervalSessionPage({
       <section className="section-block narrow">
         <IntervalSessionForm
           action={createIntervalSessionAction}
-          defaultPerformedDate={todayDateInputValue()}
           exerciseId={exercise.id}
           formId={createSessionFormId}
           showSubmitButton={false}

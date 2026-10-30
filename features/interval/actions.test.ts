@@ -227,6 +227,36 @@ describe("interval actions", () => {
     });
   });
 
+  it("rejects an impossible create date without inserting a session", async () => {
+    const formData = validFormData();
+    formData.set("performedDate", "2026-02-31");
+
+    const result = await createIntervalSessionAction({}, formData);
+
+    expect(result.fieldErrors?.performedDate).toEqual(["Use a valid date."]);
+    expect(await prisma.intervalSession.count({ where: { userId } })).toBe(0);
+    expect(revalidatePath).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("preserves the session when an edited date is impossible", async () => {
+    const original = await createStoredSession({
+      id: `${testRunId}-invalid-date-update`,
+    });
+    const formData = validFormData({ sessionId: original.id });
+    formData.set("performedDate", "2026-02-31");
+
+    const result = await updateIntervalSessionAction({}, formData);
+    const unchanged = await prisma.intervalSession.findUniqueOrThrow({
+      where: { id: original.id },
+    });
+
+    expect(result.fieldErrors?.performedDate).toEqual(["Use a valid date."]);
+    expect(unchanged).toEqual(original);
+    expect(revalidatePath).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
   it("returns validation errors without writing, redirecting, or revalidating", async () => {
     const formData = validFormData();
     formData.set("recoveryMinutes", "0");

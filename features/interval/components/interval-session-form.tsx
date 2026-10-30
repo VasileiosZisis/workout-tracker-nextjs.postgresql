@@ -1,6 +1,7 @@
 "use client";
 
 import { SubmitButton } from "@/components/submit-button";
+import { PerformedDateInput } from "@/components/performed-date-input";
 import { useActionState, type ReactNode } from "react";
 import type { IntervalActionState } from "../types";
 
@@ -10,7 +11,7 @@ type IntervalSessionFormProps = {
     formData: FormData,
   ) => Promise<IntervalActionState>;
   defaultIncludeFinalRecovery?: boolean;
-  defaultPerformedDate: string;
+  defaultPerformedDate?: string;
   defaultRecoveryMinutes?: number;
   defaultRecoverySecondsPart?: number;
   defaultRounds?: number;
@@ -55,13 +56,7 @@ export function IntervalSessionForm({
         ) : null}
         <div className="field">
           <label htmlFor="performedDate">Date</label>
-          <input
-            id="performedDate"
-            name="performedDate"
-            type="date"
-            defaultValue={defaultPerformedDate}
-            required
-          />
+          <PerformedDateInput defaultValue={defaultPerformedDate} />
           {state.fieldErrors?.performedDate ? (
             <p className="form-error">{state.fieldErrors.performedDate[0]}</p>
           ) : null}

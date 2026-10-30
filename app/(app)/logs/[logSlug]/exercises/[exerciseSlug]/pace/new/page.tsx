@@ -19,10 +19,6 @@ export const metadata: Metadata = {
 
 const createSessionFormId = "create-pace-session-form";
 
-function todayDateInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default async function NewPaceSessionPage({
   params,
 }: {
@@ -66,7 +62,6 @@ export default async function NewPaceSessionPage({
       <section className="section-block narrow">
         <PaceSessionForm
           action={createPaceSessionAction}
-          defaultPerformedDate={todayDateInputValue()}
           exerciseId={exercise.id}
           formId={createSessionFormId}
           showSubmitButton={false}

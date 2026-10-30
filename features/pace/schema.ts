@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { performedDateSchema } from "@/lib/performed-date-schema";
 
 const wholeNumber = z.coerce.number().int("Use a whole number.");
 const decimalNumber = z.coerce
@@ -8,9 +9,7 @@ const decimalNumber = z.coerce
 
 export const paceSessionSchema = z
   .object({
-    performedDate: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date."),
+    performedDate: performedDateSchema,
     hours: wholeNumber
       .min(0, "Hours cannot be negative.")
       .max(999, "Hours must be 999 or fewer."),

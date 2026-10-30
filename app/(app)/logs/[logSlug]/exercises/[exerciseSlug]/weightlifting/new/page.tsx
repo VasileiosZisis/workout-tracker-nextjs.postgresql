@@ -16,10 +16,6 @@ export const metadata: Metadata = {
 
 const createSessionFormId = "create-weightlifting-session-form";
 
-function todayDateInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default async function NewWeightliftingSessionPage({
   params,
 }: {
@@ -63,7 +59,6 @@ export default async function NewWeightliftingSessionPage({
       <section className="section-block narrow">
         <WeightliftingSessionForm
           action={createWeightliftingSessionAction}
-          defaultPerformedDate={todayDateInputValue()}
           exerciseId={exercise.id}
           formId={createSessionFormId}
           moveAddSetToActions

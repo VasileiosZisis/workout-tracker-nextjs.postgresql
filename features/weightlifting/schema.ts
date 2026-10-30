@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { performedDateSchema } from "@/lib/performed-date-schema";
 
 const decimalNumber = z.coerce
   .number()
@@ -16,9 +17,7 @@ export const weightliftingSetSchema = z.object({
 });
 
 export const weightliftingSessionSchema = z.object({
-  performedDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date."),
+  performedDate: performedDateSchema,
   sets: z
     .array(weightliftingSetSchema)
     .min(1, "Add at least one set.")

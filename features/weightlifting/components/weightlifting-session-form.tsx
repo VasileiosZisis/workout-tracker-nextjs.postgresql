@@ -1,6 +1,7 @@
 "use client";
 
 import { SubmitButton } from "@/components/submit-button";
+import { PerformedDateInput } from "@/components/performed-date-input";
 import { useActionState, useState, type ReactNode } from "react";
 import type { WeightliftingActionState, WeightliftingFormSet } from "../types";
 
@@ -9,7 +10,7 @@ type WeightliftingSessionFormProps = {
     previousState: WeightliftingActionState,
     formData: FormData,
   ) => Promise<WeightliftingActionState>;
-  defaultPerformedDate: string;
+  defaultPerformedDate?: string;
   defaultSets?: WeightliftingFormSet[];
   exerciseId?: string;
   formId?: string;
@@ -72,13 +73,7 @@ export function WeightliftingSessionForm({
         <input name="setCount" type="hidden" value={sets.length} />
         <div className="field">
           <label htmlFor="performedDate">Date</label>
-          <input
-            id="performedDate"
-            name="performedDate"
-            type="date"
-            defaultValue={defaultPerformedDate}
-            required
-          />
+          <PerformedDateInput defaultValue={defaultPerformedDate} />
           {state.fieldErrors?.performedDate ? (
             <p className="form-error">{state.fieldErrors.performedDate[0]}</p>
           ) : null}

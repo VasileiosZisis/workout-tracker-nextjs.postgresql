@@ -19,17 +19,13 @@ function createLogger() {
 describe("Postmark verification request diagnostics", () => {
   it("logs the accepted response ID and a safe token fingerprint", async () => {
     const logger = createLogger();
-    const fetchMock = vi.fn(
-      async (
-        _input: Parameters<typeof fetch>[0],
-        _init?: Parameters<typeof fetch>[1],
-      ) =>
-        Response.json({
-          ErrorCode: 0,
-          Message: "OK",
-          MessageID: "message-id-123",
-          To: params.to,
-        }),
+    const fetchMock = vi.fn<typeof fetch>(async () =>
+      Response.json({
+        ErrorCode: 0,
+        Message: "OK",
+        MessageID: "message-id-123",
+        To: params.to,
+      }),
     );
 
     await sendPostmarkVerificationRequest(params, {

@@ -11,7 +11,6 @@ const validInput = {
 };
 
 const invalidCases: Array<[string, Record<string, unknown>]> = [
-  ["an invalid date", { performedDate: "19/08/2026" }],
   ["one round", { rounds: "1" }],
   ["too many rounds", { rounds: "1000" }],
   ["fractional rounds", { rounds: "2.5" }],
@@ -53,6 +52,44 @@ describe("intervalSessionSchema", () => {
     });
 
     expect(parsed.success).toBe(true);
+  });
+
+  it.each([
+    "2026-02-28",
+    "2026-04-30",
+    "2024-02-29",
+    "2000-02-29",
+  ])("accepts the calendar date %s without changing it", (performedDate) => {
+    const parsed = intervalSessionSchema.parse({ ...validInput, performedDate });
+
+    expect(parsed.performedDate).toBe(performedDate);
+  });
+
+  it.each([
+    "2026-02-31",
+    "2026-02-29",
+    "2026-04-31",
+    "1900-02-29",
+    "2026-00-01",
+    "2026-13-01",
+    "2026-01-00",
+    "2026-01-32",
+    "19/08/2026",
+    "2026-5-17",
+    "2026-05-17T00:00:00.000Z",
+    "2026-05-17\n",
+    "not-a-date",
+    "",
+  ])("rejects invalid date %j without throwing", (performedDate) => {
+    const parsed = intervalSessionSchema.safeParse({
+      ...validInput,
+      performedDate,
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.flatten().fieldErrors.performedDate).toEqual([
+      "Use a valid date.",
+    ]);
   });
 
   it.each(invalidCases)("rejects %s", (_label, overrides) => {
