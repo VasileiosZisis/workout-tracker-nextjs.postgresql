@@ -8,6 +8,9 @@ import { getLogBySlug } from "@/features/logs/queries";
 import { parsePagination } from "@/features/logs/pagination";
 import { getExercisesPage } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
+import { randomUUID } from "node:crypto";
+import { getWorkoutPanel } from "@/features/workouts/queries";
+import { WorkoutPanel } from "@/features/workouts/components/workout-panel";
 
 export async function generateMetadata({
   params,
@@ -42,11 +45,11 @@ export default async function LogDetailPage({
     notFound();
   }
 
-  const { exercises, pagination } = await getExercisesPage({
+  const [{ exercises, pagination }, routine] = await Promise.all([getExercisesPage({
     userId: user.id,
     logId: log.id,
     ...paginationInput,
-  });
+  }), getWorkoutPanel(user.id, log.id)]);
 
   return (
     <main className="page">
@@ -62,6 +65,8 @@ export default async function LogDetailPage({
           </Link>
         </div>
       </section>
+      <WorkoutPanel key={`${routine?.id ?? "new"}:${routine?.revision ?? 0}`} logId={log.id} logSlug={log.slug} routine={routine} requestId={randomUUID()} />
+      <div id="exercise-list" />
       <PaginationNav
         ariaLabel="Exercise pagination"
         baseHref={`/logs/${log.slug}`}

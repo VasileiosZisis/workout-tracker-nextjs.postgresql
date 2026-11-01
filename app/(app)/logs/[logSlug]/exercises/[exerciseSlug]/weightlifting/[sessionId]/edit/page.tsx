@@ -68,6 +68,7 @@ export default async function EditWeightliftingSessionPage({
           formId={editSessionFormId}
           moveAddSetToActions
           sessionId={session.id}
+          linkedWorkout={session.workoutEntry ? { id: session.workoutEntry.id, name: session.workoutEntry.name, date: formatSessionDate(session.workoutEntry.performedAt) } : null}
           showSubmitButton={false}
           submitLabel="Save session"
           footer={

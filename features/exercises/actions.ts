@@ -7,6 +7,7 @@ import { createUniqueExerciseSlug, slugifyExerciseTitle } from "./slug";
 import type { ExerciseActionState } from "./types";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
+import { lockWorkoutContext, WorkoutError } from "@/features/workouts/service";
 
 function parseExerciseForm(formData: FormData) {
   return exerciseFormSchema.safeParse({
@@ -145,14 +146,25 @@ export async function updateExerciseAction(
       ? existingExercise.slug
       : nextSlug;
 
-  const exercise = await prisma.exercise.update({
-    where: { id: existingExercise.id },
-    data: {
-      title: parsed.data.title,
-      slug,
-      sessionKind: parsed.data.sessionKind,
-    },
-  });
+  let exercise;
+  try {
+    exercise = await prisma.$transaction(async (tx) => {
+      await lockWorkoutContext(tx, user.id, existingExercise.logId);
+      const current = await tx.exercise.findFirst({ where: { id: existingExercise.id, userId: user.id, logId: existingExercise.logId } });
+      if (!current) throw new WorkoutError("Exercise no longer exists.");
+      if (parsed.data.sessionKind !== current.sessionKind) {
+        const linked = await tx.weightliftingSession.count({ where: { exerciseId: existingExercise.id, userId: user.id, workoutEntryId: { not: null } } });
+        if (linked) throw new WorkoutError("Detach this exercise's sessions from their workouts before changing its session type.");
+      }
+      return tx.exercise.update({
+        where: { id: existingExercise.id, userId: user.id },
+        data: { title: parsed.data.title, slug, sessionKind: parsed.data.sessionKind },
+      });
+    });
+  } catch (error) {
+    if (error instanceof WorkoutError) return { formError: error.message };
+    throw error;
+  }
 
   revalidatePath(`/logs/${existingExercise.log.slug}`);
   revalidatePath(`/logs/${existingExercise.log.slug}/exercises/${existingExercise.slug}`);
@@ -182,8 +194,9 @@ export async function deleteExerciseAction(formData: FormData) {
     notFound();
   }
 
-  await prisma.exercise.delete({
-    where: { id: exercise.id },
+  await prisma.$transaction(async (tx) => {
+    await lockWorkoutContext(tx, user.id, exercise.logId);
+    await tx.exercise.deleteMany({ where: { id: exercise.id, userId: user.id, logId: exercise.logId } });
   });
 
   revalidatePath(`/logs/${exercise.log.slug}`);

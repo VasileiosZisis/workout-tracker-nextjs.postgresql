@@ -59,6 +59,7 @@ export default async function WeightliftingSessionPage({
         </div>
       </section>
       <section className="section-block">
+        {session.workoutEntry ? <p>Workout: <Link href={`/logs/${session.exercise.log.slug}`}>{session.workoutEntry.name} · {formatSessionDate(session.workoutEntry.performedAt)}</Link></p> : null}
         <SessionSummary session={session} />
       </section>
     </main>

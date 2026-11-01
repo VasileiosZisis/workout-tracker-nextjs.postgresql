@@ -9,6 +9,10 @@ import { parsePerformedDate } from "./format";
 import { calculateWeightliftingMetrics } from "./metrics";
 import { weightliftingSessionSchema } from "./schema";
 import type { WeightliftingActionState } from "./types";
+import { ZodError } from "zod";
+import { lockWorkoutContext, resolveSessionWorkout, WorkoutError } from "@/features/workouts/service";
+import { performedDateSchema, requestIdSchema } from "@/features/workouts/schema";
+import { createHash } from "node:crypto";
 
 function parseWeightliftingForm(formData: FormData) {
   const setCount = Number(formData.get("setCount") ?? 0);
@@ -76,9 +80,38 @@ export async function createWeightliftingSessionAction(
 
   const metrics = calculateWeightliftingMetrics(parsed.data.sets);
 
-  const session = await prisma.$transaction(async (tx) => {
+  let session: { id: string };
+  try {
+  const requestId = requestIdSchema.parse(formData.get("requestId"));
+  performedDateSchema.parse(parsed.data.performedDate);
+  const selection = String(formData.get("workoutSelection") ?? "standalone");
+  // Immutable creation input: compare to this even if the session is later edited.
+  const requestFingerprint = createHash("sha256").update(JSON.stringify({
+    exerciseId: exercise.id, logId: exercise.logId, ...parsed.data, selection,
+    ...(selection === "start" ? {
+      routineId: String(formData.get("routineId") ?? ""),
+      revision: String(formData.get("routineRevision") ?? ""),
+      nextId: String(formData.get("nextDefinitionId") ?? ""),
+    } : {}),
+  })).digest("hex");
+  session = await prisma.$transaction(async (tx) => {
+    const routine = await lockWorkoutContext(tx, user.id, exercise.logId);
+    // Re-read under the log lock so exercise deletion/type changes cannot race.
+    const currentExercise = await tx.exercise.findFirst({ where: { id: exercise.id, userId: user.id, logId: exercise.logId, sessionKind: SessionKind.WEIGHTLIFTING } });
+    if (!currentExercise) throw new WorkoutError("Exercise is no longer available.");
+    const previous = await tx.weightliftingSession.findUnique({ where: { userId_requestId: { userId: user.id, requestId } } });
+    if (previous) {
+      if (previous.requestFingerprint !== requestFingerprint) {
+        throw new WorkoutError("This form already created a session with different inputs. Reload to create another session, or edit the saved session.");
+      }
+      return previous;
+    }
+    const workoutEntryId = await resolveSessionWorkout(tx, user.id, exercise.logId, routine, formData, parsed.data.performedDate);
     const createdSession = await tx.weightliftingSession.create({
       data: {
+        requestId,
+        requestFingerprint,
+        workoutEntryId,
         userId: user.id,
         logId: exercise.logId,
         exerciseId: exercise.id,
@@ -102,10 +135,16 @@ export async function createWeightliftingSessionAction(
 
     return createdSession;
   });
+  } catch (error) {
+    if (error instanceof WorkoutError) return { fieldErrors: { workoutSelection: [error.message] } };
+    if (error instanceof ZodError) return { formError: error.issues[0]?.message ?? "Check the session details." };
+    throw error;
+  }
 
   const exercisePath = `/logs/${exercise.log.slug}/exercises/${exercise.slug}`;
 
   revalidatePath(exercisePath);
+  revalidatePath(`/logs/${exercise.log.slug}`);
   redirect(`${exercisePath}/weightlifting/${session.id}`);
 }
 
@@ -150,10 +189,22 @@ export async function updateWeightliftingSessionAction(
 
   const metrics = calculateWeightliftingMetrics(parsed.data.sets);
 
+  try {
+  performedDateSchema.parse(parsed.data.performedDate);
   await prisma.$transaction(async (tx) => {
+    await lockWorkoutContext(tx, user.id, existingSession.logId);
+    const current = await tx.weightliftingSession.findFirst({ where: { id: existingSession.id, userId: user.id, logId: existingSession.logId, exercise: { userId: user.id, sessionKind: SessionKind.WEIGHTLIFTING } }, include: { workoutEntry: true } });
+    if (!current) throw new WorkoutError("Session no longer exists.");
+    const selection = String(formData.get("workoutSelection") ?? current.workoutEntryId ?? "standalone");
+    if (selection !== "standalone" && selection !== current.workoutEntryId) throw new WorkoutError("Moving sessions between workouts is not available yet. Choose Standalone to detach.");
+    if (selection !== "standalone" && current.workoutEntry && (
+      current.workoutEntry.userId !== user.id || current.workoutEntry.logId !== current.logId ||
+      current.workoutEntry.performedAt.toISOString().slice(0, 10) !== parsed.data.performedDate
+    )) throw new WorkoutError("Select Standalone before changing the date of a linked session.");
     await tx.weightliftingSession.update({
       where: { id: existingSession.id },
       data: {
+        workoutEntryId: selection === "standalone" ? null : current.workoutEntryId,
         performedAt: parsePerformedDate(parsed.data.performedDate),
         totalVolume: decimalString(metrics.totalVolume),
         junkVolume: decimalString(metrics.junkVolume),
@@ -176,10 +227,16 @@ export async function updateWeightliftingSessionAction(
       })),
     });
   });
+  } catch (error) {
+    if (error instanceof WorkoutError) return { fieldErrors: { workoutSelection: [error.message] } };
+    if (error instanceof ZodError) return { formError: error.issues[0]?.message ?? "Check the session details." };
+    throw error;
+  }
 
   const exercisePath = `/logs/${existingSession.exercise.log.slug}/exercises/${existingSession.exercise.slug}`;
 
   revalidatePath(exercisePath);
+  revalidatePath(`/logs/${existingSession.exercise.log.slug}`);
   revalidatePath(`${exercisePath}/weightlifting/${existingSession.id}`);
   revalidatePath(`${exercisePath}/weightlifting/${existingSession.id}/edit`);
   redirect(`${exercisePath}/weightlifting/${existingSession.id}`);
@@ -214,12 +271,14 @@ export async function deleteWeightliftingSessionAction(formData: FormData) {
     notFound();
   }
 
-  await prisma.weightliftingSession.delete({
-    where: { id: session.id },
+  await prisma.$transaction(async (tx) => {
+    await lockWorkoutContext(tx, user.id, session.logId);
+    await tx.weightliftingSession.deleteMany({ where: { id: session.id, userId: user.id, logId: session.logId } });
   });
 
   const exercisePath = `/logs/${session.exercise.log.slug}/exercises/${session.exercise.slug}`;
 
   revalidatePath(exercisePath);
+  revalidatePath(`/logs/${session.exercise.log.slug}`);
   redirect(exercisePath);
 }

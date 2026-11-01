@@ -2,6 +2,7 @@ export type WeightliftingActionState = {
   fieldErrors?: {
     performedDate?: string[];
     sets?: string[];
+    workoutSelection?: string[];
   };
   formError?: string;
 };

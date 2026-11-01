@@ -9,6 +9,8 @@ import { SessionSummary } from "@/features/weightlifting/components/session-summ
 import { WeightliftingSessionForm } from "@/features/weightlifting/components/weightlifting-session-form";
 import { formatSessionDate } from "@/features/weightlifting/format";
 import { getLatestWeightliftingSession, getWeightliftingExerciseBySlug } from "@/features/weightlifting/queries";
+import { randomUUID } from "node:crypto";
+import { getWorkoutSelection } from "@/features/workouts/queries";
 
 export const metadata: Metadata = {
   title: "New Weightlifting Session",
@@ -39,6 +41,7 @@ export default async function NewWeightliftingSessionPage({
   });
 
   const exercisePath = `/logs/${exercise.log.slug}/exercises/${exercise.slug}`;
+  const workout = await getWorkoutSelection(user.id, exercise.logId);
 
   return (
     <main className="page">
@@ -60,6 +63,8 @@ export default async function NewWeightliftingSessionPage({
         <WeightliftingSessionForm
           action={createWeightliftingSessionAction}
           exerciseId={exercise.id}
+          workout={workout}
+          requestId={randomUUID()}
           formId={createSessionFormId}
           moveAddSetToActions
           showSubmitButton={false}

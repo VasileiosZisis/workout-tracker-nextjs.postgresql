@@ -5,9 +5,10 @@ import { useEffect, useRef } from "react";
 
 type PerformedDateInputProps = {
   defaultValue?: string;
+  onDateChange?: (value: string) => void;
 };
 
-export function PerformedDateInput({ defaultValue }: PerformedDateInputProps) {
+export function PerformedDateInput({ defaultValue, onDateChange }: PerformedDateInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const initialized = useRef(false);
   const edited = useRef(false);
@@ -22,13 +23,16 @@ export function PerformedDateInput({ defaultValue }: PerformedDateInputProps) {
     initialized.current = true;
 
     if (defaultValue !== undefined || edited.current || input.value !== "") {
+      // A browser-restored/autofilled date must also reach dependent selectors.
+      if (input.value !== "") onDateChange?.(input.value);
       return;
     }
 
     const today = formatLocalDate(new Date());
     input.defaultValue = today;
     input.value = today;
-  }, [defaultValue]);
+    onDateChange?.(today);
+  }, [defaultValue, onDateChange]);
 
   // Keep new-session defaults undefined so rerenders preserve the DOM default.
   return (
@@ -38,8 +42,9 @@ export function PerformedDateInput({ defaultValue }: PerformedDateInputProps) {
       name="performedDate"
       type="date"
       defaultValue={defaultValue}
-      onChange={() => {
+      onChange={(event) => {
         edited.current = true;
+        onDateChange?.(event.target.value);
       }}
       required
     />

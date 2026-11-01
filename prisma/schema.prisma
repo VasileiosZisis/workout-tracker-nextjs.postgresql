@@ -33,6 +33,8 @@ model User {
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
   intervalSessions      IntervalSession[]
+  workoutRoutines       WorkoutRoutine[]
+  workoutEntries        WorkoutEntry[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -96,6 +98,8 @@ model Log {
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
   intervalSessions      IntervalSession[]
+  workoutRoutine        WorkoutRoutine?
+  workoutEntries        WorkoutEntry[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -135,11 +139,78 @@ model WeightliftingSession {
   junkVolume    Decimal            @default(0) @db.Decimal(12, 2)
   workingVolume Decimal            @default(0) @db.Decimal(12, 2)
   sets          WeightliftingSet[]
+  workoutEntryId String?
+  workoutEntry   WorkoutEntry? @relation(fields: [workoutEntryId], references: [id], onDelete: SetNull)
+  requestId      String?
+  requestFingerprint String?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
 
   @@index([userId, exerciseId, performedAt])
   @@index([logId, exerciseId])
+  @@index([workoutEntryId])
+  @@unique([userId, requestId])
+}
+
+model WorkoutRoutine {
+  id               String @id @default(cuid())
+  userId           String
+  user             User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logId            String @unique
+  log              Log @relation(fields: [logId], references: [id], onDelete: Cascade)
+  name             String
+  revision         Int @default(0)
+  nextDefinitionId String?
+  nextDefinition   WorkoutDefinition? @relation("NextWorkout", fields: [nextDefinitionId], references: [id], onDelete: SetNull)
+  definitions      WorkoutDefinition[] @relation("RoutineDefinitions")
+  entries          WorkoutEntry[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model WorkoutDefinition {
+  id          String @id @default(cuid())
+  routineId   String
+  routine     WorkoutRoutine @relation("RoutineDefinitions", fields: [routineId], references: [id], onDelete: Cascade)
+  name        String
+  position    Int
+  archived    Boolean @default(false)
+  nextIn      WorkoutRoutine[] @relation("NextWorkout")
+  entries     WorkoutEntry[]
+
+  @@index([routineId, archived, position])
+}
+
+enum WorkoutEntryStatus {
+  IN_PROGRESS
+  COMPLETED
+  DISCARDED
+}
+
+model WorkoutEntry {
+  id           String @id @default(cuid())
+  userId       String
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logId        String
+  log          Log @relation(fields: [logId], references: [id], onDelete: Cascade)
+  routineId    String
+  routine      WorkoutRoutine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  definitionId String
+  definition   WorkoutDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  name         String
+  performedAt  DateTime
+  status       WorkoutEntryStatus @default(IN_PROGRESS)
+  requestId    String
+  completedAt  DateTime?
+  sessions     WeightliftingSession[]
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, requestId])
+  @@index([userId, logId, performedAt])
+  @@index([routineId, status])
+  // Migration also enforces one IN_PROGRESS entry per routine via a partial index.
 }
 
 model WeightliftingSet {

@@ -896,6 +896,42 @@ h2 {
   padding: 8px 10px;
 }
 
+.workout-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.workout-panel :where(form, fieldset, label, details),
+.field select {
+  min-width: 0;
+}
+
+.workout-panel summary {
+  cursor: pointer;
+  padding-block: 10px;
+}
+
+.workout-panel details[open] > summary {
+  margin-bottom: 12px;
+}
+
+.workout-panel ul {
+  padding-inline-start: 20px;
+  overflow-wrap: anywhere;
+}
+
+.field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--foreground);
+  font: inherit;
+  padding: 8px 10px;
+}
+
 .field input[type="date"],
 .field input[type="number"],
 .set-row input[type="number"] {
