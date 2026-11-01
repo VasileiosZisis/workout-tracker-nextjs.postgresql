@@ -365,7 +365,7 @@ export default async function ExerciseDetailPage({
               <MetricList
                 items={[
                   {
-                    label: "Latest pace",
+                    label: "Pace",
                     value:
                       latestPaceSession && Number(latestPaceSession.pace) !== 0
                         ? formatPace({
@@ -481,7 +481,7 @@ export default async function ExerciseDetailPage({
               <MetricList
                 items={[
                   {
-                    label: "Latest total work",
+                    label: "Total work",
                     value: latestIntervalSession
                       ? formatIntervalDuration(
                           latestIntervalSession.totalWorkSeconds,
