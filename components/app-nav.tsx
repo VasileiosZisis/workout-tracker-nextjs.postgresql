@@ -11,6 +11,11 @@ const links = [
     supporting: "Sessions",
   },
   {
+    href: "/routine",
+    label: "Routine",
+    supporting: "Workout setup",
+  },
+  {
     href: "/metrics",
     label: "Metrics",
     supporting: "What you can track",
@@ -38,7 +43,9 @@ export function AppNav({
         const active =
           link.href === "/logs"
             ? pathname === "/logs" || pathname.startsWith("/logs/")
-            : pathname === link.href;
+            : link.href === "/routine"
+              ? pathname === "/routine" || pathname.startsWith("/routine/")
+              : pathname === link.href;
 
         return (
           <Link

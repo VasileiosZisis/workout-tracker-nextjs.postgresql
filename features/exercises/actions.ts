@@ -150,11 +150,19 @@ export async function updateExerciseAction(
   try {
     exercise = await prisma.$transaction(async (tx) => {
       await lockWorkoutContext(tx, user.id, existingExercise.logId);
-      const current = await tx.exercise.findFirst({ where: { id: existingExercise.id, userId: user.id, logId: existingExercise.logId } });
+      const current = await tx.exercise.findFirst({
+        where: { id: existingExercise.id, userId: user.id, logId: existingExercise.logId },
+        include: { _count: { select: { intervalSessions: true, paceSessions: true, weightliftingSessions: true } } },
+      });
       if (!current) throw new WorkoutError("Exercise no longer exists.");
       if (parsed.data.sessionKind !== current.sessionKind) {
-        const linked = await tx.weightliftingSession.count({ where: { exerciseId: existingExercise.id, userId: user.id, workoutEntryId: { not: null } } });
-        if (linked) throw new WorkoutError("Detach this exercise's sessions from their workouts before changing its session type.");
+        if (current._count.intervalSessions || current._count.paceSessions || current._count.weightliftingSessions) {
+          throw new WorkoutError("Session type cannot be changed after sessions have been added.");
+        }
+        if (parsed.data.sessionKind !== "WEIGHTLIFTING") {
+          const removed = await tx.workoutExercise.deleteMany({ where: { exerciseId: current.id, definition: { routine: { userId: user.id, logId: current.logId } } } });
+          if (removed.count) await tx.workoutRoutine.updateMany({ where: { userId: user.id, logId: current.logId }, data: { revision: { increment: 1 } } });
+        }
       }
       return tx.exercise.update({
         where: { id: existingExercise.id, userId: user.id },
@@ -167,6 +175,7 @@ export async function updateExerciseAction(
   }
 
   revalidatePath(`/logs/${existingExercise.log.slug}`);
+  revalidatePath(`/routine/${existingExercise.log.slug}`);
   revalidatePath(`/logs/${existingExercise.log.slug}/exercises/${existingExercise.slug}`);
   revalidatePath(`/logs/${existingExercise.log.slug}/exercises/${existingExercise.slug}/edit`);
   redirect(`/logs/${existingExercise.log.slug}/exercises/${exercise.slug}`);
@@ -196,9 +205,12 @@ export async function deleteExerciseAction(formData: FormData) {
 
   await prisma.$transaction(async (tx) => {
     await lockWorkoutContext(tx, user.id, exercise.logId);
+    const remembered = await tx.workoutExercise.count({ where: { exerciseId: exercise.id, definition: { routine: { userId: user.id, logId: exercise.logId } } } });
+    if (remembered) await tx.workoutRoutine.updateMany({ where: { userId: user.id, logId: exercise.logId }, data: { revision: { increment: 1 } } });
     await tx.exercise.deleteMany({ where: { id: exercise.id, userId: user.id, logId: exercise.logId } });
   });
 
   revalidatePath(`/logs/${exercise.log.slug}`);
+  revalidatePath(`/routine/${exercise.log.slug}`);
   redirect(`/logs/${exercise.log.slug}`);
 }

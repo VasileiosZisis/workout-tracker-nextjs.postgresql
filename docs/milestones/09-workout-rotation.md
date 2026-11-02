@@ -4,22 +4,26 @@
 
 The workout changes have been integrated with `main` on `preview`, preserving
 interval support, cached session queries, calendar-date validation, and
-browser-local date defaults. Verification results below describe the earlier
-pre-sync checkout; the integrated code needs fresh manual checks. Stash conflict
-resolution did not apply migrations or regenerate the Prisma client.
+browser-local date defaults. Task 2 checks were reported passed by the user on
+2026-11-02 after integration. Task 3 checks were also reported passed by the user
+on 2026-11-02. Task 4 changes require fresh manual verification.
 
 Task 1 implemented on 2026-11-01 with read-only general, training-integrity,
 security-isolation, and test-coverage reviews completed. The requested workouts,
 weightlifting, and exercises test run passed: 58 tests across 10 files. Typecheck
 also passed after refreshing stale Next.js route types with `next typegen`. Lint,
 build, and rendered browser verification remain pending. No migration or Prisma
-client-generation commands were run by the agent. Tasks 2-4 are not implemented.
+client-generation commands were run by the agent. Task 2 is implemented with
+read-only reviews completed and user-reported checks passed. Task 3 is implemented
+with read-only reviews completed and user-reported checks passed. Task 4 is
+implemented with read-only reviews completed; migration application, generated
+client updates, automated checks, and desktop/mobile verification remain pending.
 
 ### Task 1 Implementation
 
 - Added one optional continuous routine per log, with 1-30 ordered named workouts,
-  inline setup/settings, and a selectable starting workout. Idle edits retain the
-  current next workout unless it is removed and a replacement is selected.
+  dedicated setup/settings under Routine, and a selectable starting workout.
+  Task 3 also allows explicit next-workout changes while idle.
 - Added an active-workout panel with recorded-session links, Continue logging,
   Finish, and confirmed Discard. An older active entry must be resolved before a
   new entry starts. Discard preserves recorded sessions as standalone.
@@ -117,8 +121,16 @@ Thursday's workout to become Tuesday's workout.
 
 ## Proposed UI and Flow
 
-- Keep the existing Logs, Metrics, and Profile navigation.
+- Add Routine directly after Logs in the sidebar and mobile navigation.
+- Use `/routine` to choose a user-owned log and `/routine/[logSlug]` to create or
+  configure its routine. Configuration is unavailable while a workout is active.
 - Add an optional workout panel above the exercise list inside a log.
+- Logs without routines show no setup form. Existing routines keep only workout
+  controls and a Manage routine link; setup/settings live on the Routine pages.
+- Routine settings include confirmed deletion while idle. Deletion removes the
+  routine and workout grouping/history, keeping exercise sessions, sets, and
+  metrics as standalone training data. Resolve active workouts first. Stale forms
+  cannot delete a replacement routine or one changed since the page loaded.
 - Let users name and order their split workouts without building exercise lists
   in a separate menu.
 - Show the next workout and a Start action. While active, show recorded exercises,
@@ -152,7 +164,7 @@ Deliver a usable feature within the existing logging flow.
 
 - Add persistence and a migration for splits, ordered workouts, workout entries,
   and optional links from weightlifting sessions.
-- Support creating an optional split, initially suggesting A, B, and C, and
+- Support creating an optional split with one blank workout-name field by default, and
   selecting the starting step for users already midway through a rotation. Allow
   a configurable number of steps and keep the data model extensible to Task 4.
 - Add the log panel and workout selector to the existing session form.
@@ -183,6 +195,57 @@ Deliver a usable feature within the existing logging flow.
 
 Depends on Task 1.
 
+Status: Implemented on 2026-11-01. General, security-isolation, training-integrity,
+and test-coverage reviews completed. All checks were reported passed by the user
+on 2026-11-02. The agent did not execute the Task 2 migration or checks.
+
+### Implementation Decisions
+
+- Learn immediately from new linked weightlifting session creations only. No
+  backfill from old entries, standalone sessions, edits, or request replays.
+- Store ordered, deduplicated exercise suggestions per workout definition.
+  Retain them after omission, discard, session deletion, and detachment. An
+  explicit removal stays removed until a genuinely new linked session is saved.
+- Add suggestions atomically with sessions/sets under existing log/routine locks.
+  Increase routine revisions when lists change and reject stale list edits.
+- Active-workout panels show ordered shortcuts, recorded status, and session
+  links, including saved sessions outside the current suggestion list.
+- Shortcuts validate an owned active entry in the same log and prefill its date.
+  Generic session creation keeps browser-local date defaults.
+- Manage suggestions independently under Routine settings while idle, with
+  exact-permutation ordering validation and explicit removal that keeps history.
+- Cascade suggestions on exercise/routine deletion. Reflect exercise renames and
+  remove suggestions when a session-free exercise changes away from weightlifting.
+- Recheck all session counts inside the locked exercise edit transaction so a
+  concurrent standalone weightlifting save cannot bypass the session-kind lock.
+- Reviews found and resolved the session-kind race and added regression cases for
+  rollback, per-definition deduplication, persisted selection context, and rejected
+  type changes. The settings form submits IDs/names without suggestion payloads.
+
+### Suggested Checks (Task 2)
+
+Use the intended development/test database. Apply the new migration before
+generating the client and running the tests:
+
+```powershell
+npm run prisma:validate
+npm run prisma:deploy
+npm run prisma:generate
+npm run test -- features/workouts features/weightlifting features/exercises
+npm run typecheck
+npm run lint
+npm run build
+```
+
+On desktop and mobile, log new exercises, finish and rotate back, then use the
+remembered shortcuts. Verify old sessions do not seed suggestions, shortcuts use
+the active entry's date, and removed/reordered suggestions do not change training
+history. Verify omission, discard, edits, deletions, and exact retries keep the
+chosen suggestion behavior. No migration/code-generation/check commands or browser
+verification were executed for Task 2.
+
+### Scope
+
 - Remember exercises when sessions are saved to a workout.
 - Show Log session shortcuts for remembered exercises on subsequent occurrences.
 - Show which exercises already have recorded sessions in the active entry.
@@ -202,6 +265,61 @@ Depends on Task 1.
 ## Task 3: Workout History and Corrections
 
 Depends on Task 1; integrates Task 2 suggestions when available.
+
+Status: Implemented on 2026-11-02. General, security-isolation, training-integrity,
+and test-coverage reviews completed. All checks were reported passed by the user
+on 2026-11-02. The agent did not execute the Task 3 migration or checks.
+
+### Implementation
+
+- Added a Workout history link on each log, a completed-entry list, paginated
+  entry details, and Group existing sessions. Sort by performed date, creation
+  time, and ID so same-date entries have deterministic order.
+- Preserved recorded workout-name snapshots and archived definitions' history.
+  Empty completed entries stay visible; discarded entries are excluded.
+- Session details offer a separate Change workout form with paginated same-date
+  active/completed candidates, Standalone, and links to inspect candidate entries.
+  Updates change only membership, preserving session dates, sets, and metrics.
+- Corrections are allowed during active workouts. Moving the last session out
+  leaves that workout active and empty; finishing still requires a session.
+- Grouping selects up to one page (48 maximum) of same-date standalone sessions
+  and creates a completed entry using a current definition's name. This is also
+  allowed while another workout is active and does not advance the rotation.
+- Added nullable entry request fingerprints in an additive migration. Exact
+  retries return the original entry, even after later corrections; changed input
+  is rejected. Neither grouping nor reassignment changes exercise suggestions.
+- Reuse log/routine transaction locks; validate owned session/entry hierarchies,
+  source association, session updatedAt, status, dates, and grouping revisions.
+  Revision and association writes roll back together on failure.
+- Enabled explicit idle Next workout selection through Routine settings while
+  preserving the existing active-workout editing restriction.
+- Added service/query, action, route-ownership, retry, rollback, and concurrency
+  regressions. Static reviews found no implementation issues; identified coverage
+  gaps were addressed and received targeted re-review.
+
+### Suggested Checks (Task 3, User-Reported Passed)
+
+Use the intended development/test database. Apply the new migration before
+generating the Prisma client and running checks:
+
+```powershell
+npm run prisma:validate
+npm run prisma:deploy
+npm run prisma:generate
+npm run test -- features/workouts features/weightlifting features/exercises
+npm run typecheck
+npm run lint
+npm run build
+```
+
+On desktop and mobile, verify history pagination, archived names and empty
+entries; group standalone sessions while another workout is active; inspect and
+reassign same-date sessions; explicitly change the next workout while idle. Check
+that corrections keep sets/metrics and suggestions intact, reject stale forms,
+and do not move the rotation. No migration or verification commands were run for
+Task 3, and no rendered browser checks were performed.
+
+### Scope
 
 - Show completed workout entries and their recorded exercise sessions within
   the log, including workouts spanning different calendar weeks.
@@ -244,6 +362,80 @@ decisions remain for Task 4.
 Depends on Tasks 1 and 3. Include this task in the milestone to support users with
 different schedules; Tasks 1-3 alone deliver only the continuous style.
 
+Status: Implemented on 2026-11-02. Read-only general, security-isolation,
+training-integrity, and test-coverage reviews completed. Valid findings were fixed
+and received targeted re-review. No remaining actionable review findings.
+Task 4 migration application, Prisma generation, automated checks, and rendered
+desktop/mobile verification remain pending; no verification commands were run.
+
+### Implementation and Defaults
+
+- Routine settings offer continuous rotation, weekly sequence, or fixed weekdays,
+  with an explicitly confirmed IANA timezone and week start. New timezone input
+  defaults to browser detection; Monday is the initial week start. Fixed weekdays
+  support one assignment per day and explicit extras for additional training.
+- Immutable schedule snapshots preserve names, definition IDs, timezone, order,
+  and assignments. New versions apply today or next week; today starts a new
+  weekly list and supersedes its unstarted predecessor. One pending version can
+  be replaced/cancelled while idle. Definition edits are blocked while pending.
+  Name/order edits on an active weekly style require confirmation and apply today;
+  assigned fixed definitions must be unassigned before removal.
+- Calendar helpers derive unstarted slots and misses without materializing every
+  week or running a background job. Slots are persisted for claims, skips, and
+  fulfillment; uniqueness and the existing log/routine locks serialize changes.
+  Week/day boundaries use saved timezones, including daylight-saving transitions.
+- The log panel offers explicit substitution, extra training, skip, reset, and
+  make-ups through Schedule outcomes. Weekly completion never starts a second
+  cycle. Fixed rest days show the next scheduled date, including pending versions
+  across timezone changes. Skipped slots and missed slots can both be made up.
+- Configured rotation starts use the routine's current date; different performed
+  dates use Extra workout. Existing unconfigured continuous action contracts retain
+  their explicit date behavior. Existing entries remain untouched by the migration.
+- Active entries retain their captured slot across boundaries. Finish fulfills it
+  once; discard releases its claim while preserving sessions as standalone. Extra
+  and historical entries do not move the continuous pointer. Weekly reset confirms
+  the natural next-week restart and rejects conflicting pending changes.
+- New session forms offer scheduled, make-up, extra, and substitute choices. They
+  default to a configured routine's local date, clear start intent on date changes,
+  and preserve active-shortcut dates. New linked sessions still teach suggestions,
+  including eligible archived definitions used by old scheduled slots.
+- Workout history links to bounded, week-addressable Schedule outcomes. Version
+  pages and continuous skip/reset receipts are independently paginated. Planned
+  and actual names/dates, original skipped/missed outcomes, and superseded slots
+  remain visible. Historical grouping optionally fulfills one explicit eligible
+  slot; ordinary grouping/corrections never change schedule outcomes or suggestions.
+- New owner-scoped immutable request fingerprints protect Start, Skip, Reset,
+  and slot-aware historical retries. Settings and starts validate the expected
+  version/date across activation boundaries, as well as routine revisions.
+- Added calendar, lifecycle, ownership, retry, concurrency, rollback, action, and
+  session-route regression coverage. Reviews resolved stale settings, pending-reset
+  conflicts, substitutions from session forms, timezone defaults/upcoming dates,
+  and outcome pagination. No training metric calculations were changed.
+
+### Suggested Checks (Task 4, Pending)
+
+Use the intended development/test database. The additive migration is
+`20261102120000_add_workout_scheduling`; apply it before generating the client:
+
+```powershell
+npm run prisma:validate
+npm run prisma:deploy
+npm run prisma:generate
+npm run test -- features/workouts features/weightlifting features/exercises
+npm run typecheck
+npm run lint
+npm run build
+```
+
+On desktop and mobile, verify all three styles, week exhaustion, fixed rest days,
+skips, substitutions, extras, missed/skipped make-ups, and active workouts crossing
+a week boundary. Confirm today/next-week changes, cancellation and stale forms;
+try a timezone different from the device timezone and a pending timezone change.
+Check both Start entry points, external session submit buttons, planned/actual
+history dates, outcome pagination, and explicit historical-slot fulfillment.
+Verify session reassignment/deletion preserves completed slot outcomes, suggestions,
+sets, and volume. These rendered checks remain pending until actually performed.
+
 - Add scheduling-style selection inside the existing log's routine settings.
 - Add timezone, week-start selection, and weekday assignments where relevant.
 - Implement the Scheduling Styles and Shared Scheduling Rules above, including
@@ -277,7 +469,7 @@ semantics, ownership, transactional behavior, and relevant regression coverage.
 
 Manual acceptance flow:
 
-1. Create a split inside an existing log and select the next workout.
+1. Open Routine, choose an existing log, create a split, and select the next workout.
 2. Start C, log two exercise sessions through existing forms, leave, and resume.
 3. Finish C and confirm A is next, including after a week boundary.
 4. Save standalone and backdated sessions and verify their associations.
@@ -301,4 +493,4 @@ or verification commands during agent work.
 - Automatic workout completion based on inactivity or saved exercise count.
 - Automatic classification of old sessions into A, B, and C.
 - AI-generated programs, prescribed progression, or a new training metric system.
-- A new main navigation destination or a redesign of existing session forms.
+- A redesign of existing session forms.

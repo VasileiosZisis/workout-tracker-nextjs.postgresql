@@ -20,8 +20,10 @@ const createSessionFormId = "create-weightlifting-session-form";
 
 export default async function NewWeightliftingSessionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ logSlug: string; exerciseSlug: string }>;
+  searchParams: Promise<{ workoutEntryId?: string | string[] }>;
 }) {
   const user = await requireUser();
   const { logSlug, exerciseSlug } = await params;
@@ -42,6 +44,10 @@ export default async function NewWeightliftingSessionPage({
 
   const exercisePath = `/logs/${exercise.log.slug}/exercises/${exercise.slug}`;
   const workout = await getWorkoutSelection(user.id, exercise.logId);
+  const requestedEntry = (await searchParams).workoutEntryId;
+  if (requestedEntry !== undefined && (typeof requestedEntry !== "string" || workout?.active?.id !== requestedEntry)) {
+    notFound();
+  }
 
   return (
     <main className="page">
@@ -64,6 +70,7 @@ export default async function NewWeightliftingSessionPage({
           action={createWeightliftingSessionAction}
           exerciseId={exercise.id}
           workout={workout}
+          defaultPerformedDate={requestedEntry ? workout?.active?.date : workout?.schedule?.id ? workout.schedule.today : undefined}
           requestId={randomUUID()}
           formId={createSessionFormId}
           moveAddSetToActions

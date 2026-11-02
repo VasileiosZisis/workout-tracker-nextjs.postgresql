@@ -116,6 +116,7 @@ model Exercise {
   title                 String
   slug                  String
   sessionKind           SessionKind
+  workoutSuggestions    WorkoutExercise[]
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
   intervalSessions      IntervalSession[]
@@ -164,6 +165,8 @@ model WorkoutRoutine {
   nextDefinition   WorkoutDefinition? @relation("NextWorkout", fields: [nextDefinitionId], references: [id], onDelete: SetNull)
   definitions      WorkoutDefinition[] @relation("RoutineDefinitions")
   entries          WorkoutEntry[]
+  schedules        WorkoutSchedule[]
+  scheduleRequests WorkoutScheduleRequest[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -179,8 +182,21 @@ model WorkoutDefinition {
   archived    Boolean @default(false)
   nextIn      WorkoutRoutine[] @relation("NextWorkout")
   entries     WorkoutEntry[]
+  exercises   WorkoutExercise[]
 
   @@index([routineId, archived, position])
+}
+
+model WorkoutExercise {
+  id           String @id @default(cuid())
+  definitionId String
+  definition   WorkoutDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  position     Int
+
+  @@unique([definitionId, exerciseId])
+  @@index([definitionId, position])
 }
 
 enum WorkoutEntryStatus {
@@ -203,6 +219,14 @@ model WorkoutEntry {
   performedAt  DateTime
   status       WorkoutEntryStatus @default(IN_PROGRESS)
   requestId    String
+  requestFingerprint String?
+  scheduleId   String?
+  schedule     WorkoutSchedule? @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  slotKey      String?
+  plannedName  String?
+  scheduledDate DateTime?
+  schedulingIntent String @default("ROTATION")
+  fulfilledSlot WorkoutSlot?
   completedAt  DateTime?
   sessions     WeightliftingSession[]
   createdAt    DateTime @default(now())
@@ -211,6 +235,54 @@ model WorkoutEntry {
   @@index([userId, logId, performedAt])
   @@index([routineId, status])
   // Migration also enforces one IN_PROGRESS entry per routine via a partial index.
+}
+
+// Immutable plan snapshots. endDate/endAt close a superseded version; no
+// scheduled sessions or training measurements are copied into these tables.
+model WorkoutSchedule {
+  id String @id @default(cuid())
+  routineId String
+  routine WorkoutRoutine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  style String
+  timezone String
+  weekStart Int
+  effectiveAt DateTime
+  startDate String
+  endAt DateTime?
+  endDate String?
+  workouts Json
+  slots WorkoutSlot[]
+  entries WorkoutEntry[]
+  @@index([routineId, effectiveAt])
+}
+
+model WorkoutSlot {
+  id String @id @default(cuid())
+  scheduleId String
+  schedule WorkoutSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  key String
+  outcome String @default("PENDING")
+  originalOutcome String?
+  entryId String? @unique
+  entry WorkoutEntry? @relation(fields: [entryId], references: [id], onDelete: SetNull)
+  @@unique([scheduleId, key])
+}
+
+model WorkoutScheduleRequest {
+  id String @id @default(cuid())
+  routineId String
+  routine WorkoutRoutine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  userId String
+  requestId String
+  fingerprint String
+  outcomeDate String?
+  name String?
+  operation String?
+  weekKey String?
+  timezone String?
+  @@unique([userId, requestId])
+  @@index([routineId, outcomeDate])
+  @@index([routineId, weekKey])
 }
 
 model WeightliftingSet {

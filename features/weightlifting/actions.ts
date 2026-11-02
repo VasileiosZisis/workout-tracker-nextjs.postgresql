@@ -13,6 +13,7 @@ import { ZodError } from "zod";
 import { lockWorkoutContext, resolveSessionWorkout, WorkoutError } from "@/features/workouts/service";
 import { performedDateSchema, requestIdSchema } from "@/features/workouts/schema";
 import { createHash } from "node:crypto";
+import { rememberWorkoutExercise } from "@/features/workouts/suggestions";
 
 function parseWeightliftingForm(formData: FormData) {
   const setCount = Number(formData.get("setCount") ?? 0);
@@ -92,6 +93,10 @@ export async function createWeightliftingSessionAction(
       routineId: String(formData.get("routineId") ?? ""),
       revision: String(formData.get("routineRevision") ?? ""),
       nextId: String(formData.get("nextDefinitionId") ?? ""),
+      ...(formData.has("schedulingIntent") ? {
+        intent: formData.get("schedulingIntent"), scheduleId: formData.get("scheduleId"), slotKey: formData.get("slotKey"),
+        definitionId: formData.get("chosenDefinitionId"), today: formData.get("scheduleToday"),
+      } : {}),
     } : {}),
   })).digest("hex");
   session = await prisma.$transaction(async (tx) => {
@@ -133,6 +138,7 @@ export async function createWeightliftingSessionAction(
       })),
     });
 
+    if (workoutEntryId) await rememberWorkoutExercise(tx, user.id, exercise.logId, workoutEntryId, exercise.id);
     return createdSession;
   });
   } catch (error) {
@@ -145,6 +151,7 @@ export async function createWeightliftingSessionAction(
 
   revalidatePath(exercisePath);
   revalidatePath(`/logs/${exercise.log.slug}`);
+  revalidatePath(`/routine/${exercise.log.slug}`);
   redirect(`${exercisePath}/weightlifting/${session.id}`);
 }
 

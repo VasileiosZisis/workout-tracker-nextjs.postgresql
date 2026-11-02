@@ -57,6 +57,7 @@ export default async function LogDetailPage({
       <section className="page-header compact-header">
         <h1>{log.title}</h1>
         <div className="actions">
+          <Link className="button-secondary" href={`/logs/${log.slug}/workouts`}>Workout history</Link>
           <Link className="button-secondary" href={`/logs/${log.slug}/edit`}>
             Edit log
           </Link>

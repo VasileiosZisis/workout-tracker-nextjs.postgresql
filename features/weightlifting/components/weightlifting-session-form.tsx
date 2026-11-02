@@ -53,20 +53,28 @@ export function WeightliftingSessionForm({
   );
   const [date, setDate] = useState(defaultPerformedDate);
   const activeWorkout = workout?.active;
+  const schedule = workout?.schedule;
+  const [chosenDefinition, setChosenDefinition] = useState("");
   const [selection, setSelection] = useState(
     linkedWorkout?.id ?? (!sessionId && activeWorkout && activeWorkout.date === defaultPerformedDate ? activeWorkout.id : "standalone"),
   );
   const handleDateChange = useCallback((nextDate: string) => {
     const initializing = date === undefined;
     setDate(nextDate);
+    setChosenDefinition("");
     if (!sessionId) {
       setSelection((current) => {
         if (initializing && activeWorkout?.date === nextDate) return activeWorkout.id;
+        if (!initializing && nextDate !== date && (current === "start" || current.startsWith("extra:") || current.startsWith("makeup:"))) return "";
         if (current !== "standalone" && current !== "start" && activeWorkout?.date !== nextDate) return "";
         return current;
       });
     }
   }, [date, sessionId, activeWorkout]);
+  const makeupSlot = selection.startsWith("makeup:") ? schedule?.choices.find((slot) => `makeup:${slot.key}` === selection) : undefined;
+  const starting = selection === "start" || selection.startsWith("extra:") || selection.startsWith("makeup:");
+  const startIntent = makeupSlot ? "MAKEUP" : selection.startsWith("extra:") ? "EXTRA" : schedule?.style && schedule.style !== "CONTINUOUS" ? "SCHEDULED" : "ROTATION";
+  const plannedDefinition = makeupSlot?.definitionId ?? (startIntent === "SCHEDULED" ? schedule?.next?.definitionId : workout?.nextId) ?? "";
 
   function updateSet(index: number, nextSet: WeightliftingFormSet) {
     setSets((currentSets) =>
@@ -92,6 +100,13 @@ export function WeightliftingSessionForm({
     <form aria-busy={pending} action={formAction} id={formId} onSubmit={(event) => { if (pending) event.preventDefault(); }}>
       <div className="form-stack form-panel">
         {requestId ? <input type="hidden" name="requestId" value={requestId} /> : null}
+        {starting ? <>
+          <input type="hidden" name="schedulingIntent" value={startIntent} />
+          <input type="hidden" name="scheduleId" value={makeupSlot?.scheduleId ?? schedule?.id ?? ""} />
+          <input type="hidden" name="slotKey" value={makeupSlot?.key ?? (startIntent === "SCHEDULED" ? schedule?.next?.key : "") ?? ""} />
+          <input type="hidden" name="scheduleToday" value={schedule?.today ?? ""} />
+          <input type="hidden" name="chosenDefinitionId" value={selection.startsWith("extra:") ? selection.slice(6) : chosenDefinition || plannedDefinition} />
+        </> : null}
         {workout ? <>
           <input type="hidden" name="routineId" value={workout.routineId} />
           <input type="hidden" name="routineRevision" value={workout.revision} />
@@ -109,13 +124,22 @@ export function WeightliftingSessionForm({
         </div>
         {workout || linkedWorkout ? <div className="field">
           <label htmlFor="workoutSelection">Workout</label>
-          <select id="workoutSelection" name="workoutSelection" value={selection} required disabled={pending} onChange={(event) => setSelection(event.target.value)}>
+          <input type="hidden" name="workoutSelection" value={starting ? "start" : selection} />
+          <select id="workoutSelection" value={selection} required disabled={pending} onChange={(event) => { setSelection(event.target.value); setChosenDefinition(""); }}>
             <option value="" disabled>Choose a workout or Standalone</option>
             <option value="standalone">Standalone</option>
             {sessionId && linkedWorkout ? <option value={linkedWorkout.id}>{linkedWorkout.name} · {linkedWorkout.date}</option> : null}
             {!sessionId && activeWorkout && activeWorkout.date === date ? <option value={activeWorkout.id}>{activeWorkout.name} · {activeWorkout.date}</option> : null}
-            {!sessionId && workout && !activeWorkout ? <option value="start">Start next workout · {workout.nextName}</option> : null}
+            {!sessionId && workout && !activeWorkout ? <>
+              {(!schedule || schedule.style === "CONTINUOUS" || (schedule.next && date === schedule.today)) ? <option value="start">Start next workout · {schedule?.style && schedule.style !== "CONTINUOUS" ? schedule.next?.name : workout.nextName}</option> : null}
+              {workout.definitions?.map((definition) => <option key={definition.id} value={`extra:${definition.id}`}>Extra workout · {definition.name}</option>)}
+              {schedule?.choices.filter((slot) => (slot.outcome === "MISSED" || slot.outcome === "SKIPPED") && date && date >= slot.date && date <= schedule.today).map((slot) => <option key={slot.key} value={`makeup:${slot.key}`}>Make up · {slot.name} · {slot.date}</option>)}
+            </> : null}
           </select>
+          {starting && !selection.startsWith("extra:") && workout?.definitions ? <label className="field">Choose another workout (optional)<select value={chosenDefinition || plannedDefinition} disabled={pending} onChange={(event) => setChosenDefinition(event.target.value)}>
+            {!workout.definitions.some((definition) => definition.id === plannedDefinition) ? <option value={plannedDefinition}>{makeupSlot?.name ?? schedule?.next?.name}</option> : null}
+            {workout.definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
+          </select></label> : null}
           {linkedWorkout && date !== linkedWorkout.date && selection !== "standalone" ? <p className="field-help">Select Standalone before saving a different date.</p> : null}
           {!sessionId && activeWorkout && activeWorkout.date !== date ? <p className="field-help">A workout is in progress on {activeWorkout.date}. Finish or discard it from the log before starting another.</p> : null}
         </div> : <input type="hidden" name="workoutSelection" value="standalone" />}

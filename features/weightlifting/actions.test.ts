@@ -13,6 +13,7 @@ import { randomUUID } from "node:crypto";
 import { endEntry, lockWorkoutContext, saveRoutine, startEntry } from "@/features/workouts/service";
 import { getWorkoutSelection } from "@/features/workouts/queries";
 import { deleteExerciseAction, updateExerciseAction } from "@/features/exercises/actions";
+import { saveSchedule } from "@/features/workouts/scheduling";
 
 // These workflows make multiple round trips to the remote development database.
 // Let the test finish before afterEach starts deleting its fixtures.
@@ -348,6 +349,27 @@ describe("weightlifting actions", () => {
       expect(count).toBe(1);
     }
     expect((await getWorkoutSelection(userId, logId))?.active).toBeNull();
+  });
+
+  it("creates a scheduled substitution atomically, learns it once, and rejects changed-intent retries", async () => {
+    const initial = await routine();
+    await saveSchedule(userId, logId, { routineId: initial.routineId, revision: initial.revision, style: "WEEKLY", timezone: "UTC", weekStart: 1, effective: "today", confirmed: "yes", expectedScheduleId: "", expectedToday: initial.schedule!.today, assignments: [] });
+    const current = (await getWorkoutSelection(userId, logId))!, schedule = current.schedule!;
+    const chosen = current.definitions![2];
+    const form = sessionForm(schedule.today); selectStart(form, current);
+    for (const [key, value] of Object.entries({ schedulingIntent: "SCHEDULED", scheduleId: schedule.id, slotKey: schedule.next!.key, chosenDefinitionId: chosen.id, scheduleToday: schedule.today })) form.set(key, value);
+    const first = await create(form), retry = await create(form);
+    expect(first.id).toBe(retry.id);
+    const entry = await prisma.workoutEntry.findUniqueOrThrow({ where: { id: first.workoutEntryId! } });
+    expect(entry.definitionId).toBe(chosen.id); expect(entry.plannedName).toBe("A");
+    expect(await prisma.workoutExercise.count({ where: { definitionId: chosen.id, exerciseId } })).toBe(1);
+    expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(1);
+    const sets = await prisma.weightliftingSet.findMany({ where: { sessionId: first.id } });
+    form.set("schedulingIntent", "EXTRA");
+    expect((await createWeightliftingSessionAction({}, form)).fieldErrors?.workoutSelection?.[0]).toContain("different inputs");
+    expect(await prisma.weightliftingSet.findMany({ where: { sessionId: first.id } })).toEqual(sets);
+    expect((await getWorkoutSelection(userId, logId))!.nextId).toBe(current.nextId);
+    expect(revalidatePath).toHaveBeenCalledWith("/routine/strength-log");
   });
 
   it("rejects an entry from another log, user, or demo workspace", async () => {
