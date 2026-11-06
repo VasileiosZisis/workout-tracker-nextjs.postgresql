@@ -8,6 +8,7 @@ import type { ExerciseActionState } from "./types";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { lockWorkoutContext, WorkoutError } from "@/features/workouts/service";
+import { removeExerciseFromEntryPlans } from "@/features/workouts/entry-exercise-plan";
 
 function parseExerciseForm(formData: FormData) {
   return exerciseFormSchema.safeParse({
@@ -160,6 +161,7 @@ export async function updateExerciseAction(
           throw new WorkoutError("Session type cannot be changed after sessions have been added.");
         }
         if (parsed.data.sessionKind !== "WEIGHTLIFTING") {
+          await removeExerciseFromEntryPlans(tx, user.id, current.logId, current.id);
           const removed = await tx.workoutExercise.deleteMany({ where: { exerciseId: current.id, definition: { routine: { userId: user.id, logId: current.logId } } } });
           if (removed.count) await tx.workoutRoutine.updateMany({ where: { userId: user.id, logId: current.logId }, data: { revision: { increment: 1 } } });
         }
@@ -168,14 +170,15 @@ export async function updateExerciseAction(
         where: { id: existingExercise.id, userId: user.id },
         data: { title: parsed.data.title, slug, sessionKind: parsed.data.sessionKind },
       });
-    });
+    }, { timeout: 30000 });
   } catch (error) {
     if (error instanceof WorkoutError) return { formError: error.message };
     throw error;
   }
 
-  revalidatePath(`/logs/${existingExercise.log.slug}`);
+  revalidatePath(`/logs/${existingExercise.log.slug}`, "layout");
   revalidatePath(`/routine/${existingExercise.log.slug}`);
+  revalidatePath(`/routine/${existingExercise.log.slug}/edit`);
   revalidatePath(`/logs/${existingExercise.log.slug}/exercises/${existingExercise.slug}`);
   revalidatePath(`/logs/${existingExercise.log.slug}/exercises/${existingExercise.slug}/edit`);
   redirect(`/logs/${existingExercise.log.slug}/exercises/${exercise.slug}`);
@@ -205,12 +208,14 @@ export async function deleteExerciseAction(formData: FormData) {
 
   await prisma.$transaction(async (tx) => {
     await lockWorkoutContext(tx, user.id, exercise.logId);
+    await removeExerciseFromEntryPlans(tx, user.id, exercise.logId, exercise.id);
     const remembered = await tx.workoutExercise.count({ where: { exerciseId: exercise.id, definition: { routine: { userId: user.id, logId: exercise.logId } } } });
     if (remembered) await tx.workoutRoutine.updateMany({ where: { userId: user.id, logId: exercise.logId }, data: { revision: { increment: 1 } } });
     await tx.exercise.deleteMany({ where: { id: exercise.id, userId: user.id, logId: exercise.logId } });
-  });
+  }, { timeout: 30000 });
 
-  revalidatePath(`/logs/${exercise.log.slug}`);
+  revalidatePath(`/logs/${exercise.log.slug}`, "layout");
   revalidatePath(`/routine/${exercise.log.slug}`);
+  revalidatePath(`/routine/${exercise.log.slug}/edit`);
   redirect(`/logs/${exercise.log.slug}`);
 }

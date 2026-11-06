@@ -26,5 +26,5 @@ export type WorkoutSelection = {
   revision: number;
   nextId: string;
   nextName: string;
-  active: { id: string; name: string; date: string } | null;
+  active: { id: string; slug: string; name: string; date: string } | null;
 };

@@ -15,7 +15,7 @@ export default function NewLogPage() {
         <h1>Create log</h1>
       </section>
       <section className="section-block narrow">
-        <LogForm action={createLogAction} submitLabel="Create log" />
+        <LogForm action={createLogAction} submitLabel="Create log" cancelHref="/logs" />
       </section>
     </main>
   );

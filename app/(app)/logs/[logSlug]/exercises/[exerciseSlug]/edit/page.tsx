@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
@@ -67,20 +66,13 @@ export default async function EditExercisePage({
           exerciseId={exercise.id}
           sessionKindLocked={sessionKindLocked}
           submitLabel="Save exercise"
+          cancelHref={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
         />
-        <div className="form-footer">
-          <Link
-            className="button-secondary"
-            href={`/logs/${exercise.log.slug}/exercises/${exercise.slug}`}
-          >
-            Cancel
-          </Link>
-        </div>
       </section>
       <section className="section-block narrow danger-zone">
         <h2>Delete exercise</h2>
         <p>Deleting an exercise cannot be undone.</p>
-        <DeleteExerciseForm exerciseId={exercise.id} title={exercise.title} />
+        <DeleteExerciseForm exerciseId={exercise.id} />
       </section>
     </main>
   );

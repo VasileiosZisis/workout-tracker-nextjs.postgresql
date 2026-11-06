@@ -13,7 +13,6 @@ import { ZodError } from "zod";
 import { lockWorkoutContext, resolveSessionWorkout, WorkoutError } from "@/features/workouts/service";
 import { performedDateSchema, requestIdSchema } from "@/features/workouts/schema";
 import { createHash } from "node:crypto";
-import { rememberWorkoutExercise } from "@/features/workouts/suggestions";
 
 function parseWeightliftingForm(formData: FormData) {
   const setCount = Number(formData.get("setCount") ?? 0);
@@ -81,11 +80,14 @@ export async function createWeightliftingSessionAction(
 
   const metrics = calculateWeightliftingMetrics(parsed.data.sets);
 
-  let session: { id: string };
+  let session: { id: string; workoutEntryId: string | null; workoutEntry: { slug: string } | null };
+  let returnWorkoutEntryId: string | null = null;
   try {
   const requestId = requestIdSchema.parse(formData.get("requestId"));
   performedDateSchema.parse(parsed.data.performedDate);
   const selection = String(formData.get("workoutSelection") ?? "standalone");
+  const origin = formData.get("returnWorkoutEntryId");
+  if (origin !== null && (typeof origin !== "string" || !origin || origin.length > 100)) throw new WorkoutError("Invalid workout return context. Open the session form again.");
   // Immutable creation input: compare to this even if the session is later edited.
   const requestFingerprint = createHash("sha256").update(JSON.stringify({
     exerciseId: exercise.id, logId: exercise.logId, ...parsed.data, selection,
@@ -104,15 +106,29 @@ export async function createWeightliftingSessionAction(
     // Re-read under the log lock so exercise deletion/type changes cannot race.
     const currentExercise = await tx.exercise.findFirst({ where: { id: exercise.id, userId: user.id, logId: exercise.logId, sessionKind: SessionKind.WEIGHTLIFTING } });
     if (!currentExercise) throw new WorkoutError("Exercise is no longer available.");
-    const previous = await tx.weightliftingSession.findUnique({ where: { userId_requestId: { userId: user.id, requestId } } });
+    const previous = await tx.weightliftingSession.findUnique({ where: { userId_requestId: { userId: user.id, requestId } }, include: { workoutEntry: { select: { slug: true } } } });
+    if (previous && previous.requestFingerprint !== requestFingerprint) {
+      throw new WorkoutError("This form already created a session with different inputs. Reload to create another session, or edit the saved session.");
+    }
+    // Return navigation is deliberately separate from the immutable training
+    // payload. Validate it before any writes, even for Standalone and retries.
+    if (origin !== null) {
+      const entry = await tx.workoutEntry.findFirst({ where: {
+        id: origin, userId: user.id, logId: exercise.logId, routineId: routine?.id ?? "",
+        ...(selection !== "standalone" ? { performedAt: parsePerformedDate(parsed.data.performedDate) } : {}), log: { userId: user.id },
+        routine: { userId: user.id, logId: exercise.logId },
+        status: previous ? { in: ["IN_PROGRESS", "COMPLETED", "DISCARDED"] } : "IN_PROGRESS",
+      }, select: { id: true } });
+      if (!entry) throw new WorkoutError("The originating workout changed. Open the session form again.");
+      if (selection !== "standalone" && selection !== origin) throw new WorkoutError("Save to the originating workout or explicitly choose Standalone.");
+      if (selection === origin && (!previous || previous.workoutEntryId === origin)) returnWorkoutEntryId = origin;
+    }
     if (previous) {
-      if (previous.requestFingerprint !== requestFingerprint) {
-        throw new WorkoutError("This form already created a session with different inputs. Reload to create another session, or edit the saved session.");
-      }
       return previous;
     }
     const workoutEntryId = await resolveSessionWorkout(tx, user.id, exercise.logId, routine, formData, parsed.data.performedDate);
     const createdSession = await tx.weightliftingSession.create({
+      include: { workoutEntry: { select: { slug: true } } },
       data: {
         requestId,
         requestFingerprint,
@@ -138,9 +154,8 @@ export async function createWeightliftingSessionAction(
       })),
     });
 
-    if (workoutEntryId) await rememberWorkoutExercise(tx, user.id, exercise.logId, workoutEntryId, exercise.id);
     return createdSession;
-  });
+  }, { timeout: 30000 });
   } catch (error) {
     if (error instanceof WorkoutError) return { fieldErrors: { workoutSelection: [error.message] } };
     if (error instanceof ZodError) return { formError: error.issues[0]?.message ?? "Check the session details." };
@@ -152,6 +167,10 @@ export async function createWeightliftingSessionAction(
   revalidatePath(exercisePath);
   revalidatePath(`/logs/${exercise.log.slug}`);
   revalidatePath(`/routine/${exercise.log.slug}`);
+  revalidatePath(`/routine/${exercise.log.slug}/edit`);
+  if (session.workoutEntry) revalidatePath(`/logs/${exercise.log.slug}/workouts/${session.workoutEntry.slug}`);
+  revalidatePath(`/logs/${exercise.log.slug}/workouts`);
+  if (session.workoutEntry && returnWorkoutEntryId && session.workoutEntryId === returnWorkoutEntryId) redirect(`/logs/${exercise.log.slug}/workouts/${session.workoutEntry.slug}`);
   redirect(`${exercisePath}/weightlifting/${session.id}`);
 }
 
@@ -243,7 +262,7 @@ export async function updateWeightliftingSessionAction(
   const exercisePath = `/logs/${existingSession.exercise.log.slug}/exercises/${existingSession.exercise.slug}`;
 
   revalidatePath(exercisePath);
-  revalidatePath(`/logs/${existingSession.exercise.log.slug}`);
+  revalidatePath(`/logs/${existingSession.exercise.log.slug}`, "layout");
   revalidatePath(`${exercisePath}/weightlifting/${existingSession.id}`);
   revalidatePath(`${exercisePath}/weightlifting/${existingSession.id}/edit`);
   redirect(`${exercisePath}/weightlifting/${existingSession.id}`);
@@ -286,6 +305,6 @@ export async function deleteWeightliftingSessionAction(formData: FormData) {
   const exercisePath = `/logs/${session.exercise.log.slug}/exercises/${session.exercise.slug}`;
 
   revalidatePath(exercisePath);
-  revalidatePath(`/logs/${session.exercise.log.slug}`);
+  revalidatePath(`/logs/${session.exercise.log.slug}`, "layout");
   redirect(exercisePath);
 }

@@ -1,0 +1,26 @@
+// Existing names stay compatible with feature/file filters. Name new database
+// suites *.integration.test.ts so they are automatically routed to this project.
+export const integrationFiles = [
+  "**/*.integration.{test,spec}.ts",
+  "lib/auth-adapter.test.ts",
+  "features/demo/service.test.ts",
+  "features/logs/actions.test.ts",
+  "features/logs/queries.test.ts",
+  "features/exercises/actions.test.ts",
+  "features/exercises/queries.test.ts",
+  "features/weightlifting/actions.test.ts",
+  "features/weightlifting/queries.test.ts",
+  "features/pace/actions.test.ts",
+  "features/pace/queries.test.ts",
+  "features/interval/actions.test.ts",
+  "features/interval/queries.test.ts",
+  "features/progress/queries.test.ts",
+  "features/workouts/actions.test.ts",
+  "features/workouts/service.test.ts",
+  "features/workouts/history.test.ts",
+  "features/workouts/scheduling.test.ts",
+  "features/workouts/suggestions.test.ts",
+  "features/workouts/setup-service.test.ts",
+  "features/workouts/view-actions.test.ts",
+  "features/workouts/entry-exercises.test.ts",
+];

@@ -3,6 +3,9 @@ import type { Prisma } from "@/generated/prisma/client";
 import { performedDateSchema, requestIdSchema, routineSchema } from "./schema";
 import { claimEntrySlot, currentSchedule, prepareScheduledEntry, schedulingFingerprint, type SchedulingInput } from "./scheduling";
 import { localDate, snapshotSchema } from "./calendar";
+import { captureEntryExercises } from "./entry-exercise-plan";
+
+import { allocateWorkoutSlug } from "./entry-slug";
 
 type Tx = Prisma.TransactionClient;
 export class WorkoutError extends Error {}
@@ -52,12 +55,14 @@ export async function startEntry(tx: Tx, userId: string, logId: string, routine:
   const scheduling = await prepareScheduledEntry(tx, routine, input.scheduling ?? {}, date, now);
   const entry = await tx.workoutEntry.create({ data: {
     userId, logId, routineId: routine.id, ...scheduling,
+    slug: await allocateWorkoutSlug(tx, logId, scheduling.name, date),
     performedAt: new Date(`${date}T00:00:00.000Z`), requestId,
     requestFingerprint,
   } });
+  await captureEntryExercises(tx, userId, logId, entry.id, entry.definitionId);
   await claimEntrySlot(tx, routine, entry, false, now);
   await tx.workoutRoutine.update({ where: { id: routine.id }, data: { revision: { increment: 1 } } });
-  return entry;
+  return { ...entry, exercisePlanRevision: 0 };
 }
 
 export async function saveRoutine(userId: string, logId: string, raw: unknown, now = new Date()) {

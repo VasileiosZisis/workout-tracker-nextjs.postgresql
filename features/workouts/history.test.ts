@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { createWorkoutFixture } from "@/tests/fixtures/workout";
 import { vi } from "vitest";
 import { prisma } from "@/lib/db";
 import { createHistoricalWorkout, historicalWorkoutSchema, reassignWorkoutSession } from "./history";
@@ -63,7 +64,7 @@ describe("workout history and corrections", () => {
     await prisma.user.create({ data: { id: userId } });
     await prisma.log.create({ data: { id: logId, userId, title: "Strength", slug: "strength" } });
     await prisma.exercise.create({ data: { id: exerciseId, userId, logId, title: "Squat", slug: "squat", sessionKind: "WEIGHTLIFTING" } });
-    await saveRoutine(userId, logId, { name: "Split", revision: 0, workouts: ["A", "B", "C"].map((name) => ({ id: `new:${name}`, name })), nextId: "new:A" });
+    await createWorkoutFixture(userId, logId, ["A", "B", "C"].map((name) => ({ name })));
   });
   afterEach(async () => { fault.revision = false; await prisma.user.deleteMany({ where: { id: userId } }); });
   afterAll(async () => { await prisma.$disconnect(); });
@@ -85,6 +86,17 @@ describe("workout history and corrections", () => {
     expect((await getWorkoutHistoryPage(userId, logId, 2, 1)).entries[0].id).toBe(expected[1]);
     expect((await getWorkoutHistoryPage(userId, logId, 3, 1)).entries[0].id).toBe(ids[0]);
     expect(await getWorkoutHistoryDetail(userId, logId, discarded.id, 1, 12)).toBeNull();
+  });
+
+  it("shares the slug namespace between starts and historical grouping", async () => {
+    const running = await active();
+    const saved = await session();
+    const input = await grouping([saved.id]);
+    const historical = await createHistoricalWorkout(userId, logId, input);
+    expect(running.slug).toBe(`a-${date}`);
+    expect(historical.slug).toBe(`a-${date}-2`);
+    expect((await createHistoricalWorkout(userId, logId, input)).slug).toBe(historical.slug);
+    expect((await getWorkoutHistoryDetail(userId, logId, historical.slug, 1, 12))?.entry.id).toBe(historical.id);
   });
 
   it("keeps archived names and empty completed entries without altering training or rotation", async () => {
@@ -282,7 +294,7 @@ describe("workout history and corrections", () => {
       await saveRoutine(foreignUser, otherLog, { name: "Other", revision: 0, workouts: [{ id: "new:D", name: "D" }], nextId: "new:D" });
       await prisma.exercise.create({ data: { id: `${prefix}-foreign-exercise`, userId: foreignUser, logId: otherLog, title: "Foreign", slug: "foreign", sessionKind: "WEIGHTLIFTING" } });
       const foreignSession = await prisma.weightliftingSession.create({ data: { userId: foreignUser, logId: otherLog, exerciseId: `${prefix}-foreign-exercise`, performedAt: new Date(`${date}T00:00:00.000Z`) } });
-      const foreign = await prisma.workoutEntry.create({ data: { userId: foreignUser, logId: otherLog, routineId: (await getHistoryRoutine(foreignUser, otherLog))!.id, definitionId: (await getHistoryRoutine(foreignUser, otherLog))!.definitions[0].id, name: "D", status: "COMPLETED", performedAt: new Date(`${date}T00:00:00.000Z`), requestId: randomUUID() } });
+      const foreign = await prisma.workoutEntry.create({ data: { userId: foreignUser, logId: otherLog, routineId: (await getHistoryRoutine(foreignUser, otherLog))!.id, definitionId: (await getHistoryRoutine(foreignUser, otherLog))!.definitions[0].id, name: "D", slug: "foreign-fixture", status: "COMPLETED", performedAt: new Date(`${date}T00:00:00.000Z`), requestId: randomUUID() } });
       const saved = await session(); const input = await grouping([saved.id]);
       await expect(createHistoricalWorkout(foreignUser, logId, input)).rejects.toThrow("Log not found");
       await expect(createHistoricalWorkout(userId, logId, { ...input, sessionIds: [saved.id, foreignSession.id] })).rejects.toThrow("standalone sessions");
@@ -291,9 +303,11 @@ describe("workout history and corrections", () => {
       await expect(reassignWorkoutSession(userId, logId, await assignment(saved.id, foreign.id))).rejects.toThrow("session's date");
       const own = await createHistoricalWorkout(userId, logId, input);
       expect(await getWorkoutHistoryDetail(foreignUser, logId, own.id, 1, 12)).toBeNull();
+      expect(await getWorkoutHistoryDetail(foreignUser, logId, own.slug, 1, 12)).toBeNull();
       expect((await getWorkoutHistoryPage(userId, otherLog, 1, 12)).entries).toHaveLength(0);
       expect((await getSessionWorkoutCandidates(userId, otherLog, new Date(`${date}T00:00:00.000Z`), null, 1, 12)).entries).toHaveLength(0);
       await prisma.log.create({ data: { id: `${prefix}-same-user`, userId, title: "Second", slug: "second" } });
+      expect(await getWorkoutHistoryDetail(userId, `${prefix}-same-user`, own.slug, 1, 12)).toBeNull();
       await saveRoutine(userId, `${prefix}-same-user`, { name: "Second", revision: 0, workouts: [{ id: "new:S", name: "S" }], nextId: "new:S" });
       await prisma.exercise.create({ data: { id: `${prefix}-cross-log-exercise`, userId, logId: `${prefix}-same-user`, title: "Second", slug: "second", sessionKind: "WEIGHTLIFTING" } });
       const crossLogSession = await prisma.weightliftingSession.create({ data: { userId, logId: `${prefix}-same-user`, exerciseId: `${prefix}-cross-log-exercise`, performedAt: new Date(`${date}T00:00:00.000Z`) } });

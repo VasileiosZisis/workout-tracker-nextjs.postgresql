@@ -1,5 +1,10 @@
 # Milestone: Workout Routines and Scheduling
 
+Test command update (2026-11-05): `npm test` now runs the fast unit/mocked project.
+Use `npm run test:all -- features/workouts features/weightlifting features/exercises`
+for the complete feature regression checks referenced below. Integration tests
+use a dedicated local test database by default; see [Testing](../testing.md).
+
 ## Status
 
 The workout changes have been integrated with `main` on `preview`, preserving
@@ -460,6 +465,198 @@ sets, and volume. These rendered checks remain pending until actually performed.
 - Backdated entries, schedule edits, substitutions, and extra workouts preserve
   history and cannot accidentally advance today's schedule.
 - Regression review covers all styles, ownership, retries, and concurrent requests.
+
+## Routine UI Refactor: Dedicated Workout View
+
+Status: Implemented on 2026-11-05. Read-only general, security-isolation,
+training-integrity, and test-coverage reviews completed. Valid findings were fixed
+and received targeted re-review; no actionable findings remain. Automated checks
+and rendered desktop/mobile verification remain pending.
+This refactor preserves Tasks 1-4 data and scheduling behavior.
+
+### Task 1 Implementation
+
+- Replaced the large log panel with one compact next/active workout row. Start
+  immediately creates today's suggestion and opens its dedicated view; Continue
+  opens the active entry. Rest days/exhausted weeks offer Choose workout.
+  The log's exercise library stays intact; logs without routines show no row.
+- Reused the existing entry-detail route for active logging: remembered exercises,
+  recorded-session links, Log session/Log another session, other recorded sessions,
+  Choose another exercise, and Finish. History and confirmed Discard sit under
+  More. Completed entries retain their read-only paginated history display.
+- Added a dedicated start-options route for extras, substitutions, date choices,
+  and skips. Make-ups remain accessible through Schedule outcomes. Routine settings
+  link to history/outcomes/options and contain reset/next-workout configuration.
+  Removed the log-header history button and obsolete large-panel component.
+- Added focused owner-scoped summary and active-detail queries without loading
+  sets or the exercise library into the log's routine row. Active entries keep
+  their original performed date, including across calendar boundaries.
+- Added canonical start/end redirect wrappers over existing locked lifecycle
+  helpers. Stale forms and duplicate submissions retain the existing protections.
+  Finish/Discard return to the log; retrying Start after discard also returns there.
+- Workout-origin new-session forms return Back/Cancel/Save to the entry. Independent
+  forms retain session-detail redirects, as do explicit Standalone saves. Return
+  context is an entry ID validated inside the transaction, never an arbitrary URL.
+  Exact retries after Finish return to completed details; after Discard they open
+  the preserved standalone session without recreating training or suggestions.
+- Revalidate affected log/workout/history views on creation, edits, deletion, and
+  exercise changes. No schema/migration or metric-calculation changes were needed.
+- Added lifecycle/redirect/query, compact-state rendering, route ownership, shortcut
+  navigation, and return-context regression cases, including real foreign demo and
+  same-owner cross-log return IDs. The discard retry edge identified during review
+  was fixed and received targeted security/training-integrity re-review.
+- The three-step setup wizard, explicit exercise assignment, and persistent
+  today-only additions/replacements remain the next two UI-refactor tasks. Existing
+  automatic exercise remembering remains in this first task.
+
+### Suggested Checks (UI Refactor Task 1, Pending)
+
+```powershell
+npm run test -- features/workouts features/weightlifting features/exercises
+npm run typecheck
+npm run lint
+npm run build
+```
+
+On desktop and mobile, verify Start -> Log session -> Save -> workout view ->
+Finish -> log, plus Continue, Back/Cancel, ordinary session-detail redirects,
+external submit buttons, Standalone/date changes, server errors, empty Finish,
+confirmed Discard, rest-day options, make-ups, reset on Routine, and completed
+history. Check updates after session/exercise deletion or renaming. No scripts,
+dev server, migration, or rendered browser verification were run by the agent.
+
+## Routine UI Refactor Task 2: Guided Setup and Explicit Exercises
+
+Status: Implemented on 2026-11-05. Read-only general, security-isolation,
+training-integrity, and test-coverage reviews completed. Valid findings were fixed
+and received targeted re-review. A subsequent user-requested test run passed all
+196 tests across 25 files on 2026-11-05, after correcting a concurrency assertion
+to accept the same validation message from either valid error path. This is the
+pre-Task-3 baseline. Typecheck, lint, build, and desktop/mobile verification remain
+pending for Task 2.
+
+- New routines use three steps: routine/workout names and order, ordered exercises
+  for each workout, and scheduling. Each workout requires an exercise before final
+  creation. The picker searches and paginates owned weightlifting exercises, keeps
+  selections across navigation, and supports reusable inline exercise drafts.
+- The final action creates the entire routine, exercises, assignments, pointer,
+  initial schedule, and retry receipt in one transaction. Step navigation writes
+  no database records. Owner-scoped request IDs and immutable fingerprints protect
+  retries; validation, collisions, and late failures roll back the entire save.
+- Versioned drafts use session storage scoped to the authenticated user and log.
+  Refresh restores the step, selections, inline drafts, and original request ID;
+  restored exercises are revalidated. Cancel/success clear the draft. Failed
+  restoration preserves it and offers Retry; blocked storage allows in-memory use.
+- Existing routines show a compact overview with independent Edit workouts,
+  Edit exercises, and Edit scheduling sections. Legacy empty workouts remain
+  viewable. Exercise saves require a nonempty list, preserve retained assignment
+  IDs, and never change schedules, rotation, sessions, sets, or training metrics.
+  Saving one workout preserves unsaved exercise edits in other workout tabs;
+  conflicting changes to the same saved list require an explicit reload.
+- Existing exercise links and order now serve as explicit configuration. New
+  linked sessions, retries, edits, grouping, and corrections never add or restore
+  assignments. Unplanned sessions stay accessible in the dedicated workout view.
+  User-facing exercise text reflects this explicit configuration.
+- Active-workout restrictions, pending-schedule safeguards, weekly restart
+  confirmation, next-workout selection, reset, and deletion remain on Routine.
+  No schema migration, historical backfill, or metric changes were introduced.
+- Added setup/assignment transaction, ownership, picker, rollback, idempotency,
+  schedule-preservation, legacy-rendering, draft validation/storage lifecycle,
+  and explicit-no-learning regression coverage. The subsequent full feature test
+  run passed as recorded above.
+- Today-only exercise additions and replacement are delivered in UI-refactor Task 3 below.
+
+### Suggested Checks (UI Refactor Task 2, Pending)
+
+```powershell
+npm run test -- features/workouts features/weightlifting features/exercises
+npm run typecheck
+npm run lint
+npm run build
+```
+
+On desktop and mobile, complete all three setup steps for each scheduling style.
+Check workout/exercise ordering, cross-workout exercise reuse, picker searches and
+pages, inline creation, Back/Continue, and validation errors. Refresh during each
+step and confirm recovery keeps the request and selections; test failed restore
+Retry, Cancel, and successful creation clearing the draft. Confirm no exercises or
+routine exist before final submission. Test each independent editor, including
+unsaved changes in another workout tab during a save, stale submissions, active
+workout restrictions, pending schedule changes, weekly restart confirmation, and
+legacy empty workouts. Start the routine and confirm its dedicated view reflects
+saved assignments, while logging an unplanned exercise never adds an assignment.
+Confirm schedules/history and session sets/metrics stay unchanged after editing
+assignments. Actual component events and responsive layout remain manual checks.
+
+## Routine UI Refactor Task 3: Active Workout Exercise Changes
+
+Status: Implemented on 2026-11-05. Read-only general, security-isolation,
+training-integrity, and test-coverage reviews completed, including targeted
+re-review of the added scheduling regression cases. No actionable findings remain.
+The additive migration is written but unapplied. Task 3 automated checks and
+desktop/mobile verification are pending; no verification commands, Prisma
+generation, migrations, or browser checks were run during this task.
+
+- Added Add exercise and discreet Replace controls in the dedicated active view.
+  The inline picker searches and paginates existing owned weightlifting exercises
+  from the same log, retains selection across searches/pages, and requires explicit
+  confirmation. Cancel writes nothing. Enter in Search searches instead of saving.
+  Opening the picker focuses its search input, bringing it into view.
+- Added ordered WorkoutEntryExercise records and nullable exercisePlanRevision.
+  Both Start paths capture the actual chosen definition's assignments in the same
+  transaction, including substitutions, extras, and archived make-ups. Exact Start
+  retries never recapture or overwrite an edited list. Legacy active entries show
+  definition assignments until their first successful edit captures the list;
+  completed history is not backfilled or redesigned.
+- Additions append; replacements retain the row ID and position. Recorded sessions
+  retain their original exercises, dates, associations, sets, and metrics. Replaced
+  exercise sessions remain accessible under Other recorded sessions. Existing linked
+  sessions for a newly selected exercise immediately supply its Recorded status.
+- Daily mutations use owned Log -> Routine locks, per-entry revisions, owner-scoped
+  immutable request receipts, and transactional validation. Duplicate exercises,
+  stale/foreign/ended submissions and changed-input retries fail safely. Exact
+  successful retries do not reapply earlier edits. Owner-wide request collisions
+  across independently locked logs become recoverable conflicts with full rollback.
+- Daily changes leave permanent WorkoutExercise assignments, routine revisions,
+  schedule versions/slots, and the rotation pointer untouched. Future workouts use
+  the Routine list afresh. New unplanned sessions never teach either list.
+- Exercise deletion and eligible session-kind changes remove captured references
+  and invalidate affected plan revisions under the same locks. Legacy active lists
+  are captured before cleanup so stale null-revision forms also conflict. New links
+  cascade with exercise/entry/routine/log/user deletion, retaining the existing rule
+  that routine deletion preserves sessions and sets as standalone training.
+- Added lifecycle, ordering, session-start rollback/retry, legacy initialization,
+  request replay/collision, ownership/demo, concurrent edit/end/delete/session-save,
+  schedule-preservation, cleanup/cascade, and rendered-control regressions. Extended
+  scheduling coverage to prove capture follows the selected workout rather than the
+  continuous pointer. Tests were authored and reviewed, not run for Task 3.
+- Inline exercise creation, removal/reordering, and daily changes on exercise or
+  session detail pages remain outside this task. Permanent edits remain on Routine.
+
+### Suggested Checks (UI Refactor Task 3, Pending)
+
+Run against the intended development/test database, applying the additive migration
+and regenerating Prisma before running the feature tests or typecheck:
+
+```powershell
+npm run prisma:validate
+npm run prisma:deploy
+npm run prisma:generate
+npm run test:all -- features/workouts features/weightlifting features/exercises
+npm run typecheck
+npm run lint
+npm run build
+```
+
+On desktop and mobile, verify Add and Replace before/after logging, including an
+exercise already recorded outside the planned list. Check searches, pagination,
+selection retention, keyboard Enter, Cancel, validation/stale errors, refresh,
+and resuming an older active date. Confirm replaced sessions remain accessible,
+new sessions return correctly, and Finish/Discard retain their existing behavior.
+Repeat through both Start paths and continuous, weekly, and fixed schedules, plus
+substitutions/extras/make-ups. Confirm the next occurrence uses Routine assignments,
+completed history remains read-only, and daily changes preserve sets, metrics,
+permanent lists, and scheduling. Check deletion/type-change recovery and empty lists.
 
 ## Review and Verification
 

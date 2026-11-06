@@ -117,6 +117,7 @@ model Exercise {
   slug                  String
   sessionKind           SessionKind
   workoutSuggestions    WorkoutExercise[]
+  workoutEntryExercises WorkoutEntryExercise[]
   weightliftingSessions WeightliftingSession[]
   paceSessions          PaceSession[]
   intervalSessions      IntervalSession[]
@@ -199,6 +200,19 @@ model WorkoutExercise {
   @@index([definitionId, position])
 }
 
+model WorkoutEntryExercise {
+  id         String @id @default(cuid())
+  entryId    String
+  entry      WorkoutEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  position   Int
+
+  @@unique([entryId, exerciseId])
+  @@index([entryId, position])
+  @@index([exerciseId])
+}
+
 enum WorkoutEntryStatus {
   IN_PROGRESS
   COMPLETED
@@ -207,6 +221,7 @@ enum WorkoutEntryStatus {
 
 model WorkoutEntry {
   id           String @id @default(cuid())
+  slug         String
   userId       String
   user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
   logId        String
@@ -229,9 +244,12 @@ model WorkoutEntry {
   fulfilledSlot WorkoutSlot?
   completedAt  DateTime?
   sessions     WeightliftingSession[]
+  exercises    WorkoutEntryExercise[]
+  exercisePlanRevision Int?
   createdAt    DateTime @default(now())
 
   @@unique([userId, requestId])
+  @@unique([logId, slug])
   @@index([userId, logId, performedAt])
   @@index([routineId, status])
   // Migration also enforces one IN_PROGRESS entry per routine via a partial index.

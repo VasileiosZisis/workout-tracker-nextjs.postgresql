@@ -22,15 +22,15 @@ export async function getWorkoutHistoryPage(userId: string, logId: string, page:
   const { skip, ...pagination } = normalizePagination({ page, limit, totalItems });
   const entries = await prisma.workoutEntry.findMany({
     where, orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }], skip, take: pagination.limit,
-    select: { id: true, name: true, performedAt: true, _count: { select: { sessions: { where: ownedSession(userId, logId) } } } },
+    select: { id: true, slug: true, name: true, performedAt: true, _count: { select: { sessions: { where: ownedSession(userId, logId) } } } },
   });
   return { entries, pagination };
 }
 
-export async function getWorkoutHistoryDetail(userId: string, logId: string, entryId: string, page: number, limit: number) {
+export async function getWorkoutHistoryDetail(userId: string, logId: string, entryKey: string, page: number, limit: number) {
   const entry = await prisma.workoutEntry.findFirst({
-    where: { ...ownedEntry(userId, logId), id: entryId, status: { in: ["IN_PROGRESS", "COMPLETED"] } },
-    select: { id: true, name: true, performedAt: true, status: true, plannedName: true, scheduledDate: true, schedulingIntent: true },
+    where: { ...ownedEntry(userId, logId), OR: [{ slug: entryKey }, { id: entryKey }], status: { in: ["IN_PROGRESS", "COMPLETED"] } },
+    select: { id: true, slug: true, name: true, performedAt: true, status: true, plannedName: true, scheduledDate: true, schedulingIntent: true },
   });
   if (!entry) return null;
   const where = { ...ownedSession(userId, logId), workoutEntryId: entry.id };
@@ -63,7 +63,7 @@ export async function getSessionWorkoutCandidates(userId: string, logId: string,
   const { skip, ...pagination } = normalizePagination({ page, limit, totalItems });
   const entries = await prisma.workoutEntry.findMany({
     where, skip, take: pagination.limit, orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-    select: { id: true, name: true, status: true },
+    select: { id: true, slug: true, name: true, status: true },
   });
   return { entries, pagination };
 }

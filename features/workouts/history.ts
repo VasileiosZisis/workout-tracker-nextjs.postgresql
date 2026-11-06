@@ -5,6 +5,8 @@ import { performedDateSchema, requestIdSchema } from "./schema";
 import { lockWorkoutContext, WorkoutError } from "./service";
 import { claimEntrySlot, historicalSlotData } from "./scheduling";
 
+import { allocateWorkoutSlug } from "./entry-slug";
+
 const id = z.string().min(1).max(100);
 export const historicalWorkoutSchema = z.object({
   routineId: id,
@@ -58,6 +60,7 @@ export async function createHistoricalWorkout(userId: string, logId: string, raw
     const entry = await tx.workoutEntry.create({ data: {
       ...scheduling,
       userId, logId, routineId: routine.id, definitionId: definition.id, name: definition.name,
+      slug: await allocateWorkoutSlug(tx, logId, definition.name, input.performedDate),
       performedAt, status: "COMPLETED", completedAt: now, requestId: input.requestId,
       requestFingerprint: fingerprint,
     } });

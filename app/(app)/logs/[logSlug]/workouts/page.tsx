@@ -30,7 +30,7 @@ export default async function WorkoutHistoryPage({ params, searchParams }: {
     </section>
     <PaginationNav ariaLabel="Workout history pagination" baseHref={baseHref} {...pagination} placement="top" />
     {entries.length ? <section className="list section-block evidence-list" aria-label="Completed workouts">
-      {entries.map((entry) => <Link key={entry.id} className="list-item session-card" href={`${baseHref}/${entry.id}`}>
+      {entries.map((entry) => <Link key={entry.id} className="list-item session-card" href={`${baseHref}/${entry.slug}`}>
         <div><h2>{entry.name}</h2><p>{formatSessionDate(entry.performedAt)} · {entry._count.sessions ? `${entry._count.sessions} recorded sessions` : "No recorded sessions"}</p></div>
       </Link>)}
     </section> : <section className="empty-state section-block"><h2>No completed workouts yet</h2><p>Finish a workout or group existing standalone sessions to see it here.</p></section>}

@@ -5,7 +5,7 @@ import { cancelSchedule, saveSchedule, scheduleControl } from "./scheduling";
 import { endEntry, lockWorkoutContext, saveRoutine, startEntry, deleteRoutine, resolveSessionWorkout } from "./service";
 import { getScheduleContext, getScheduleWeek } from "./schedule-queries";
 import { createHistoricalWorkout, reassignWorkoutSession } from "./history";
-import { rememberWorkoutExercise } from "./suggestions";
+import { createWorkoutFixture } from "@/tests/fixtures/workout";
 
 const fault = vi.hoisted(() => ({ revision: false }));
 vi.mock("@/lib/db", async (importOriginal) => {
@@ -55,7 +55,7 @@ describe("workout scheduling lifecycle", () => {
     await prisma.user.create({ data: { id: foreignUser, demoExpiresAt: new Date(Date.now() + 3600000) } });
     await prisma.log.createMany({ data: [{ id: logId, userId, title: "Strength", slug: "strength" }, { id: foreignLog, userId: foreignUser, title: "Demo", slug: "demo" }] });
     await prisma.exercise.create({ data: { id: exerciseId, userId, logId, title: "Squat", slug: "squat", sessionKind: "WEIGHTLIFTING" } });
-    await saveRoutine(userId, logId, { name: "Split", revision: 0, workouts: ["A", "B", "C"].map((name) => ({ id: `new:${name}`, name })), nextId: "new:A" }, monday);
+    await createWorkoutFixture(userId, logId, ["A", "B", "C"].map((name) => ({ name })));
   });
   afterEach(async () => { await prisma.user.deleteMany({ where: { id: { in: [userId, foreignUser] } } }); });
   afterAll(async () => { await prisma.$disconnect(); });
@@ -75,16 +75,28 @@ describe("workout scheduling lifecycle", () => {
     expect(context.next?.name).toBe("C");
     expect(context.choices.map((item) => item.outcome)).toEqual(["MISSED", "PENDING"]);
     expect(context.choices).toHaveLength(2);
-    const extra = await start(await startInput(monday, { intent: "EXTRA", definitionId: (await getRoutine()).definitions[0].id }));
+    const extraDefinition = (await getRoutine()).definitions[0].id;
+    await prisma.workoutExercise.create({ data: { definitionId: extraDefinition, exerciseId, position: 0 } });
+    const extra = await start(await startInput(monday, { intent: "EXTRA", definitionId: extraDefinition }));
+    expect((await prisma.workoutEntryExercise.findMany({ where: { entryId: extra.id } })).map((item) => item.exerciseId)).toEqual([exerciseId]);
     await finish(extra);
     expect((await getScheduleContext(userId, logId, thursday))!.next?.name).toBe("C");
+    const scheduledExercise = await prisma.exercise.create({ data: { userId, logId, title: "Press", slug: "press", sessionKind: "WEIGHTLIFTING" } });
+    const routine = await getRoutine();
+    await prisma.workoutExercise.create({ data: { definitionId: routine.definitions[2].id, exerciseId: scheduledExercise.id, position: 0 } });
+    const scheduled = await start(await startInput(thursday), thursday);
+    expect(routine.nextDefinitionId).toBe(routine.definitions[0].id);
+    expect(scheduled.definitionId).toBe(routine.definitions[2].id);
+    expect((await prisma.workoutEntryExercise.findMany({ where: { entryId: scheduled.id } })).map((item) => item.exerciseId)).toEqual([scheduledExercise.id]);
   });
   it("substitutes a workout, fulfills exactly one slot, and allows no double completion", async () => {
     await configure("WEEKLY");
     const routine = await getRoutine();
+    await prisma.workoutExercise.create({ data: { definitionId: routine.definitions[2].id, exerciseId, position: 0 } });
     const input = await startInput(monday, { definitionId: routine.definitions[2].id });
     const [entry, retry] = await Promise.all([start(input), start(input)]);
     expect(entry.id).toBe(retry.id); expect(entry.name).toBe("C"); expect(entry.plannedName).toBe("A");
+    expect((await prisma.workoutEntryExercise.findMany({ where: { entryId: entry.id } })).map((item) => item.exerciseId)).toEqual([exerciseId]);
     await session(entry.id);
     await Promise.all([endEntry(userId, logId, entry.id, false, monday), endEntry(userId, logId, entry.id, false, monday)]);
     expect((await getScheduleContext(userId, logId, monday))!.next?.name).toBe("B");
@@ -240,9 +252,10 @@ describe("workout scheduling lifecycle", () => {
     expect((await getScheduleContext(userId, logId, monday))!.next?.name).toBe("B");
     expect((await getRoutine()).nextDefinitionId).toBe(routine.nextDefinitionId);
   });
-  it("supports atomic session-form starts and learning for an archived scheduled definition", async () => {
+  it("supports atomic session-form starts for an archived scheduled definition without changing assignments", async () => {
     await configure("FIXED");
     const context = (await getScheduleContext(userId, logId, thursday))!, routine = await getRoutine();
+    await prisma.workoutExercise.create({ data: { definitionId: context.choices[0].definitionId, exerciseId, position: 0 } });
     await prisma.workoutDefinition.update({ where: { id: context.choices[0].definitionId }, data: { archived: true } });
     const form = new FormData();
     for (const [key, value] of Object.entries({ workoutSelection: "start", routineId: routine.id, routineRevision: String(routine.revision), nextDefinitionId: routine.nextDefinitionId!, requestId: randomUUID(), schedulingIntent: "MAKEUP", scheduleId: context.id, slotKey: context.choices[0].key, chosenDefinitionId: context.choices[0].definitionId, scheduleToday: context.today })) form.set(key, value);
@@ -251,9 +264,10 @@ describe("workout scheduling lifecycle", () => {
       const locked = await lockWorkoutContext(tx, userId, logId);
       const id = await resolveSessionWorkout(tx, userId, logId, locked, form, date, thursday);
       await tx.weightliftingSession.create({ data: { userId, logId, exerciseId, workoutEntryId: id, performedAt: new Date(`${date}T00:00:00Z`) } });
-      await rememberWorkoutExercise(tx, userId, logId, id!, exerciseId);
     });
     expect(await prisma.workoutExercise.count({ where: { definitionId: context.choices[0].definitionId } })).toBe(1);
+    const captured = await prisma.workoutEntryExercise.findMany({ where: { entry: { userId, logId, schedulingIntent: "MAKEUP" } } });
+    expect(captured.map((item) => item.exerciseId)).toEqual([exerciseId]);
   });
   it("keeps reset/extra actions separate from progress and cascades schedules while keeping training", async () => {
     await configure("CONTINUOUS");

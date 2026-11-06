@@ -35,7 +35,7 @@ export function HistoricalGroupForm({ logId, logSlug, routine, date, requestId, 
         <Link href={`/logs/${logSlug}/exercises/${session.exercise.slug}/weightlifting/${session.id}`}>View session</Link>
       </div>)}
     </fieldset>
-    <p>This creates a completed workout without remembering exercises. Only an explicitly selected scheduled slot is fulfilled.</p>
+    <p>This creates a completed workout without changing its configured exercises. Only an explicitly selected scheduled slot is fulfilled.</p>
     {state.error ? <p className="form-error" role="alert">{state.error}</p> : null}
     <div className="form-actions"><button className="button" disabled={pending || !sessions.length}>{pending ? "Grouping…" : "Group selected sessions"}</button></div>
   </form>;
@@ -44,7 +44,7 @@ export function HistoricalGroupForm({ logId, logSlug, routine, date, requestId, 
 export function ReassignWorkoutForm({ logId, logSlug, routineId, session, candidates }: {
   logId: string; logSlug: string; routineId: string;
   session: { id: string; updatedAt: string; current: { id: string; name: string } | null };
-  candidates: { id: string; name: string; status: string }[];
+  candidates: { id: string; slug: string; name: string; status: string }[];
 }) {
   const [state, action, pending] = useActionState(reassignWorkoutAction, initial);
   return <form action={action} className="form-stack" aria-busy={pending}>
@@ -61,7 +61,7 @@ export function ReassignWorkoutForm({ logId, logSlug, routineId, session, candid
         <label className="radio-row"><input type="radio" name="targetEntryId" value={entry.id} required disabled={pending} />
           {entry.name} · {entry.status === "IN_PROGRESS" ? "In progress" : "Completed"}
         </label>
-        <Link href={`/logs/${logSlug}/workouts/${entry.id}`}>View workout</Link>
+        <Link href={`/logs/${logSlug}/workouts/${entry.slug}`}>View workout</Link>
       </div>)}
     </fieldset>
     <p>Only workouts on this session’s date are offered. Its date, sets, and training metrics stay the same.</p>

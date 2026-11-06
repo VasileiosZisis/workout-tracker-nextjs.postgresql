@@ -9,8 +9,8 @@ import { parsePagination } from "@/features/logs/pagination";
 import { getExercisesPage } from "@/features/exercises/queries";
 import { sessionKindLabels } from "@/features/exercises/types";
 import { randomUUID } from "node:crypto";
-import { getWorkoutPanel } from "@/features/workouts/queries";
-import { WorkoutPanel } from "@/features/workouts/components/workout-panel";
+import { getWorkoutSummary } from "@/features/workouts/queries";
+import { WorkoutSummary } from "@/features/workouts/components/workout-summary";
 
 export async function generateMetadata({
   params,
@@ -49,7 +49,7 @@ export default async function LogDetailPage({
     userId: user.id,
     logId: log.id,
     ...paginationInput,
-  }), getWorkoutPanel(user.id, log.id)]);
+  }), getWorkoutSummary(user.id, log.id)]);
 
   return (
     <main className="page">
@@ -57,7 +57,6 @@ export default async function LogDetailPage({
       <section className="page-header compact-header">
         <h1>{log.title}</h1>
         <div className="actions">
-          <Link className="button-secondary" href={`/logs/${log.slug}/workouts`}>Workout history</Link>
           <Link className="button-secondary" href={`/logs/${log.slug}/edit`}>
             Edit log
           </Link>
@@ -66,7 +65,7 @@ export default async function LogDetailPage({
           </Link>
         </div>
       </section>
-      <WorkoutPanel key={`${routine?.id ?? "new"}:${routine?.revision ?? 0}`} logId={log.id} logSlug={log.slug} routine={routine} requestId={randomUUID()} />
+      <WorkoutSummary key={`${routine?.id ?? "new"}:${routine?.revision ?? 0}:${routine?.schedule?.id}:${routine?.schedule?.today}`} logId={log.id} logSlug={log.slug} routine={routine} requestId={randomUUID()} />
       <div id="exercise-list" />
       <PaginationNav
         ariaLabel="Exercise pagination"

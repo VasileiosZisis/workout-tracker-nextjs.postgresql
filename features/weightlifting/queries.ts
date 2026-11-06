@@ -65,7 +65,7 @@ const findWeightliftingSessionById = cache(
         },
       },
       include: {
-        workoutEntry: { select: { id: true, name: true, performedAt: true } },
+        workoutEntry: { select: { id: true, slug: true, name: true, performedAt: true } },
         exercise: {
           include: {
             log: true,

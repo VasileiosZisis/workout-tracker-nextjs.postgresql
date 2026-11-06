@@ -49,7 +49,7 @@ export async function getScheduleWeek(userId: string, logId: string, date: strin
   const controls = await prisma.workoutScheduleRequest.findMany({ where: receiptWhere, skip: controlSkip, take: controlPagination.limit, orderBy: [{ outcomeDate: "desc" }, { id: "desc" }], select: { id: true, outcomeDate: true, name: true, operation: true, timezone: true } });
   const rows = await Promise.all(versions.map(async (plan) => {
     const slots = slotsForWeek(plan, date);
-    const stored = await prisma.workoutSlot.findMany({ where: { scheduleId: plan.id, key: { in: slots.map((slot) => slot.key) } }, include: { entry: { select: { id: true, name: true, performedAt: true, schedulingIntent: true } } } });
+    const stored = await prisma.workoutSlot.findMany({ where: { scheduleId: plan.id, key: { in: slots.map((slot) => slot.key) } }, include: { entry: { select: { id: true, slug: true, name: true, performedAt: true, schedulingIntent: true } } } });
     const today = localDate(now, plan.timezone);
     return slots.map((slot) => {
       const saved = stored.find((row) => row.key === slot.key);

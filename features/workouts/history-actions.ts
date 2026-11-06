@@ -12,6 +12,7 @@ import type { WorkoutActionState } from "./schema";
 function invalidate(logSlug: string) {
   revalidatePath(`/logs/${logSlug}`, "layout");
   revalidatePath(`/routine/${logSlug}`);
+  revalidatePath(`/routine/${logSlug}/edit`);
   revalidatePath("/routine");
 }
 
@@ -20,21 +21,21 @@ export async function groupHistoricalWorkoutAction(_state: WorkoutActionState, f
   const logId = String(form.get("logId") ?? "");
   const log = await prisma.log.findFirst({ where: { id: logId, userId: user.id }, select: { slug: true } });
   if (!log) return { error: "Log not found." };
-  let entryId: string;
+  let entrySlug: string;
   try {
     const entry = await createHistoricalWorkout(user.id, logId, {
       routineId: form.get("routineId"), revision: form.get("revision"), definitionId: form.get("definitionId"),
       performedDate: form.get("performedDate"), requestId: form.get("requestId"), sessionIds: form.getAll("sessionIds"),
       ...(form.has("scheduleId") ? { scheduleId: form.get("scheduleId"), slotKey: form.get("slotKey") } : {}),
     });
-    entryId = entry.id;
+    entrySlug = entry.slug;
   } catch (error) {
     if (error instanceof WorkoutError) return { error: error.message };
     if (error instanceof ZodError) return { error: error.issues[0]?.message ?? "Check the selected sessions." };
     throw error;
   }
   invalidate(log.slug);
-  redirect(`/logs/${log.slug}/workouts/${entryId}`);
+  redirect(`/logs/${log.slug}/workouts/${entrySlug}`);
 }
 
 export async function reassignWorkoutAction(_state: WorkoutActionState, form: FormData): Promise<WorkoutActionState> {

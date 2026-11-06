@@ -68,6 +68,7 @@ export async function workoutAction(_state: WorkoutActionState, form: FormData):
   }
   revalidatePath(`/logs/${log.slug}`, "layout");
   revalidatePath(`/routine/${log.slug}`);
+  revalidatePath(`/routine/${log.slug}/edit`);
   revalidatePath("/routine");
   return { success: "Workout updated." };
 }

@@ -351,7 +351,70 @@ describe("weightlifting actions", () => {
     expect((await getWorkoutSelection(userId, logId))?.active).toBeNull();
   });
 
-  it("creates a scheduled substitution atomically, learns it once, and rejects changed-intent retries", async () => {
+  it("returns workout-origin saves to the workout, including exact retries after Finish", async () => {
+    const current = await routine();
+    const initial = sessionForm(); selectStart(initial, current);
+    const first = await create(initial);
+    const form = sessionForm(); form.set("workoutSelection", first.workoutEntryId!); form.set("returnWorkoutEntryId", first.workoutEntryId!);
+    const workout = await prisma.workoutEntry.findUniqueOrThrow({ where: { id: first.workoutEntryId! } });
+    const path = `/logs/strength-log/workouts/${workout.slug}`;
+    await expect(createWeightliftingSessionAction({}, form)).rejects.toThrow(`NEXT_REDIRECT:${path}`);
+    expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(2);
+    await endEntry(userId, logId, first.workoutEntryId!, false);
+    await expect(createWeightliftingSessionAction({}, form)).rejects.toThrow(`NEXT_REDIRECT:${path}`);
+    expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(2);
+  });
+  it("returns an identical shortcut-save retry to session details after discard without recreating training", async () => {
+    const current = await routine();
+    const initial = sessionForm(); selectStart(initial, current); const first = await create(initial);
+    const form = sessionForm(); form.set("workoutSelection", first.workoutEntryId!); form.set("returnWorkoutEntryId", first.workoutEntryId!);
+    const saved = await create(form);
+    await endEntry(userId, logId, first.workoutEntryId!, true);
+    await expect(createWeightliftingSessionAction({}, form)).rejects.toThrow(`NEXT_REDIRECT:/logs/strength-log/exercises/bench-press/weightlifting/${saved.id}`);
+    expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(2);
+    expect((await prisma.weightliftingSession.findUniqueOrThrow({ where: { id: saved.id } })).workoutEntryId).toBeNull();
+  });
+  it("keeps ordinary and explicit standalone saves on session details, rejecting invalid workout return context", async () => {
+    const current = await routine();
+    const initial = sessionForm(); selectStart(initial, current); const first = await create(initial);
+    const plain = sessionForm(); plain.set("workoutSelection", first.workoutEntryId!);
+    const ordinary = await create(plain);
+    expect(redirect).toHaveBeenLastCalledWith(`/logs/strength-log/exercises/bench-press/weightlifting/${ordinary.id}`);
+    const standalone = sessionForm("2026-05-16"); standalone.set("workoutSelection", "standalone"); standalone.set("returnWorkoutEntryId", first.workoutEntryId!);
+    const detached = await create(standalone);
+    expect(detached.workoutEntryId).toBeNull();
+    expect(redirect).toHaveBeenLastCalledWith(`/logs/strength-log/exercises/bench-press/weightlifting/${detached.id}`);
+    const invalid = sessionForm(); invalid.set("workoutSelection", first.workoutEntryId!); invalid.set("returnWorkoutEntryId", "https://evil.example");
+    expect((await createWeightliftingSessionAction({}, invalid)).fieldErrors?.workoutSelection).toBeDefined();
+    invalid.set("returnWorkoutEntryId", first.workoutEntryId!); invalid.set("performedDate", "2026-05-16");
+    expect((await createWeightliftingSessionAction({}, invalid)).fieldErrors?.workoutSelection).toBeDefined();
+    await endEntry(userId, logId, first.workoutEntryId!, false);
+    invalid.set("performedDate", "2026-05-17");
+    expect((await createWeightliftingSessionAction({}, invalid)).fieldErrors?.workoutSelection).toBeDefined();
+    expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(3);
+  });
+
+  it.each(["foreign-user", "another-log"])("rejects %s workout return context on standalone saves without writes", async (scope) => {
+    await routine();
+    const otherUserId = `${testRunId}-return-demo`, otherLogId = `${testRunId}-return-log`;
+    const owner = scope === "foreign-user" ? otherUserId : userId;
+    try {
+      if (scope === "foreign-user") await prisma.user.create({ data: { id: otherUserId, demoExpiresAt: new Date(Date.now() + 3600000) } });
+      await prisma.log.create({ data: { id: otherLogId, userId: owner, title: "Other", slug: "other-return-log" } });
+      const foreignRoutine = await prisma.workoutRoutine.create({ data: { userId: owner, logId: otherLogId, name: "Other", definitions: { create: { name: "A", position: 0 } } }, include: { definitions: true } });
+      const foreignEntry = await prisma.workoutEntry.create({ data: { userId: owner, logId: otherLogId, routineId: foreignRoutine.id, definitionId: foreignRoutine.definitions[0].id, name: "A", slug: "a-2026-05-17", performedAt: new Date("2026-05-17"), requestId: randomUUID() } });
+      const form = sessionForm(); form.set("workoutSelection", "standalone"); form.set("returnWorkoutEntryId", foreignEntry.id);
+      vi.mocked(redirect).mockClear();
+      expect((await createWeightliftingSessionAction({}, form)).fieldErrors?.workoutSelection).toBeDefined();
+      expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(0);
+      expect(await prisma.weightliftingSet.count({ where: { session: { logId } } })).toBe(0);
+      expect(redirect).not.toHaveBeenCalled();
+    } finally {
+      if (scope === "foreign-user") await prisma.user.deleteMany({ where: { id: otherUserId } });
+    }
+  });
+
+  it("creates a scheduled substitution atomically without changing assignments and rejects changed-intent retries", async () => {
     const initial = await routine();
     await saveSchedule(userId, logId, { routineId: initial.routineId, revision: initial.revision, style: "WEEKLY", timezone: "UTC", weekStart: 1, effective: "today", confirmed: "yes", expectedScheduleId: "", expectedToday: initial.schedule!.today, assignments: [] });
     const current = (await getWorkoutSelection(userId, logId))!, schedule = current.schedule!;
@@ -362,7 +425,7 @@ describe("weightlifting actions", () => {
     expect(first.id).toBe(retry.id);
     const entry = await prisma.workoutEntry.findUniqueOrThrow({ where: { id: first.workoutEntryId! } });
     expect(entry.definitionId).toBe(chosen.id); expect(entry.plannedName).toBe("A");
-    expect(await prisma.workoutExercise.count({ where: { definitionId: chosen.id, exerciseId } })).toBe(1);
+    expect(await prisma.workoutExercise.count({ where: { definitionId: chosen.id, exerciseId } })).toBe(0);
     expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(1);
     const sets = await prisma.weightliftingSet.findMany({ where: { sessionId: first.id } });
     form.set("schedulingIntent", "EXTRA");

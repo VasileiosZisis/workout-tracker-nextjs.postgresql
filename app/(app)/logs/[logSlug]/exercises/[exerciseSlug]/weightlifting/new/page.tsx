@@ -48,10 +48,11 @@ export default async function NewWeightliftingSessionPage({
   if (requestedEntry !== undefined && (typeof requestedEntry !== "string" || workout?.active?.id !== requestedEntry)) {
     notFound();
   }
+  const returnPath = requestedEntry && workout?.active ? `/logs/${exercise.log.slug}/workouts/${workout.active.slug}` : exercisePath;
 
   return (
     <main className="page">
-      <BackLink href={exercisePath}>New session</BackLink>
+      <BackLink href={returnPath}>{requestedEntry ? workout?.active?.name ?? "Workout" : "New session"}</BackLink>
       <section className="page-header compact-header">
         <h1>{exercise.title}</h1>
       </section>
@@ -70,6 +71,7 @@ export default async function NewWeightliftingSessionPage({
           action={createWeightliftingSessionAction}
           exerciseId={exercise.id}
           workout={workout}
+          returnWorkoutEntryId={typeof requestedEntry === "string" ? requestedEntry : undefined}
           defaultPerformedDate={requestedEntry ? workout?.active?.date : workout?.schedule?.id ? workout.schedule.today : undefined}
           requestId={randomUUID()}
           formId={createSessionFormId}
@@ -78,7 +80,7 @@ export default async function NewWeightliftingSessionPage({
           submitLabel="Create session"
           footer={
             <div className="form-footer form-actions">
-              <Link className="button-secondary" href={exercisePath}>
+              <Link className="button-secondary" href={returnPath}>
                 Cancel
               </Link>
               <SubmitButton className="button" pendingLabel="Creating…">

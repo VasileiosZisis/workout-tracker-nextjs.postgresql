@@ -23,6 +23,7 @@ type WeightliftingSessionFormProps = {
   requestId?: string;
   workout?: WorkoutSelection | null;
   linkedWorkout?: { id: string; name: string; date: string } | null;
+  returnWorkoutEntryId?: string;
 };
 
 const initialState: WeightliftingActionState = {};
@@ -46,6 +47,7 @@ export function WeightliftingSessionForm({
   requestId,
   workout,
   linkedWorkout,
+  returnWorkoutEntryId,
 }: WeightliftingSessionFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [sets, setSets] = useState<WeightliftingFormSet[]>(
@@ -100,6 +102,7 @@ export function WeightliftingSessionForm({
     <form aria-busy={pending} action={formAction} id={formId} onSubmit={(event) => { if (pending) event.preventDefault(); }}>
       <div className="form-stack form-panel">
         {requestId ? <input type="hidden" name="requestId" value={requestId} /> : null}
+        {returnWorkoutEntryId ? <input type="hidden" name="returnWorkoutEntryId" value={returnWorkoutEntryId} /> : null}
         {starting ? <>
           <input type="hidden" name="schedulingIntent" value={startIntent} />
           <input type="hidden" name="scheduleId" value={makeupSlot?.scheduleId ?? schedule?.id ?? ""} />
@@ -141,7 +144,7 @@ export function WeightliftingSessionForm({
             {workout.definitions.map((definition) => <option key={definition.id} value={definition.id}>{definition.name}</option>)}
           </select></label> : null}
           {linkedWorkout && date !== linkedWorkout.date && selection !== "standalone" ? <p className="field-help">Select Standalone before saving a different date.</p> : null}
-          {!sessionId && activeWorkout && activeWorkout.date !== date ? <p className="field-help">A workout is in progress on {activeWorkout.date}. Finish or discard it from the log before starting another.</p> : null}
+          {!sessionId && activeWorkout && activeWorkout.date !== date ? <p className="field-help">A workout is in progress on {activeWorkout.date}. Finish or discard it from its workout page before starting another.</p> : null}
         </div> : <input type="hidden" name="workoutSelection" value="standalone" />}
         {state.fieldErrors?.workoutSelection ? <p className="form-error" role="alert">{state.fieldErrors.workoutSelection[0]}</p> : null}
         <div className="set-editor">

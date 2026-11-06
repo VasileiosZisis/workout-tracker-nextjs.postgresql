@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
@@ -47,17 +46,13 @@ export default async function EditLogPage({
           defaultTitle={log.title}
           logId={log.id}
           submitLabel="Save log"
+          cancelHref={`/logs/${log.slug}`}
         />
-        <div className="form-footer">
-          <Link className="button-secondary" href={`/logs/${log.slug}`}>
-            Cancel
-          </Link>
-        </div>
       </section>
       <section className="section-block narrow danger-zone">
         <h2>Delete log</h2>
         <p>Deleting a log cannot be undone.</p>
-        <DeleteLogForm logId={log.id} title={log.title} />
+        <DeleteLogForm logId={log.id} />
       </section>
     </main>
   );

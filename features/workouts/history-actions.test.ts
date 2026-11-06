@@ -28,12 +28,12 @@ describe("history actions", () => {
     // These mocks expose only the fields the action consumes; service behavior
     // and database contracts are exercised separately by history.test.ts.
     vi.mocked(prisma.log.findFirst).mockResolvedValue({ slug: "strength" } as Awaited<ReturnType<typeof prisma.log.findFirst>>);
-    vi.mocked(createHistoricalWorkout).mockResolvedValue({ id: "created-entry" } as Awaited<ReturnType<typeof createHistoricalWorkout>>);
+    vi.mocked(createHistoricalWorkout).mockResolvedValue({ id: "created-entry", slug: "push-2026-11-01" } as Awaited<ReturnType<typeof createHistoricalWorkout>>);
     vi.mocked(reassignWorkoutSession).mockResolvedValue({ id: "session", exercise: { slug: "squat" } } as Awaited<ReturnType<typeof reassignWorkoutSession>>);
   });
 
   it("groups only through the authenticated log and redirects to the resulting entry", async () => {
-    await expect(groupHistoricalWorkoutAction({}, form())).rejects.toThrow("NEXT_REDIRECT:/logs/strength/workouts/created-entry");
+    await expect(groupHistoricalWorkoutAction({}, form())).rejects.toThrow("NEXT_REDIRECT:/logs/strength/workouts/push-2026-11-01");
     expect(prisma.log.findFirst).toHaveBeenCalledWith({ where: { id: "owned-log", userId: "user-a" }, select: { slug: true } });
     expect(createHistoricalWorkout).toHaveBeenCalledWith("user-a", "owned-log", expect.objectContaining({ sessionIds: ["one", "two"], definitionId: "definition" }));
     expect(revalidatePath).toHaveBeenCalledWith("/logs/strength", "layout");

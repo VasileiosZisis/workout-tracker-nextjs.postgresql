@@ -38,7 +38,7 @@ export default async function ScheduleHistoryPage({ params, searchParams }: {
     {result.rows.length ? result.rows.map((slot) => <section className="section-block form-panel narrow" key={`${slot.scheduleId}:${slot.key}`}>
       <h2>{slot.name}</h2><p>{slot.style === "WEEKLY" ? "Week starting" : "Scheduled"}: {slot.date} ({slot.timezone}) · {slot.outcome.replaceAll("_", " ").toLowerCase()}</p>
       {slot.originalOutcome ? <p>Originally {slot.originalOutcome.toLowerCase()} · Made up{slot.entry ? ` on ${slot.entry.performedDate}` : ""}</p> : null}
-      {slot.entry ? <><p>Performed: {slot.entry.name} · {slot.entry.performedDate}{slot.entry.name !== slot.name ? " · Substitution" : ""}</p><Link href={`/logs/${log.slug}/workouts/${slot.entry.id}`}>View workout</Link></> : null}
+      {slot.entry ? <><p>Performed: {slot.entry.name} · {slot.entry.performedDate}{slot.entry.name !== slot.name ? " · Substitution" : ""}</p><Link href={`/logs/${log.slug}/workouts/${slot.entry.slug}`}>View workout</Link></> : null}
       {routine && !routine.active && (slot.outcome === "MISSED" || slot.outcome === "SKIPPED") ? <details><summary>Make up workout</summary>
         <WorkoutStartControls logId={log.id} logSlug={log.slug} routineId={routine.id} revision={routine.revision} nextId={routine.nextId} definitions={routine.definitions} schedule={routine.schedule} requestId={randomUUID()} makeup={slot} />
       </details> : null}

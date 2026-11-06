@@ -41,7 +41,7 @@ describe("workout logging shortcuts", () => {
     vi.mocked(getLatestWeightliftingSession).mockResolvedValue(null);
     vi.mocked(getWorkoutSelection).mockResolvedValue({
       routineId: "routine", revision: 4, nextId: "definition-a", nextName: "A",
-      active: { id: "active-entry", name: "A", date: "2026-10-12" },
+      active: { id: "active-entry", slug: "a-2026-10-12", name: "A", date: "2026-10-12" },
     });
   });
 
@@ -51,6 +51,10 @@ describe("workout logging shortcuts", () => {
     expect(form!.props.defaultPerformedDate).toBe("2026-10-12");
     expect(form!.props.workout?.active?.id).toBe("active-entry");
     expect(form!.props.exerciseId).toBe("squat");
+    expect(form!.props.returnWorkoutEntryId).toBe("active-entry");
+    const footer = form!.props.footer as ReactElement<{ children: ReactNode }>;
+    const cancel = Children.toArray(footer.props.children)[0] as ReactElement<{ href: string }>;
+    expect(cancel.props.href).toBe("/logs/strength/workouts/a-2026-10-12");
     expect(getWorkoutSelection).toHaveBeenCalledWith("user-a", "owned-log");
     expect(getWeightliftingExerciseBySlug).toHaveBeenCalledWith({ userId: "user-a", logSlug: "strength", exerciseSlug: "squat" });
   });
@@ -73,6 +77,7 @@ describe("workout logging shortcuts", () => {
   it("retains browser-local date defaults when opened without a shortcut", async () => {
     const form = sessionForm(await page());
     expect(form!.props.defaultPerformedDate).toBeUndefined();
+    expect(form!.props.returnWorkoutEntryId).toBeUndefined();
   });
   it("uses the confirmed routine-local date for a configured schedule", async () => {
     const current = (await getWorkoutSelection("user-a", "owned-log"))!;

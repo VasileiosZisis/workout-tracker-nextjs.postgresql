@@ -274,22 +274,55 @@ migration and `npm run prisma:generate` to refresh the client.
 Production requires both Google and Postmark credentials. Use separate credentials
 and databases for local, Preview, and Production environments.
 
+## AI-assisted development
+
+I use Codex for code exploration, implementation assistance, documentation, and
+review. I define the requirements and retain responsibility for technical
+decisions and accepting changes.
+
+- **Work in feature milestones.** The [delivery history](docs/05-delivery-history.md)
+  records the progression from authentication and owned logs to weightlifting,
+  pace, progress charts, and intervals. Milestone notes specify training rules,
+  implementation scope, focused tests, and manual user flows.
+- **Review the domains affected.** [Repository policy](AGENTS.md) calls for
+  implementation first, followed by relevant read-only
+  [review agents](.codex/agents/). Reviews target correctness, training calculations
+  such as volume and final-recovery totals, ownership and demo isolation, or
+  meaningful regression-test gaps. Findings are advisory and must be evaluated
+  before changes are accepted.
+- **Keep verification explicit.** Agents are instructed to provide exact manual
+  check commands rather than run npm scripts. The developer runs the applicable
+  checks and exercises user flows; an agent review does not establish that tests
+  or a build passed.
+
 ## Verification
 
-The suite includes pure calculation/schema tests and database integration tests
-for queries, actions, ownership, session kinds, and demo lifecycle behavior.
-Database tests use the configured `DATABASE_URL`, create and delete records, and
-run serially. Use a disposable development/test database with migrations applied
-and Prisma Client generated. No separate test database is selected automatically.
+`npm test` runs fast calculation, schema, rendering, and mocked-action tests in
+parallel, with real Prisma access blocked. Database integration tests run
+separately and remain serialized. `npm run test:all` runs both groups;
+`npm run check` also retains the complete suite.
+
+Integration tests default to a dedicated local PostgreSQL database on port 5433,
+provided by `compose.test.yml`. They never inherit the application's `DATABASE_URL`
+or `DIRECT_URL`. An optional `TEST_DATABASE_URL` in `.env.test.local` or the shell
+selects another disposable test database explicitly. These tests create and delete
+records. See [the testing guide](docs/testing.md) for setup, focused runs, and
+database configuration.
 
 | Command | Purpose |
 | --- | --- |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript without emitting files |
-| `npm test` | Complete Vitest suite, including database integration tests |
+| `npm test` | Fast unit and mocked tests; no database connection |
+| `npm run test:watch` | Watch fast tests during development |
+| `npm run test:integration` | Database integration tests against the dedicated test database |
+| `npm run test:all` | Complete Vitest suite, including database integration tests |
+| `npm run test:db:up` | Start the dedicated local PostgreSQL test service (Docker required) |
+| `npm run test:db:prepare` | Apply migrations to the test database and generate Prisma Client |
+| `npm run test:db:down` | Stop/remove the local test service; keep its named data volume |
 | `npm run build` | Generate Prisma Client and build Next.js |
 | `npm run prisma:validate` | Validate Prisma schema/configuration |
-| `npm run check` | Lint → typecheck → tests → production build |
+| `npm run check` | Lint → typecheck → complete test suite → production build |
 
 These scripts provide the local verification workflow. GitHub Actions CI and
 automated browser tests are not configured.

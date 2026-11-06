@@ -68,7 +68,7 @@ export default async function WeightliftingSessionPage({
         </div>
       </section>
       <section className="section-block">
-        {session.workoutEntry ? <p>Workout: <Link href={`/logs/${session.exercise.log.slug}/workouts/${session.workoutEntry.id}`}>{session.workoutEntry.name} · {formatSessionDate(session.workoutEntry.performedAt)}</Link></p> : null}
+        {session.workoutEntry ? <p>Workout: <Link href={`/logs/${session.exercise.log.slug}/workouts/${session.workoutEntry.slug}`}>{session.workoutEntry.name} · {formatSessionDate(session.workoutEntry.performedAt)}</Link></p> : null}
         <SessionSummary session={session} />
       </section>
       {routine && choices ? <details className="section-block form-panel workout-panel">

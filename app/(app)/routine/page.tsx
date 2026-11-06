@@ -4,6 +4,7 @@ import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { parsePagination } from "@/features/logs/pagination";
 import { getLogsPage } from "@/features/logs/queries";
+import { getRoutineNamesForLogs } from "@/features/workouts/queries";
 
 export const metadata: Metadata = { title: "Routine" };
 
@@ -15,6 +16,7 @@ export default async function RoutinePage({ searchParams }: {
     userId: user.id,
     ...parsePagination(await searchParams),
   });
+  const routineNames = await getRoutineNamesForLogs(user.id, logs.map((log) => log.id));
 
   return <main className="page">
     <section className="page-header">
@@ -27,9 +29,17 @@ export default async function RoutinePage({ searchParams }: {
     </section> : <>
       <PaginationNav ariaLabel="Routine log pagination" baseHref="/routine" {...pagination} placement="top" />
       <section className="list section-block evidence-list" aria-label="Logs for routine setup">
-        {logs.map((log) => <Link className="list-item session-card" href={`/routine/${log.slug}`} key={log.id}>
-          <div><h2>{log.title}</h2><p>Configure workout routine</p></div>
-        </Link>)}
+        {logs.map((log) => {
+          const routineName = routineNames.get(log.id);
+          return (
+            <Link className="list-item session-card" href={`/routine/${log.slug}`} key={log.id}>
+              <div>
+                <h2>{routineName ?? log.title}</h2>
+                <p>{routineName === undefined ? "Configure workout routine" : log.title}</p>
+              </div>
+            </Link>
+          );
+        })}
       </section>
       <PaginationNav ariaLabel="Routine log pagination" baseHref="/routine" {...pagination} placement="bottom" />
     </>}

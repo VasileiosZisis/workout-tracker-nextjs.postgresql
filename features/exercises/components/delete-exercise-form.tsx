@@ -1,42 +1,14 @@
-"use client";
-
-import { SubmitButton } from "@/components/submit-button";
-import { useState } from "react";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { deleteExerciseAction } from "../actions";
 
-export function DeleteExerciseForm({
-  exerciseId,
-  title,
-}: {
-  exerciseId: string;
-  title: string;
-}) {
-  const [confirmation, setConfirmation] = useState("");
-  const canDelete = confirmation === title;
-
+export function DeleteExerciseForm({ exerciseId }: { exerciseId: string }) {
   return (
-    <form className="delete-confirmation" action={deleteExerciseAction}>
+    <DeleteConfirmationForm
+      action={deleteExerciseAction}
+      label="I understand that this exercise will be deleted."
+      description="This removes the exercise and every session recorded for it."
+    >
       <input name="exerciseId" type="hidden" value={exerciseId} />
-      <label className="field">
-        <span>Type the exercise name to confirm</span>
-        <input
-          aria-describedby="delete-exercise-help"
-          autoComplete="off"
-          value={confirmation}
-          onChange={(event) => setConfirmation(event.target.value)}
-          type="text"
-        />
-      </label>
-      <p id="delete-exercise-help">
-        This removes the exercise and every session recorded for it.
-      </p>
-      <SubmitButton
-        className="danger-button"
-        pendingLabel="Deleting…"
-        disabled={!canDelete}
-      >
-        Confirm delete
-      </SubmitButton>
-    </form>
+    </DeleteConfirmationForm>
   );
 }
