@@ -67,7 +67,9 @@ describe("routine settings page ownership", () => {
     vi.mocked(getWorkoutPanel).mockResolvedValue(routine);
     const params = Promise.resolve({ logSlug: "strength" });
     let html = renderToStaticMarkup(await RoutineOverviewPage({ params }));
-    expect(html).toContain("Legacy split"); expect(html).toContain("<h2>A</h2>");
+    expect(html).toContain("Legacy split");
+    expect(html).toContain('<th scope="row">A</th>');
+    expect(html).toContain("No exercises assigned");
     expect(html).toContain("<p>Next workout · A</p>");
     expect(html).toContain('href="/routine/strength/edit"');
     expect(html).toContain('href="/logs/strength/workouts"');
@@ -89,8 +91,9 @@ describe("routine settings page ownership", () => {
     expect(pendingEdit).toContain("Schedule editor return path: /routine/strength");
     routine.active = { id: "entry", slug: "a-2026-10-12", definitionId: "a", name: "A", date: "2026-10-12", sessions: [], plannedName: null, scheduledDate: null };
     html = renderToStaticMarkup(await RoutineOverviewPage({ params }));
-    expect(html).toContain("Continue workout");
-    expect(html).not.toContain('href="/routine/strength/edit"');
+    expect(html).toContain("<p>A is in progress</p>");
+    expect(html).not.toContain('href="/logs/strength/workouts/a-2026-10-12"');
+    expect(html).toContain('href="/routine/strength/edit"');
     const blockedEdit = renderToStaticMarkup(await EditRoutinePage({ params }));
     expect(blockedEdit).toContain("<p>A is in progress</p>");
     expect(blockedEdit).not.toContain('aria-label="Edit routine sections"');

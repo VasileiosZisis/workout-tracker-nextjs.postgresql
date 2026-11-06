@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { WorkoutSummary } from "./components/workout-summary";
 import { ActiveWorkout } from "./components/active-workout";
 import { EntryExercisePicker } from "./components/entry-exercise-picker";
+import { WeightliftingSessionForm } from "@/features/weightlifting/components/weightlifting-session-form";
 import type { getWorkoutSummary, getActiveWorkoutDetail } from "./queries";
 
 // These assertions exercise rendered controls/links; mutation and lifecycle
@@ -19,6 +20,19 @@ function summary(): Summary {
 }
 const renderSummary = (routine: Summary | null) => renderToStaticMarkup(createElement(WorkoutSummary, { logId: "log", logSlug: "strength", routine, requestId: "request" }));
 describe("dedicated workout presentation", () => {
+  it("locks the workout and date fields on session forms opened from the workout", () => {
+    const linkedWorkout = { id: "entry", name: "Push", date: "2026-10-12" };
+    const props = { action: async () => ({}), submitLabel: "Save session", defaultPerformedDate: linkedWorkout.date };
+    const workout = { routineId: "routine", revision: 1, nextId: "push", nextName: "Push", active: { ...linkedWorkout, slug: "push-2026-10-12" } };
+    for (const context of [{ workout }, { sessionId: "session", linkedWorkout }]) {
+      const locked = renderToStaticMarkup(createElement(WeightliftingSessionForm, { ...props, ...context, returnWorkoutEntryId: linkedWorkout.id }));
+      expect(locked).not.toContain('<select id="workoutSelection"');
+      expect(locked).toContain('name="workoutSelection" value="entry"');
+      expect(locked).toMatch(/<input\b(?=[^>]*\bid="performedDate")(?=[^>]*\breadonly="")[^>]*>/i);
+      const ordinary = renderToStaticMarkup(createElement(WeightliftingSessionForm, { ...props, ...context }));
+      expect(ordinary).toContain('<select id="workoutSelection"');
+    }
+  });
   it("keeps daily pickers explicit, cancellable, and limited to existing exercises", () => {
     for (const change of [{ operation: "add" } as const, { operation: "replace", originalExerciseId: "squat" } as const]) {
       const html = renderToStaticMarkup(createElement(EntryExercisePicker, { logId: "log", entryId: "entry", intent: { requestId: "request", expectedRevision: null, change }, plannedIds: ["squat"], onClose: vi.fn() }));
@@ -65,13 +79,13 @@ describe("dedicated workout presentation", () => {
     entry.sessions = [{ id: "session", exercise }, { id: "other", exercise: { id: "row", title: "Row", slug: "row" } }];
     html = render();
     expect(html).toContain("<p>Recorded</p>"); expect(html).toContain("Edit session"); expect(html).toContain("Other recorded sessions");
-    expect(html).toContain('href="/logs/strength/exercises/squat/weightlifting/session/edit"');
+    expect(html).toContain('href="/logs/strength/exercises/squat/weightlifting/session/edit?workoutEntryId=entry"');
     expect(html).not.toContain("View session 1"); expect(html).toContain('/weightlifting/other');
     expect(html).toContain(">Add exercise</button>"); expect(html).toContain('aria-label="Replace Squat"'); expect(html).not.toContain("Choose another exercise"); expect(html).not.toContain("Workout history");
     expect(html).not.toMatch(/disabled=""[^>]*>Finish workout/);
     entry.sessions.push({ id: "second", exercise });
     html = render();
-    expect(html).toContain('/weightlifting/session/edit">Edit session 1');
-    expect(html).toContain('/weightlifting/second/edit">Edit session 2');
+    expect(html).toContain('/weightlifting/session/edit?workoutEntryId=entry">Edit session 1');
+    expect(html).toContain('/weightlifting/second/edit?workoutEntryId=entry">Edit session 2');
   });
 });

@@ -304,6 +304,22 @@ describe("weightlifting actions", () => {
     expect((await prisma.workoutEntry.findUniqueOrThrow({ where: { id: session.workoutEntryId! } })).status).toBe(completed ? "COMPLETED" : "IN_PROGRESS");
   });
 
+  it("locks workout-origin edits to the original entry and date", async () => {
+    const initial = sessionForm(); selectStart(initial, await routine());
+    const session = await create(initial);
+    const workout = await prisma.workoutEntry.findUniqueOrThrow({ where: { id: session.workoutEntryId! } });
+    const edit = sessionForm(); edit.set("sessionId", session.id); edit.set("returnWorkoutEntryId", workout.id);
+    edit.set("workoutSelection", "standalone");
+    expect((await updateWeightliftingSessionAction({}, edit)).fieldErrors?.workoutSelection).toBeDefined();
+    edit.set("workoutSelection", workout.id); edit.set("performedDate", "2026-05-16");
+    expect((await updateWeightliftingSessionAction({}, edit)).fieldErrors?.workoutSelection).toBeDefined();
+    edit.set("performedDate", "2026-05-17"); edit.set("sets.0.kilograms", "60");
+    await expect(updateWeightliftingSessionAction({}, edit)).rejects.toThrow(`NEXT_REDIRECT:/logs/strength-log/workouts/${workout.slug}`);
+    const updated = await prisma.weightliftingSession.findUniqueOrThrow({ where: { id: session.id } });
+    expect(updated.workoutEntryId).toBe(workout.id);
+    expect(Number(updated.workingVolume)).toBe(600);
+  });
+
   it("keeps an active entry after its last session or exercise is deleted", async () => {
     const current = await routine();
     const form = sessionForm(); selectStart(form, current);
@@ -380,7 +396,10 @@ describe("weightlifting actions", () => {
     const plain = sessionForm(); plain.set("workoutSelection", first.workoutEntryId!);
     const ordinary = await create(plain);
     expect(redirect).toHaveBeenLastCalledWith(`/logs/strength-log/exercises/bench-press/weightlifting/${ordinary.id}`);
-    const standalone = sessionForm("2026-05-16"); standalone.set("workoutSelection", "standalone"); standalone.set("returnWorkoutEntryId", first.workoutEntryId!);
+    const standalone = sessionForm("2026-05-16"); standalone.set("workoutSelection", "standalone");
+    standalone.set("returnWorkoutEntryId", first.workoutEntryId!);
+    expect((await createWeightliftingSessionAction({}, standalone)).fieldErrors?.workoutSelection).toBeDefined();
+    standalone.delete("returnWorkoutEntryId");
     const detached = await create(standalone);
     expect(detached.workoutEntryId).toBeNull();
     expect(redirect).toHaveBeenLastCalledWith(`/logs/strength-log/exercises/bench-press/weightlifting/${detached.id}`);
@@ -394,7 +413,7 @@ describe("weightlifting actions", () => {
     expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(3);
   });
 
-  it.each(["foreign-user", "another-log"])("rejects %s workout return context on standalone saves without writes", async (scope) => {
+  it.each(["foreign-user", "another-log"])("rejects %s workout return context without writes", async (scope) => {
     await routine();
     const otherUserId = `${testRunId}-return-demo`, otherLogId = `${testRunId}-return-log`;
     const owner = scope === "foreign-user" ? otherUserId : userId;
@@ -403,7 +422,7 @@ describe("weightlifting actions", () => {
       await prisma.log.create({ data: { id: otherLogId, userId: owner, title: "Other", slug: "other-return-log" } });
       const foreignRoutine = await prisma.workoutRoutine.create({ data: { userId: owner, logId: otherLogId, name: "Other", definitions: { create: { name: "A", position: 0 } } }, include: { definitions: true } });
       const foreignEntry = await prisma.workoutEntry.create({ data: { userId: owner, logId: otherLogId, routineId: foreignRoutine.id, definitionId: foreignRoutine.definitions[0].id, name: "A", slug: "a-2026-05-17", performedAt: new Date("2026-05-17"), requestId: randomUUID() } });
-      const form = sessionForm(); form.set("workoutSelection", "standalone"); form.set("returnWorkoutEntryId", foreignEntry.id);
+      const form = sessionForm(); form.set("workoutSelection", foreignEntry.id); form.set("returnWorkoutEntryId", foreignEntry.id);
       vi.mocked(redirect).mockClear();
       expect((await createWeightliftingSessionAction({}, form)).fieldErrors?.workoutSelection).toBeDefined();
       expect(await prisma.weightliftingSession.count({ where: { logId } })).toBe(0);

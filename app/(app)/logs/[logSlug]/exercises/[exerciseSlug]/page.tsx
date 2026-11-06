@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SessionKind } from "@/generated/prisma/enums";
 import { BackLink } from "@/components/back-link";
-import { MetricList } from "@/components/metric-list";
 import { PaginationNav } from "@/components/pagination-nav";
 import { requireUser } from "@/lib/auth";
 import { getExerciseBySlug } from "@/features/exercises/queries";
@@ -11,12 +10,8 @@ import { sessionKindLabels } from "@/features/exercises/types";
 import {
   formatDuration as formatIntervalDuration,
   formatSessionDate as formatIntervalSessionDate,
-  formatWorkRestRatio,
 } from "@/features/interval/format";
-import {
-  getIntervalSessionsPage,
-  getLatestIntervalSession,
-} from "@/features/interval/queries";
+import { getIntervalSessionsPage } from "@/features/interval/queries";
 import { parsePagination } from "@/features/logs/pagination";
 import {
   IntervalProgressChart,
@@ -34,19 +29,13 @@ import {
   formatPace,
   formatSessionDate as formatPaceSessionDate,
 } from "@/features/pace/format";
-import {
-  getLatestPaceSession,
-  getPaceSessionsPage,
-} from "@/features/pace/queries";
+import { getPaceSessionsPage } from "@/features/pace/queries";
 import {
   formatDecimal as formatWeightliftingDecimal,
   formatSessionDate as formatWeightliftingSessionDate,
 } from "@/features/weightlifting/format";
 import { calculateAverageWorkingLoad } from "@/features/weightlifting/metrics";
-import {
-  getLatestWeightliftingSession,
-  getWeightliftingSessionsPage,
-} from "@/features/weightlifting/queries";
+import { getWeightliftingSessionsPage } from "@/features/weightlifting/queries";
 
 function formatAverageWorkingLoad(
   sets: readonly {
@@ -128,10 +117,6 @@ export default async function ExerciseDetailPage({
             userId: user.id,
             exerciseId: exercise.id,
           }),
-          getLatestWeightliftingSession({
-            userId: user.id,
-            exerciseId: exercise.id,
-          }),
         ])
       : null;
   const paceData =
@@ -145,10 +130,6 @@ export default async function ExerciseDetailPage({
           }),
           getPaceProgressData({
             chartRange,
-            userId: user.id,
-            exerciseId: exercise.id,
-          }),
-          getLatestPaceSession({
             userId: user.id,
             exerciseId: exercise.id,
           }),
@@ -168,21 +149,14 @@ export default async function ExerciseDetailPage({
             userId: user.id,
             exerciseId: exercise.id,
           }),
-          getLatestIntervalSession({
-            userId: user.id,
-            exerciseId: exercise.id,
-          }),
         ])
       : null;
   const weightliftingSessions = weightliftingData?.[0] ?? null;
   const weightliftingProgressData = weightliftingData?.[1] ?? null;
-  const latestWeightliftingSession = weightliftingData?.[2] ?? null;
   const paceSessions = paceData?.[0] ?? null;
   const paceProgressData = paceData?.[1] ?? null;
-  const latestPaceSession = paceData?.[2] ?? null;
   const intervalSessions = intervalData?.[0] ?? null;
   const intervalProgressData = intervalData?.[1] ?? null;
-  const latestIntervalSession = intervalData?.[2] ?? null;
   const preservedChartParams = {
     chartFrom: chartRange.chartFrom || undefined,
     chartRange: chartRange.chartRange,
@@ -253,37 +227,6 @@ export default async function ExerciseDetailPage({
           </>
         ) : (
           <>
-            <section className="section-block" aria-label="Latest evidence">
-              <MetricList
-                items={[
-                  {
-                    label: "Working volume",
-                    value: latestWeightliftingSession
-                      ? formatWeightliftingDecimal(
-                          latestWeightliftingSession.workingVolume,
-                        )
-                      : "0",
-                    unit: "kg",
-                    tone: "lime",
-                  },
-                  {
-                    label: "Hard sets",
-                    value:
-                      latestWeightliftingSession?.sets.filter((set) => set.isHard)
-                        .length ?? 0,
-                    tone: "amber",
-                  },
-                  {
-                    label: "Average working load per rep",
-                    value: latestWeightliftingSession
-                      ? formatAverageWorkingLoad(latestWeightliftingSession.sets)
-                      : "—",
-                    unit: "kg",
-                    tone: "blue",
-                  },
-                ]}
-              />
-            </section>
             <WeightliftingProgressChart
               data={weightliftingProgressData}
               range={chartRange}
@@ -361,40 +304,6 @@ export default async function ExerciseDetailPage({
           </>
         ) : (
           <>
-            <section className="section-block" aria-label="Latest evidence">
-              <MetricList
-                items={[
-                  {
-                    label: "Pace",
-                    value:
-                      latestPaceSession && Number(latestPaceSession.pace) !== 0
-                        ? formatPace({
-                            paceMinutes: latestPaceSession.paceMinutes,
-                            paceSeconds: latestPaceSession.paceSeconds,
-                          })
-                        : "0 min/km",
-                    unit: "min/km",
-                    tone: "blue",
-                  },
-                  {
-                    label: "Distance",
-                    value: latestPaceSession
-                      ? formatPaceDecimal(latestPaceSession.distance)
-                      : "0",
-                    unit: "km",
-                    tone: "lime",
-                  },
-                  {
-                    label: "Speed",
-                    value: latestPaceSession
-                      ? formatPaceDecimal(latestPaceSession.speed)
-                      : "0",
-                    unit: "km/h",
-                    tone: "violet",
-                  },
-                ]}
-              />
-            </section>
             <PaceProgressChart data={paceProgressData} range={chartRange} />
             <section className="section-block">
               <div className="section-heading">
@@ -477,36 +386,6 @@ export default async function ExerciseDetailPage({
           </>
         ) : (
           <>
-            <section className="section-block" aria-label="Latest evidence">
-              <MetricList
-                items={[
-                  {
-                    label: "Total work",
-                    value: latestIntervalSession
-                      ? formatIntervalDuration(
-                          latestIntervalSession.totalWorkSeconds,
-                        )
-                      : "0:00",
-                    tone: "lime",
-                  },
-                  {
-                    label: "Rounds",
-                    value: latestIntervalSession?.rounds ?? 0,
-                    tone: "amber",
-                  },
-                  {
-                    label: "Work:rest ratio",
-                    value: latestIntervalSession
-                      ? formatWorkRestRatio(
-                          latestIntervalSession.workSeconds,
-                          latestIntervalSession.recoverySeconds,
-                        )
-                      : "—",
-                    tone: "blue",
-                  },
-                ]}
-              />
-            </section>
             <IntervalProgressChart
               data={intervalProgressData}
               range={chartRange}

@@ -9,11 +9,14 @@ export function BackLink({
   href: string;
 }>) {
   return (
-    <Link className="eyebrow eyebrow-link" href={href}>
-      <svg aria-hidden="true" viewBox="0 0 20 20">
-        <path d="m12.5 4-6 6 6 6" />
-      </svg>
+    <div className="eyebrow eyebrow-navigation">
+      <Link className="eyebrow-link" href={href}>
+        <svg aria-hidden="true" viewBox="0 0 20 20">
+          <path d="m12.5 4-6 6 6 6" />
+        </svg>
+        Back
+      </Link>
       <span>{children}</span>
-    </Link>
+    </div>
   );
 }

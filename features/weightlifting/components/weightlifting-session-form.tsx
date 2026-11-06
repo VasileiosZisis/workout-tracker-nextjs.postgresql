@@ -120,12 +120,12 @@ export function WeightliftingSessionForm({
         <input name="setCount" type="hidden" value={sets.length} />
         <div className="field">
           <label htmlFor="performedDate">Date</label>
-          <PerformedDateInput defaultValue={defaultPerformedDate} onDateChange={handleDateChange} />
+          <PerformedDateInput defaultValue={defaultPerformedDate} onDateChange={handleDateChange} readOnly={!!returnWorkoutEntryId} />
           {state.fieldErrors?.performedDate ? (
             <p className="form-error">{state.fieldErrors.performedDate[0]}</p>
           ) : null}
         </div>
-        {workout || linkedWorkout ? <div className="field">
+        {returnWorkoutEntryId ? <input type="hidden" name="workoutSelection" value={returnWorkoutEntryId} /> : workout || linkedWorkout ? <div className="field">
           <label htmlFor="workoutSelection">Workout</label>
           <input type="hidden" name="workoutSelection" value={starting ? "start" : selection} />
           <select id="workoutSelection" value={selection} required disabled={pending} onChange={(event) => { setSelection(event.target.value); setChosenDefinition(""); }}>

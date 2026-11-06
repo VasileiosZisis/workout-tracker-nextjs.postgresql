@@ -35,7 +35,7 @@ export function ActiveWorkout({ logId, logSlug, entry }: {
           </div>
           <div className="form-actions">
             {recorded.length ? recorded.map((session, index) => (
-              <Link key={session.id} className="button-secondary" href={`/logs/${logSlug}/exercises/${exercise.slug}/weightlifting/${session.id}/edit`}>
+              <Link key={session.id} className="button-secondary" href={`/logs/${logSlug}/exercises/${exercise.slug}/weightlifting/${session.id}/edit?workoutEntryId=${encodeURIComponent(entry.id)}`}>
                 {recorded.length === 1 ? "Edit session" : `Edit session ${index + 1}`}
               </Link>
             )) : <Link className="button-secondary" href={`/logs/${logSlug}/exercises/${exercise.slug}/weightlifting/new?workoutEntryId=${encodeURIComponent(entry.id)}`}>Add session</Link>}

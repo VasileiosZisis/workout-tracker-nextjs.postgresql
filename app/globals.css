@@ -337,20 +337,25 @@ input {
   text-transform: uppercase;
 }
 
+.eyebrow-navigation {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
+  align-items: center;
+  column-gap: 8px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .eyebrow-link {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding-inline: calc(1em + 6px);
-  text-align: center;
+  justify-self: start;
+  gap: 4px;
   text-decoration: none;
 }
 
 .eyebrow-link svg {
-  position: absolute;
-  left: 0;
+  flex: none;
   width: 20px;
   height: 20px;
   fill: none;
@@ -1063,7 +1068,8 @@ h2,
 }
 
 .workout-panel select[name="nextId"],
-.schedule-settings select {
+.schedule-settings select,
+.field select#workoutSelection {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23f4f7fb' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-position: right 10px center;
@@ -1515,7 +1521,8 @@ fieldset.field {
   padding: 18px 10px 10px;
 }
 
-.chart-data-disclosure {
+.chart-data-disclosure,
+.routine-workouts-panel {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
@@ -1583,19 +1590,21 @@ fieldset.field {
   border: 0;
 }
 
-.chart-table .chart-session-row td {
+.data-table .chart-session-row > :is(th, td) {
   color: var(--foreground);
+  font-size: inherit;
   font-weight: 700;
   text-align: center;
+  text-transform: none;
   vertical-align: middle;
 }
 
-.chart-table .chart-session-row:hover {
-  background: transparent;
+.routine-workouts-table tbody,
+.chart-set-row td {
+  background: rgba(96, 165, 250, 0.035);
 }
 
 .chart-set-row td {
-  background: rgba(96, 165, 250, 0.035);
   padding-block: 9px;
 }
 
@@ -1990,6 +1999,49 @@ fieldset.field {
 
 .data-table tr:last-child td {
   border-bottom: 0;
+}
+
+.data-table.routine-workouts-table {
+  display: table;
+  table-layout: fixed;
+  border: 0;
+  border-radius: 0;
+}
+
+.routine-workouts-table th,
+.routine-workouts-table td {
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.routine-workouts-table thead th:first-child {
+  width: 36%;
+}
+
+.routine-workouts-table tbody th {
+  color: var(--foreground);
+  font-size: inherit;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.routine-workouts-table tbody tr:last-child th {
+  border-bottom: 0;
+}
+
+.chart-table tbody tr:hover,
+.routine-workouts-table tbody tr:hover {
+  background: transparent;
+}
+
+.routine-exercise-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .danger-zone {

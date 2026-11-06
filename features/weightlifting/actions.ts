@@ -113,15 +113,15 @@ export async function createWeightliftingSessionAction(
     // Return navigation is deliberately separate from the immutable training
     // payload. Validate it before any writes, even for Standalone and retries.
     if (origin !== null) {
+      if (selection !== origin) throw new WorkoutError("Save to the originating workout.");
       const entry = await tx.workoutEntry.findFirst({ where: {
         id: origin, userId: user.id, logId: exercise.logId, routineId: routine?.id ?? "",
-        ...(selection !== "standalone" ? { performedAt: parsePerformedDate(parsed.data.performedDate) } : {}), log: { userId: user.id },
+        performedAt: parsePerformedDate(parsed.data.performedDate), log: { userId: user.id },
         routine: { userId: user.id, logId: exercise.logId },
         status: previous ? { in: ["IN_PROGRESS", "COMPLETED", "DISCARDED"] } : "IN_PROGRESS",
       }, select: { id: true } });
       if (!entry) throw new WorkoutError("The originating workout changed. Open the session form again.");
-      if (selection !== "standalone" && selection !== origin) throw new WorkoutError("Save to the originating workout or explicitly choose Standalone.");
-      if (selection === origin && (!previous || previous.workoutEntryId === origin)) returnWorkoutEntryId = origin;
+      if (!previous || previous.workoutEntryId === origin) returnWorkoutEntryId = origin;
     }
     if (previous) {
       return previous;
@@ -215,13 +215,18 @@ export async function updateWeightliftingSessionAction(
 
   const metrics = calculateWeightliftingMetrics(parsed.data.sets);
 
+  const origin = formData.get("returnWorkoutEntryId");
+  let workoutSlug: string | undefined;
   try {
   performedDateSchema.parse(parsed.data.performedDate);
-  await prisma.$transaction(async (tx) => {
+  workoutSlug = await prisma.$transaction(async (tx) => {
     await lockWorkoutContext(tx, user.id, existingSession.logId);
     const current = await tx.weightliftingSession.findFirst({ where: { id: existingSession.id, userId: user.id, logId: existingSession.logId, exercise: { userId: user.id, sessionKind: SessionKind.WEIGHTLIFTING } }, include: { workoutEntry: true } });
     if (!current) throw new WorkoutError("Session no longer exists.");
     const selection = String(formData.get("workoutSelection") ?? current.workoutEntryId ?? "standalone");
+    if (origin !== null && (typeof origin !== "string" || origin !== selection || origin !== current.workoutEntryId || current.workoutEntry?.status !== "IN_PROGRESS" || current.workoutEntry.performedAt.toISOString().slice(0, 10) !== parsed.data.performedDate)) {
+      throw new WorkoutError("The originating workout or date changed. Open the session from the workout again.");
+    }
     if (selection !== "standalone" && selection !== current.workoutEntryId) throw new WorkoutError("Moving sessions between workouts is not available yet. Choose Standalone to detach.");
     if (selection !== "standalone" && current.workoutEntry && (
       current.workoutEntry.userId !== user.id || current.workoutEntry.logId !== current.logId ||
@@ -252,6 +257,7 @@ export async function updateWeightliftingSessionAction(
         volume: decimalString(set.volume),
       })),
     });
+    return origin !== null ? current.workoutEntry?.slug : undefined;
   });
   } catch (error) {
     if (error instanceof WorkoutError) return { fieldErrors: { workoutSelection: [error.message] } };
@@ -265,7 +271,7 @@ export async function updateWeightliftingSessionAction(
   revalidatePath(`/logs/${existingSession.exercise.log.slug}`, "layout");
   revalidatePath(`${exercisePath}/weightlifting/${existingSession.id}`);
   revalidatePath(`${exercisePath}/weightlifting/${existingSession.id}/edit`);
-  redirect(`${exercisePath}/weightlifting/${existingSession.id}`);
+  redirect(workoutSlug ? `/logs/${existingSession.exercise.log.slug}/workouts/${workoutSlug}` : `${exercisePath}/weightlifting/${existingSession.id}`);
 }
 
 export async function deleteWeightliftingSessionAction(formData: FormData) {

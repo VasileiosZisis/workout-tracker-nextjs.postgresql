@@ -48,53 +48,55 @@ export default async function RoutineOverviewPage({ params }: {
       <section className="page-header compact-header">
         <h1>{routine.name}</h1>
         <div className="actions">
-          <Link className="button-secondary" href={logHref}>{log.title}</Link>
           <Link className="button-secondary" href={`${logHref}/workouts`}>Workout history</Link>
-          {!active && <Link className="button" href={`/routine/${log.slug}/edit`}>Edit routine</Link>}
+          <Link className="button" href={`/routine/${log.slug}/edit`}>Edit routine</Link>
         </div>
       </section>
 
       <section className="section-block" aria-labelledby="routine-schedule">
         <div className="section-heading"><h2 id="routine-schedule">Schedule</h2></div>
-        <div className="list-item session-card routine-workout-row">
+        <Link className="list-item session-card workout-summary-row" href={logHref}>
           <div>
             <h2>{scheduleLabel}</h2>
-            {!active && (nextName ? (
-              <p>{`Next workout · ${nextName}`}</p>
-            ) : (
-              <div className="session-metrics">
-                <span className="metric-pill">
-                  {schedule?.nextDate ? `Next scheduled date · ${schedule.nextDate}`
-                    : style === "WEEKLY" ? "Week complete" : "No workout queued"}
-                </span>
-              </div>
-            ))}
-            {active && <p>{active.name} is in progress</p>}
+            {active ? <p>{active.name} is in progress</p> : (
+              <p>
+                {nextName ? `Next workout · ${nextName}`
+                  : schedule?.nextDate ? `Next scheduled date · ${schedule.nextDate}`
+                  : style === "WEEKLY" ? "Week complete" : "No workout queued"}
+              </p>
+            )}
             {schedule?.pending && <p className="field-help">Schedule change pending for {schedule.pending.date}.</p>}
           </div>
-          {active && (
-            <Link className="button" href={`${logHref}/workouts/${active.slug}`}>Continue workout</Link>
-          )}
-        </div>
+        </Link>
       </section>
 
       <section className="section-block" aria-labelledby="routine-workouts">
         <div className="section-heading"><h2 id="routine-workouts">Workouts</h2></div>
-        <div className="list evidence-list">
-          {definitions.map((definition) => (
-              <article className="list-item session-card routine-workout-row" key={definition.id}>
-                <div>
-                  <h2>{definition.name}</h2>
-                  {definition.exercises.length > 0 && (
-                    <div className="session-metrics">
-                      {definition.exercises.map(({ id, exercise }) => (
-                        <span className="metric-pill" key={id}>{exercise.title}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </article>
-          ))}
+        <div className="routine-workouts-panel">
+          <table className="data-table routine-workouts-table" aria-labelledby="routine-workouts">
+            <thead>
+              <tr className="chart-session-row">
+                <th scope="col">Workout</th>
+                <th scope="col">Exercises</th>
+              </tr>
+            </thead>
+            <tbody>
+              {definitions.map((definition) => (
+                <tr key={definition.id}>
+                  <th scope="row">{definition.name}</th>
+                  <td>
+                    {definition.exercises.length === 0 ? "No exercises assigned" : (
+                      <ul className="routine-exercise-list" role="list">
+                        {definition.exercises.map(({ id, exercise }) => (
+                          <li key={id}>{exercise.title}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
     </main>

@@ -5,10 +5,11 @@ import { useEffect, useRef } from "react";
 
 type PerformedDateInputProps = {
   defaultValue?: string;
+  readOnly?: boolean;
   onDateChange?: (value: string) => void;
 };
 
-export function PerformedDateInput({ defaultValue, onDateChange }: PerformedDateInputProps) {
+export function PerformedDateInput({ defaultValue, onDateChange, readOnly }: PerformedDateInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const initialized = useRef(false);
   const edited = useRef(false);
@@ -42,6 +43,7 @@ export function PerformedDateInput({ defaultValue, onDateChange }: PerformedDate
       name="performedDate"
       type="date"
       defaultValue={defaultValue}
+      readOnly={readOnly}
       onChange={(event) => {
         edited.current = true;
         onDateChange?.(event.target.value);

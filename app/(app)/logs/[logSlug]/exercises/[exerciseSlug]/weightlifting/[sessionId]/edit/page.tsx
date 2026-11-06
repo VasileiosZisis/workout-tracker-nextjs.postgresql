@@ -33,8 +33,10 @@ export async function generateMetadata({
 
 export default async function EditWeightliftingSessionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ sessionId: string }>;
+  searchParams: Promise<{ workoutEntryId?: string | string[] }>;
 }) {
   const user = await requireUser();
   const { sessionId } = await params;
@@ -49,10 +51,14 @@ export default async function EditWeightliftingSessionPage({
 
   const exercisePath = `/logs/${session.exercise.log.slug}/exercises/${session.exercise.slug}`;
   const sessionPath = `${exercisePath}/weightlifting/${session.id}`;
+  const requestedEntry = (await searchParams).workoutEntryId;
+  const workoutOrigin = requestedEntry !== undefined ? session.workoutEntry : null;
+  if (requestedEntry !== undefined && (!workoutOrigin || workoutOrigin.id !== requestedEntry || workoutOrigin.status !== "IN_PROGRESS")) notFound();
+  const returnPath = workoutOrigin ? `/logs/${session.exercise.log.slug}/workouts/${workoutOrigin.slug}` : sessionPath;
 
   return (
     <main className="page">
-      <BackLink href={sessionPath}>Edit session</BackLink>
+      <BackLink href={returnPath}>{workoutOrigin?.name ?? "Edit session"}</BackLink>
       <section className="page-header compact-header">
         <h1>{formatSessionDate(session.performedAt)}</h1>
       </section>
@@ -68,12 +74,13 @@ export default async function EditWeightliftingSessionPage({
           formId={editSessionFormId}
           moveAddSetToActions
           sessionId={session.id}
+          returnWorkoutEntryId={workoutOrigin?.id}
           linkedWorkout={session.workoutEntry ? { id: session.workoutEntry.id, name: session.workoutEntry.name, date: formatSessionDate(session.workoutEntry.performedAt) } : null}
           showSubmitButton={false}
           submitLabel="Save session"
           footer={
             <div className="form-footer form-actions">
-              <Link className="button-secondary" href={sessionPath}>
+              <Link className="button-secondary" href={returnPath}>
                 Cancel
               </Link>
               <SubmitButton className="button" pendingLabel="Saving…">
