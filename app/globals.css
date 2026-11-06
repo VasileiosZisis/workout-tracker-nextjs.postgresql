@@ -380,6 +380,10 @@ h1 {
 
 h2 {
   margin-bottom: 8px;
+}
+
+h2,
+.routine-steps {
   font-size: 1.15rem;
 }
 
@@ -648,6 +652,10 @@ h2 {
   margin-top: 32px;
 }
 
+.workout-detail-page .section-block {
+  margin-top: 0;
+}
+
 .narrow {
   max-width: 560px;
 }
@@ -684,22 +692,26 @@ h2 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+.routine-workout-row > .button {
+  align-self: center;
+}
+
 .list-item h2 {
   margin-bottom: 4px;
 }
 
-.list-item:hover,
+.list-item:where(:not(.routine-workout-row)):hover,
 .list-item:focus-visible {
   border-color: rgba(96, 165, 250, 0.34);
   background: #111827;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
 }
 
-.list-item:hover {
+.list-item:where(:not(.routine-workout-row)):hover {
   transform: translateY(-1px);
 }
 
-.list-item:hover h2,
+.list-item:where(:not(.routine-workout-row)):hover h2,
 .text-link:hover {
   color: var(--accent-strong);
 }
@@ -837,6 +849,34 @@ h2 {
   justify-self: end;
 }
 
+.pagination.pagination-inline {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.pagination-inline > button:first-child {
+  justify-self: start;
+}
+
+.pagination-inline > .pagination-status {
+  justify-self: center;
+}
+
+.pagination-inline > button:last-child {
+  justify-self: end;
+}
+
+.pagination-inline button.text-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.pagination-inline button.text-link:disabled {
+  color: var(--muted);
+  text-decoration: none;
+}
+
 .pagination-page-size {
   gap: 10px;
   justify-self: start;
@@ -894,6 +934,141 @@ h2 {
   color: var(--foreground);
   font: inherit;
   padding: 8px 10px;
+}
+
+.workout-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.workout-summary-row:where(:not(.list-item)) {
+  gap: 12px;
+}
+
+.workout-summary-row > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.workout-summary-row form {
+  flex-shrink: 0;
+}
+
+.workout-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.workout-panel :where(form, fieldset, label, details),
+.field select {
+  min-width: 0;
+}
+
+.workout-panel summary {
+  cursor: pointer;
+  padding-block: 10px;
+}
+
+.workout-panel details[open] > summary {
+  margin-bottom: 12px;
+}
+
+.workout-panel ul {
+  padding-inline-start: 20px;
+  overflow-wrap: anywhere;
+}
+
+.workout-panel .workout-exercise-list {
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 0;
+}
+
+.workout-exercise-list > li {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.workout-exercise-info > h3 {
+  margin: 0 0 4px;
+}
+
+.workout-name-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.routine-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  row-gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--foreground);
+}
+
+.routine-edit-steps button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 6px;
+}
+
+.routine-steps [aria-current="step"],
+.routine-edit-steps button[aria-pressed="true"] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.routine-fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.routine-schedule-choice .field-help {
+  display: block;
+  font-weight: 400;
+}
+
+.exercise-picker .chart-series-toggle input {
+  flex: 0 0 16px;
+}
+
+.entry-exercise-options {
+  margin: 0;
+}
+
+.workout-name-field > span {
+  white-space: nowrap;
+}
+
+.field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--foreground);
+  font: inherit;
+  padding: 8px 10px;
+}
+
+.workout-panel select[name="nextId"],
+.schedule-settings select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23f4f7fb' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  padding-right: 30px;
 }
 
 .field input[type="date"],
@@ -1669,7 +1844,8 @@ fieldset.field {
   opacity: 0;
 }
 
-.chart-metric-options span {
+.chart-metric-options span,
+.routine-workout-options > button {
   display: block;
   min-width: 94px;
   border-radius: 5px;
@@ -1684,15 +1860,35 @@ fieldset.field {
     box-shadow 160ms var(--ease-standard);
 }
 
-.chart-metric-options label:hover span {
+.routine-workout-options {
+  --workout-option-gap: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--workout-option-gap);
+  width: 100%;
+}
+
+.routine-workout-options > button {
+  flex: 1 0 calc((100% - 5 * var(--workout-option-gap)) / 6);
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.chart-metric-options label:hover span,
+.routine-workout-options > button[aria-pressed="false"]:hover {
   color: var(--foreground);
 }
 
-.chart-metric-options input:checked + span {
+.chart-metric-options input:checked + span,
+.routine-workout-options > button[aria-pressed="true"] {
   color: #07111f;
 }
 
-.chart-metric-options input[value="pace"]:checked + span {
+.chart-metric-options input[value="pace"]:checked + span,
+.routine-workout-options > button[aria-pressed="true"] {
   background: var(--accent);
   box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
 }
@@ -1847,6 +2043,10 @@ fieldset.field {
   gap: 12px;
 }
 
+.delete-confirmation > .radio-row {
+  padding-top: 8px;
+}
+
 .delete-confirmation p {
   margin: 0;
   color: var(--muted-strong);
@@ -1905,7 +2105,7 @@ fieldset.field {
     left: 12px;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     border: 1px solid var(--border-strong);
     border-radius: 12px;

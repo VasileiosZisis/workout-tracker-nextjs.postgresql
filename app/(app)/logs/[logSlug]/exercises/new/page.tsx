@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { requireUser } from "@/lib/auth";
@@ -35,12 +34,8 @@ export default async function NewExercisePage({
           action={createExerciseAction}
           logId={log.id}
           submitLabel="Create exercise"
+          cancelHref={`/logs/${log.slug}`}
         />
-        <div className="form-footer">
-          <Link className="button-secondary" href={`/logs/${log.slug}`}>
-            Cancel
-          </Link>
-        </div>
       </section>
     </main>
   );

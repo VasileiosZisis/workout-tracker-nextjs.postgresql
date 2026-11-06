@@ -9,6 +9,8 @@ import { SessionSummary } from "@/features/weightlifting/components/session-summ
 import { WeightliftingSessionForm } from "@/features/weightlifting/components/weightlifting-session-form";
 import { formatSessionDate } from "@/features/weightlifting/format";
 import { getLatestWeightliftingSession, getWeightliftingExerciseBySlug } from "@/features/weightlifting/queries";
+import { randomUUID } from "node:crypto";
+import { getWorkoutSelection } from "@/features/workouts/queries";
 
 export const metadata: Metadata = {
   title: "New Weightlifting Session",
@@ -18,8 +20,10 @@ const createSessionFormId = "create-weightlifting-session-form";
 
 export default async function NewWeightliftingSessionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ logSlug: string; exerciseSlug: string }>;
+  searchParams: Promise<{ workoutEntryId?: string | string[] }>;
 }) {
   const user = await requireUser();
   const { logSlug, exerciseSlug } = await params;
@@ -39,10 +43,16 @@ export default async function NewWeightliftingSessionPage({
   });
 
   const exercisePath = `/logs/${exercise.log.slug}/exercises/${exercise.slug}`;
+  const workout = await getWorkoutSelection(user.id, exercise.logId);
+  const requestedEntry = (await searchParams).workoutEntryId;
+  if (requestedEntry !== undefined && (typeof requestedEntry !== "string" || workout?.active?.id !== requestedEntry)) {
+    notFound();
+  }
+  const returnPath = requestedEntry && workout?.active ? `/logs/${exercise.log.slug}/workouts/${workout.active.slug}` : exercisePath;
 
   return (
     <main className="page">
-      <BackLink href={exercisePath}>New session</BackLink>
+      <BackLink href={returnPath}>{requestedEntry ? workout?.active?.name ?? "Workout" : "New session"}</BackLink>
       <section className="page-header compact-header">
         <h1>{exercise.title}</h1>
       </section>
@@ -60,13 +70,17 @@ export default async function NewWeightliftingSessionPage({
         <WeightliftingSessionForm
           action={createWeightliftingSessionAction}
           exerciseId={exercise.id}
+          workout={workout}
+          returnWorkoutEntryId={typeof requestedEntry === "string" ? requestedEntry : undefined}
+          defaultPerformedDate={requestedEntry ? workout?.active?.date : workout?.schedule?.id ? workout.schedule.today : undefined}
+          requestId={randomUUID()}
           formId={createSessionFormId}
           moveAddSetToActions
           showSubmitButton={false}
           submitLabel="Create session"
           footer={
             <div className="form-footer form-actions">
-              <Link className="button-secondary" href={exercisePath}>
+              <Link className="button-secondary" href={returnPath}>
                 Cancel
               </Link>
               <SubmitButton className="button" pendingLabel="Creating…">
